@@ -1,0 +1,15 @@
+{
+  "name": "@happy-js/happy-opfs",
+  "version": "1.0.0",
+  "exports": "./src/mod.ts",
+  "publish": {
+    "include": [
+      "LICENSE",
+      "README.md",
+      "README.cn.md",
+      "package.json",
+      "jsr.json",
+      "src/**/*.ts"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "cSpell.words": [
+        "Deno",
+        "nosideeffects",
+        "opfs"
+    ]
+}
