@@ -3,16 +3,18 @@ import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { CURRENT_DIR, ROOT_DIR } from './constants.ts';
 
 /**
- * the root directory handle
- *
- * shake annotations
- *
- * [bun](https://bun.sh/blog/bun-bundler#tree-shaking)
- * [parcel](https://parceljs.org/features/scope-hoisting/#pure-annotations)
- * [esbuild](https://esbuild.github.io/api/#pure)
- * [closure-compiler](https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#nosideeffects-modifies-thisarguments)
+ * cache the root directory handle
  */
-export const fsRoot = /**#__PURE__*//**@__PURE__*//**@nosideeffects*/navigator?.storage?.getDirectory?.();
+let fsRoot: FileSystemDirectoryHandle;
+
+/**
+ * get cached root directory handle
+ * @returns
+ */
+async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
+    fsRoot ??= await navigator.storage.getDirectory();
+    return fsRoot;
+}
 
 /**
  * 是否支持OPFS
@@ -80,7 +82,7 @@ export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, f
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): Promise<Result<FileSystemDirectoryHandle, Error>> {
     // 从root开始向下创建
-    let dirHandle = await fsRoot;
+    let dirHandle = await getFsRoot();
 
     if (isRootPath(dirPath)) {
         // 根路径无需创建
