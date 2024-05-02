@@ -1,7 +1,7 @@
-import { Ok, type Result } from '@happy-js/happy-rusty';
+import { Ok } from '@happy-js/happy-rusty';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import { FileEncoding, type ExistsOptions, type WriteFileContent } from './defines.ts';
-import { readFile as readFileContent, stat, writeFile } from './opfs_core.ts';
+import { FileEncoding, type ExistsOptions, type FsAsyncResult, type WriteFileContent } from './defines.ts';
+import { readFile, stat, writeFile } from './opfs_core.ts';
 
 /**
  * 将内容写入文件末尾
@@ -9,7 +9,7 @@ import { readFile as readFileContent, stat, writeFile } from './opfs_core.ts';
  * @param contents 写入内容
  * @returns
  */
-export function appendFile(filePath: string, contents: WriteFileContent): Promise<Result<boolean, Error>> {
+export function appendFile(filePath: string, contents: WriteFileContent): FsAsyncResult<boolean> {
     return writeFile(filePath, contents, {
         append: true,
     });
@@ -19,14 +19,14 @@ export function appendFile(filePath: string, contents: WriteFileContent): Promis
  * 检查路径是否存在
  * @param path 要检查的文件（夹）路径
  */
-export async function exists(path: string, options?: ExistsOptions): Promise<Result<boolean, Error>> {
+export async function exists(path: string, options?: ExistsOptions): FsAsyncResult<boolean> {
     const status = await stat(path);
     if (status.isErr()) {
         if (status.err().name === NOT_FOUND_ERROR) {
             return Ok(false);
         }
         // reuse
-        return status as Result<boolean, Error>;
+        return status;
     }
 
     const { isDirectory = false, isFile = false } = options ?? {};
@@ -44,23 +44,14 @@ export async function exists(path: string, options?: ExistsOptions): Promise<Res
 }
 
 /**
- * 以二进制格式读取文件
- * @param filePath 要读取的文件路径
- * @returns
- */
-export async function readFile(filePath: string): Promise<Result<ArrayBuffer, Error>> {
-    return readFileContent(filePath) as Promise<Result<ArrayBuffer, Error>>;
-}
-
-/**
  * 以Blob格式读取文件
  * @param filePath 要读取的文件路径
  * @returns
  */
-export function readBlobFile(filePath: string): Promise<Result<Blob, Error>> {
-    return readFileContent(filePath, {
+export function readBlobFile(filePath: string): FsAsyncResult<Blob> {
+    return readFile(filePath, {
         encoding: FileEncoding.blob,
-    }) as Promise<Result<Blob, Error>>;
+    });
 }
 
 /**
@@ -68,8 +59,8 @@ export function readBlobFile(filePath: string): Promise<Result<Blob, Error>> {
  * @param filePath 要读取的文件路径
  * @returns
  */
-export function readTextFile(filePath: string): Promise<Result<string, Error>> {
-    return readFileContent(filePath, {
+export function readTextFile(filePath: string): FsAsyncResult<string> {
+    return readFile(filePath, {
         encoding: FileEncoding.utf8,
-    }) as Promise<Result<string, Error>>;
+    });
 }

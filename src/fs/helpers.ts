@@ -1,6 +1,7 @@
-import { Err, Ok, type Result } from '@happy-js/happy-rusty';
+import { Err, Ok } from '@happy-js/happy-rusty';
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { CURRENT_DIR, ROOT_DIR } from './constants.ts';
+import type { FsAsyncResult } from './defines.ts';
 
 /**
  * cache the root directory handle
@@ -49,7 +50,7 @@ export function isCurrentDir(dirPath: string): boolean {
  * @param options
  * @returns
  */
-export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): Promise<Result<FileSystemDirectoryHandle, Error>> {
+export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): FsAsyncResult<FileSystemDirectoryHandle> {
     const handle = await dirHandle.getDirectoryHandle(dirName, options).catch((err: DOMException) => {
         console.warn(`getChildDirHandle of ${ dirName } fail: ${ err.name }, ${ err.message }`);
         return err;
@@ -65,7 +66,7 @@ export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, di
  * @param options
  * @returns
  */
-export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): Promise<Result<FileSystemFileHandle, Error>> {
+export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): FsAsyncResult<FileSystemFileHandle> {
     const handle = await dirHandle.getFileHandle(fileName, options).catch((err: DOMException) => {
         console.warn(`getChildFileHandle of ${ fileName } fail: ${ err.name }, ${ err.message }`);
         return err;
@@ -80,7 +81,7 @@ export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, f
  * @param options
  * @returns
  */
-export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): Promise<Result<FileSystemDirectoryHandle, Error>> {
+export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): FsAsyncResult<FileSystemDirectoryHandle> {
     // 从root开始向下创建
     let dirHandle = await getFsRoot();
 
@@ -127,7 +128,7 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  * @param options
  * @returns
  */
-export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): Promise<Result<FileSystemFileHandle, Error>> {
+export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): FsAsyncResult<FileSystemFileHandle> {
     const isCreate = options?.create ?? false;
 
     const dirPath = dirname(filePath);

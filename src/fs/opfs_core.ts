@@ -2,14 +2,14 @@ import { Err, Ok, type Result } from '@happy-js/happy-rusty';
 import { basename, dirname } from '@std/path/posix';
 import { assertAbsolutePath } from './asserts.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import { FileEncoding, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
+import { FileEncoding, type FsAsyncResult, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isRootPath } from './helpers.ts';
 
 /**
  * 递归创建文件夹，相当于`mkdir -p`
  * @param dirPath 要创建的文件夹路径
  */
-export async function mkdir(dirPath: string): Promise<Result<boolean, Error>> {
+export async function mkdir(dirPath: string): FsAsyncResult<boolean> {
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath, {
@@ -23,7 +23,7 @@ export async function mkdir(dirPath: string): Promise<Result<boolean, Error>> {
  * @param dirPath 文件夹路径
  * @returns
  */
-export async function readDir(dirPath: string): Promise<Result<AsyncIterableIterator<[string, FileSystemHandle]>, Error>> {
+export async function readDir(dirPath: string): FsAsyncResult<AsyncIterableIterator<[string, FileSystemHandle]>> {
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath);
@@ -40,7 +40,17 @@ export async function readDir(dirPath: string): Promise<Result<AsyncIterableIter
  * @param options 可按编码返回不同的格式
  * @returns
  */
-export async function readFile(filePath: string, options?: ReadOptions): Promise<Result<ReadFileContent, Error>> {
+export function readFile(filePath: string): FsAsyncResult<ArrayBuffer>;
+export function readFile(filePath: string, options: {
+    encoding: FileEncoding.binary,
+}): FsAsyncResult<ArrayBuffer>;
+export function readFile(filePath: string, options: {
+    encoding: FileEncoding.blob,
+}): FsAsyncResult<Blob>;
+export function readFile(filePath: string, options: {
+    encoding: FileEncoding.utf8,
+}): FsAsyncResult<string>;
+export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): FsAsyncResult<T> {
     assertAbsolutePath(filePath);
 
     const fileHandle = await getFileHandle(filePath);
@@ -52,15 +62,15 @@ export async function readFile(filePath: string, options?: ReadOptions): Promise
     const file = await fileHandle.unwrap().getFile();
     switch (options?.encoding) {
         case FileEncoding.blob: {
-            return Ok(file as ReadFileContent);
+            return Ok(file as unknown as T);
         }
         case FileEncoding.utf8: {
             const text = await file.text();
-            return Ok(text as ReadFileContent);
+            return Ok(text as unknown as T);
         }
         default: {
             const data = await file.arrayBuffer();
-            return Ok(data as ReadFileContent);
+            return Ok(data as unknown as T);
         }
     }
 }
@@ -70,7 +80,7 @@ export async function readFile(filePath: string, options?: ReadOptions): Promise
  * @param path 文件（夹）路径
  * @returns
  */
-export async function remove(path: string): Promise<Result<boolean, Error>> {
+export async function remove(path: string): FsAsyncResult<boolean> {
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
@@ -103,7 +113,7 @@ export async function remove(path: string): Promise<Result<boolean, Error>> {
  * @param newPath
  * @returns
  */
-export async function rename(oldPath: string, newPath: string): Promise<Result<boolean, Error>> {
+export async function rename(oldPath: string, newPath: string): FsAsyncResult<boolean> {
     assertAbsolutePath(oldPath);
 
     const fileHandle = await getFileHandle(oldPath);
@@ -139,7 +149,7 @@ export async function rename(oldPath: string, newPath: string): Promise<Result<b
  * @param path
  * @returns
  */
-export async function stat(path: string): Promise<Result<FileSystemHandle, Error>> {
+export async function stat(path: string): FsAsyncResult<FileSystemHandle> {
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
@@ -175,7 +185,7 @@ export async function stat(path: string): Promise<Result<FileSystemHandle, Error
  * @param options
  * @returns
  */
-export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): Promise<Result<boolean, Error>> {
+export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): FsAsyncResult<boolean> {
     assertAbsolutePath(filePath);
 
     // 默认创建
