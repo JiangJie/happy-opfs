@@ -30,7 +30,7 @@
     "check": "npx tsc --noEmit",
     "lint": "npx eslint src/",
     "watch": "npx parcel watch",
-    "prebuild": "npx rimraf dist",
+    "prebuild": "npx rimraf dist && npm run check && npm run lint",
     "build": "npx parcel build",
     "prepublishOnly": "npm run build",
     "start": "npx parcel serve tests/index.html --dist-dir dist/dev --port 8443 --https --no-cache"
