@@ -9,7 +9,7 @@
       "README.cn.md",
       "package.json",
       "jsr.json",
-      "src/**/*.ts"
+      "src"
     ]
   }
 }
