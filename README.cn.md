@@ -30,7 +30,7 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 ## 示例
 
 ```ts
-import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, writeFile } from '@happy-js/happy-opfs';
+import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from '@happy-js/happy-opfs';
 
 // Check if OPFS is supported
 console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
@@ -58,12 +58,22 @@ console.assert(!(await exists('/happy/opfs')).unwrap());
 console.assert((await exists('/happy/b.txt')).unwrap());
 
 // Download a file
-// Proxy to https://jsr.io/@happy-js/happy-opfs/meta.json by .proxyrc.json
-console.assert((await downloadFile('/@happy-js/happy-opfs/meta.json', '/meta.json')).unwrap());
+console.assert((await downloadFile('https://jsonplaceholder.typicode.com/posts/1', '/post.json')).unwrap());
+
+const postData = (await readTextFile('/post.json')).unwrap();
+const postJson = JSON.parse(postData);
+console.assert(postJson.userId === 1);
+
+// Modify the file
+postJson.title = 'minigame-std';
+await writeFile('/post.json', JSON.stringify(postJson));
+
+// Upload a file
+console.assert((await uploadFile('/post.json', 'https://jsonplaceholder.typicode.com/posts')).unwrap());
 
 // List all files and folders in the root directory
 for await (const [name, handle] of (await readDir('/')).unwrap()) {
-    // meta.json is a file
+    // post.json is a file
     // happy is a directory
     console.log(`${ name } is a ${ handle.kind }`);
 }

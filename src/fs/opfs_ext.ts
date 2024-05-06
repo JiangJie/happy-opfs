@@ -77,17 +77,50 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Re
     assertFileUrl(fileUrl);
     assertAbsolutePath(filePath);
 
-    return fetch(fileUrl, requestInit)
-        .then(res => {
-            if (!res.ok) {
-                return Err<boolean, Error>(new Error(`downloadFile fetch status: ${ res.status }`));
-            }
+    return fetch(fileUrl, {
+        redirect: 'follow',
+        ...requestInit,
+    }).then(res => {
+        if (!res.ok) {
+            return Err<boolean, Error>(new Error(`downloadFile fetch status: ${ res.status }`));
+        }
 
-            return res.blob().then(blob => {
-                return writeFile(filePath, blob);
-            });
-        }).catch(err => {
-            const errMsg: string = err?.message ?? `downloadFile fetch error ${ err }`;
-            return Err(new Error(errMsg));
+        return res.blob().then(blob => {
+            return writeFile(filePath, blob);
         });
+    }).catch(err => {
+        const errMsg: string = err?.message ?? `downloadFile fetch error ${ err }`;
+        return Err(new Error(errMsg));
+    });
+}
+
+/**
+ * 上传文件
+ * @param filePath 本地文件路径
+ * @param fileUrl 上传url
+ * @param requestInit 传递给`fetch`的参数
+ * @returns
+ */
+export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): FsAsyncResult<boolean> {
+    assertFileUrl(fileUrl);
+
+    const data = await readBlobFile(filePath);
+    if (data.isErr()) {
+        return data;
+    }
+
+    return fetch(fileUrl, {
+        method: 'POST',
+        ...requestInit,
+        body: data.unwrap(),
+    }).then(res => {
+        if (!res.ok) {
+            return Err<boolean, Error>(new Error(`uploadFile fetch status: ${ res.status }`));
+        }
+
+        return Ok<boolean, Error>(true);
+    }).catch(err => {
+        const errMsg: string = err?.message ?? `uploadFile fetch error ${ err }`;
+        return Err(new Error(errMsg));
+    });
 }
