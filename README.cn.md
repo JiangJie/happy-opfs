@@ -30,7 +30,7 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 ## 示例
 
 ```ts
-import { appendFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, writeFile } from '@happy-js/happy-opfs';
+import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, writeFile } from '@happy-js/happy-opfs';
 
 // Check if OPFS is supported
 console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
@@ -57,9 +57,15 @@ await remove('/happy/opfs');
 console.assert(!(await exists('/happy/opfs')).unwrap());
 console.assert((await exists('/happy/b.txt')).unwrap());
 
+// Download a file
+// Proxy to https://jsr.io/@happy-js/happy-opfs/meta.json by .proxyrc.json
+console.assert((await downloadFile('/@happy-js/happy-opfs/meta.json', '/meta.json')).unwrap());
+
 // List all files and folders in the root directory
 for await (const [name, handle] of (await readDir('/')).unwrap()) {
-    console.log(`${ name } is a ${ handle.kind }`); // happy is a directory
+    // meta.json is a file
+    // happy is a directory
+    console.log(`${ name } is a ${ handle.kind }`);
 }
 ```
 

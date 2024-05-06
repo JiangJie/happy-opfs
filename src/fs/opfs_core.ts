@@ -1,6 +1,6 @@
 import { Err, Ok, type Result } from '@happy-js/happy-rusty';
 import { basename, dirname } from '@std/path/posix';
-import { assertAbsolutePath } from './asserts.ts';
+import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import { FileEncoding, type FsAsyncResult, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isRootPath } from './helpers.ts';

@@ -1,4 +1,5 @@
-import { Ok } from '@happy-js/happy-rusty';
+import { Err, Ok } from '@happy-js/happy-rusty';
+import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import { FileEncoding, type ExistsOptions, type FsAsyncResult, type WriteFileContent } from './defines.ts';
 import { readFile, stat, writeFile } from './opfs_core.ts';
@@ -63,4 +64,30 @@ export function readTextFile(filePath: string): FsAsyncResult<string> {
     return readFile(filePath, {
         encoding: FileEncoding.utf8,
     });
+}
+
+/**
+ * 下载文件保存到本地
+ * @param fileUrl 要下载的文件url
+ * @param filePath 保存到本地的文件路径
+ * @param requestInit 传递给`fetch`的参数
+ * @returns
+ */
+export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): FsAsyncResult<boolean> {
+    assertFileUrl(fileUrl);
+    assertAbsolutePath(filePath);
+
+    return fetch(fileUrl, requestInit)
+        .then(res => {
+            if (!res.ok) {
+                return Err<boolean, Error>(new Error(`downloadFile fetch status: ${ res.status }`));
+            }
+
+            return res.blob().then(blob => {
+                return writeFile(filePath, blob);
+            });
+        }).catch(err => {
+            const errMsg: string = err?.message ?? `downloadFile fetch error ${ err }`;
+            return Err(new Error(errMsg));
+        });
 }
