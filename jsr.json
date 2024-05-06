@@ -1,6 +1,6 @@
 {
   "name": "@happy-js/happy-opfs",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "exports": "./src/mod.ts",
   "publish": {
     "include": [
