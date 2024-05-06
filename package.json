@@ -3,7 +3,8 @@
   "description": "A browser-compatible fs module inspired by the Deno fs and @std/fs APIs, based on OPFS implementation.",
   "author": "jiang115jie@gmail.com",
   "license": "GPL-3.0",
-  "version": "1.0.3",
+  "version": "1.0.4",
+  "type": "module",
   "source": "./src/mod.ts",
   "main": "./dist/main.cjs",
   "module": "./dist/main.mjs",
@@ -33,13 +34,14 @@
   },
   "keywords": [
     "fs",
+    "system",
     "file",
     "directory",
-    "opfs"
+    "opfs",
+    "origin",
+    "private"
   ],
   "devDependencies": {
-    "@parcel/packager-ts": "^2.12.0",
-    "@parcel/transformer-typescript-types": "^2.12.0",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
     "@typescript-eslint/parser": "^7.8.0",
     "eslint": "^8.57.0",
@@ -51,7 +53,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@happy-js/happy-rusty": "npm:@jsr/happy-js__happy-rusty@^1.0.4",
+    "@happy-js/happy-rusty": "npm:@jsr/happy-js__happy-rusty@^1.0.5",
     "@std/path": "npm:@jsr/std__path@^0.224.0"
   },
   "@parcel/resolver-default": {
