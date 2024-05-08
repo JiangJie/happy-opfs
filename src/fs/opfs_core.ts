@@ -1,15 +1,15 @@
-import { Err, Ok, type Result } from '@happy-js/happy-rusty';
+import { Err, Ok, type AsyncIOResult, type Result } from '@happy-js/happy-rusty';
 import { basename, dirname } from '@std/path/posix';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import { type FsAsyncResult, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
+import type { ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isRootPath } from './helpers.ts';
 
 /**
  * 递归创建文件夹，相当于`mkdir -p`
  * @param dirPath 要创建的文件夹路径
  */
-export async function mkdir(dirPath: string): FsAsyncResult<boolean> {
+export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath, {
@@ -23,7 +23,7 @@ export async function mkdir(dirPath: string): FsAsyncResult<boolean> {
  * @param dirPath 文件夹路径
  * @returns
  */
-export async function readDir(dirPath: string): FsAsyncResult<AsyncIterableIterator<[string, FileSystemHandle]>> {
+export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableIterator<[string, FileSystemHandle]>> {
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath);
@@ -40,17 +40,17 @@ export async function readDir(dirPath: string): FsAsyncResult<AsyncIterableItera
  * @param options 可按编码返回不同的格式
  * @returns
  */
-export function readFile(filePath: string): FsAsyncResult<ArrayBuffer>;
+export function readFile(filePath: string): AsyncIOResult<ArrayBuffer>;
 export function readFile(filePath: string, options: {
     encoding: 'binary',
-}): FsAsyncResult<ArrayBuffer>;
+}): AsyncIOResult<ArrayBuffer>;
 export function readFile(filePath: string, options: {
     encoding: 'blob',
-}): FsAsyncResult<Blob>;
+}): AsyncIOResult<Blob>;
 export function readFile(filePath: string, options: {
     encoding: 'utf8',
-}): FsAsyncResult<string>;
-export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): FsAsyncResult<T> {
+}): AsyncIOResult<string>;
+export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): AsyncIOResult<T> {
     assertAbsolutePath(filePath);
 
     const fileHandle = await getFileHandle(filePath);
@@ -80,7 +80,7 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
  * @param path 文件（夹）路径
  * @returns
  */
-export async function remove(path: string): FsAsyncResult<boolean> {
+export async function remove(path: string): AsyncIOResult<boolean> {
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
@@ -113,7 +113,7 @@ export async function remove(path: string): FsAsyncResult<boolean> {
  * @param newPath
  * @returns
  */
-export async function rename(oldPath: string, newPath: string): FsAsyncResult<boolean> {
+export async function rename(oldPath: string, newPath: string): AsyncIOResult<boolean> {
     assertAbsolutePath(oldPath);
 
     const fileHandle = await getFileHandle(oldPath);
@@ -149,7 +149,7 @@ export async function rename(oldPath: string, newPath: string): FsAsyncResult<bo
  * @param path
  * @returns
  */
-export async function stat(path: string): FsAsyncResult<FileSystemHandle> {
+export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
@@ -185,7 +185,7 @@ export async function stat(path: string): FsAsyncResult<FileSystemHandle> {
  * @param options
  * @returns
  */
-export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): FsAsyncResult<boolean> {
+export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncIOResult<boolean> {
     assertAbsolutePath(filePath);
 
     // 默认创建

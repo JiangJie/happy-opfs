@@ -1,7 +1,7 @@
-import { Err, Ok } from '@happy-js/happy-rusty';
+import { Err, Ok, type AsyncIOResult } from '@happy-js/happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import { type ExistsOptions, type FsAsyncResult, type WriteFileContent } from './defines.ts';
+import type { ExistsOptions, WriteFileContent } from './defines.ts';
 import { readFile, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -10,7 +10,7 @@ import { readFile, stat, writeFile } from './opfs_core.ts';
  * @param contents 写入内容
  * @returns
  */
-export function appendFile(filePath: string, contents: WriteFileContent): FsAsyncResult<boolean> {
+export function appendFile(filePath: string, contents: WriteFileContent): AsyncIOResult<boolean> {
     return writeFile(filePath, contents, {
         append: true,
     });
@@ -20,7 +20,7 @@ export function appendFile(filePath: string, contents: WriteFileContent): FsAsyn
  * 检查路径是否存在
  * @param path 要检查的文件（夹）路径
  */
-export async function exists(path: string, options?: ExistsOptions): FsAsyncResult<boolean> {
+export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
     const status = await stat(path);
     if (status.isErr()) {
         if (status.err().name === NOT_FOUND_ERROR) {
@@ -49,7 +49,7 @@ export async function exists(path: string, options?: ExistsOptions): FsAsyncResu
  * @param filePath 要读取的文件路径
  * @returns
  */
-export function readBlobFile(filePath: string): FsAsyncResult<Blob> {
+export function readBlobFile(filePath: string): AsyncIOResult<Blob> {
     return readFile(filePath, {
         encoding: 'blob',
     });
@@ -60,7 +60,7 @@ export function readBlobFile(filePath: string): FsAsyncResult<Blob> {
  * @param filePath 要读取的文件路径
  * @returns
  */
-export function readTextFile(filePath: string): FsAsyncResult<string> {
+export function readTextFile(filePath: string): AsyncIOResult<string> {
     return readFile(filePath, {
         encoding: 'utf8',
     });
@@ -73,7 +73,7 @@ export function readTextFile(filePath: string): FsAsyncResult<string> {
  * @param requestInit 传递给`fetch`的参数
  * @returns
  */
-export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): FsAsyncResult<boolean> {
+export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
     assertFileUrl(fileUrl);
     assertAbsolutePath(filePath);
 
@@ -101,7 +101,7 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Re
  * @param requestInit 传递给`fetch`的参数
  * @returns
  */
-export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): FsAsyncResult<boolean> {
+export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
     assertFileUrl(fileUrl);
 
     const data = await readBlobFile(filePath);

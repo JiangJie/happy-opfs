@@ -1,5 +1,3 @@
-import type { Result } from '@happy-js/happy-rusty';
-
 /**
  * file content type for write, support `ArrayBuffer` `TypedArray` `Blob` `string`.
  */
@@ -57,11 +55,6 @@ export interface ExistsOptions {
      */
     isFile?: boolean;
 }
-
-/**
- * type alias of Promise Result
- */
-export type FsAsyncResult<T> = Promise<Result<T, Error>>;
 
 /**
  * read file encoding type
