@@ -26,6 +26,8 @@ OPFS stands for [Origin private file system](https://developer.mozilla.org/en-US
 
 There are significant differences between the standard OPFS API and familiar file system APIs based on path operations, such as Node.js and Deno. The purpose of this project is to implement an API similar to Deno's in the browser, allowing for convenient file operations.
 
+The return values of asynchronous APIs are of the [Result](https://github.com/JiangJie/happy-rusty) type, similar to Rust's `Result` enum type, providing a more user-friendly error handling approach.
+
 ## Why Reference Deno Instead of Node.js
 
 * The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.

@@ -22,6 +22,8 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 
 标准的 OPFS API 和我们熟知的基于路径操作的文件系统 API 如 Node.js、Deno 存在较大的区别，本项目即是为了实现在浏览器中也能拥有 Deno 一样的 API 方便地操作文件而生。
 
+异步 API 的返回值都是 [Result](https://github.com/JiangJie/happy-rusty) 类型，类似 Rust 的 `Result` 枚举类型，提供更友好的错误处理方式。
+
 ## 为什么参考 Deno 而不是 Node.js
 
 * 早期的 Node.js fs API 是基于回调的语法，虽然较新的版本支持了 Promise 语法，而 Deno fs API 则一开始就是基于 Promise 语法，这样来说的话，Deno 有更少的历史包袱，要实现和 Native 兼容的 API，选择 Deno 做为参考显然更合适。
