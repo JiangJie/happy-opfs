@@ -66,8 +66,4 @@ export type FsAsyncResult<T> = Promise<Result<T, Error>>;
 /**
  * read file encoding type
  */
-export const enum FileEncoding {
-    binary = 'binary',
-    utf8 = 'utf8',
-    blob = 'blob',
-}
+export type FileEncoding = 'binary' | 'utf8' | 'blob';

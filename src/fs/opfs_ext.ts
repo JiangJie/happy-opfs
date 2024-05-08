@@ -1,7 +1,7 @@
 import { Err, Ok } from '@happy-js/happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import { FileEncoding, type ExistsOptions, type FsAsyncResult, type WriteFileContent } from './defines.ts';
+import { type ExistsOptions, type FsAsyncResult, type WriteFileContent } from './defines.ts';
 import { readFile, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -51,7 +51,7 @@ export async function exists(path: string, options?: ExistsOptions): FsAsyncResu
  */
 export function readBlobFile(filePath: string): FsAsyncResult<Blob> {
     return readFile(filePath, {
-        encoding: FileEncoding.blob,
+        encoding: 'blob',
     });
 }
 
@@ -62,7 +62,7 @@ export function readBlobFile(filePath: string): FsAsyncResult<Blob> {
  */
 export function readTextFile(filePath: string): FsAsyncResult<string> {
     return readFile(filePath, {
-        encoding: FileEncoding.utf8,
+        encoding: 'utf8',
     });
 }
 

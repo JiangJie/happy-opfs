@@ -2,7 +2,7 @@ import { Err, Ok, type Result } from '@happy-js/happy-rusty';
 import { basename, dirname } from '@std/path/posix';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import { FileEncoding, type FsAsyncResult, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
+import { type FsAsyncResult, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isRootPath } from './helpers.ts';
 
 /**
@@ -42,13 +42,13 @@ export async function readDir(dirPath: string): FsAsyncResult<AsyncIterableItera
  */
 export function readFile(filePath: string): FsAsyncResult<ArrayBuffer>;
 export function readFile(filePath: string, options: {
-    encoding: FileEncoding.binary,
+    encoding: 'binary',
 }): FsAsyncResult<ArrayBuffer>;
 export function readFile(filePath: string, options: {
-    encoding: FileEncoding.blob,
+    encoding: 'blob',
 }): FsAsyncResult<Blob>;
 export function readFile(filePath: string, options: {
-    encoding: FileEncoding.utf8,
+    encoding: 'utf8',
 }): FsAsyncResult<string>;
 export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): FsAsyncResult<T> {
     assertAbsolutePath(filePath);
@@ -61,10 +61,10 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 
     const file = await fileHandle.unwrap().getFile();
     switch (options?.encoding) {
-        case FileEncoding.blob: {
+        case 'blob': {
             return Ok(file as unknown as T);
         }
-        case FileEncoding.utf8: {
+        case 'utf8': {
             const text = await file.text();
             return Ok(text as unknown as T);
         }
