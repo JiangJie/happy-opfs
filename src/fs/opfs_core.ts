@@ -35,21 +35,40 @@ export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableItera
 }
 
 /**
+ * Returns AsyncIOResult<ArrayBuffer>.
+ * @param filePath
+ * @param options
+ */
+export function readFile(filePath: string, options: ReadOptions & {
+    encoding: 'binary',
+}): AsyncIOResult<ArrayBuffer>;
+/**
+ * Returns AsyncIOResult<Blob>.
+ * @param filePath
+ * @param options
+ */
+export function readFile(filePath: string, options: ReadOptions & {
+    encoding: 'blob',
+}): AsyncIOResult<Blob>;
+/**
+ * Returns AsyncIOResult<string>.
+ * @param filePath
+ * @param options
+ */
+export function readFile(filePath: string, options: ReadOptions & {
+    encoding: 'utf8',
+}): AsyncIOResult<string>;
+/**
+ * Returns AsyncIOResult<ArrayBuffer>.
+ * @param filePath
+ */
+export function readFile(filePath: string): AsyncIOResult<ArrayBuffer>;
+/**
  * 读取文件内容，默认返回`ArrayBuffer`
  * @param filePath 文件路径
  * @param options 可按编码返回不同的格式
- * @returns
+ * @returns {AsyncIOResult<T>}
  */
-export function readFile(filePath: string): AsyncIOResult<ArrayBuffer>;
-export function readFile(filePath: string, options: {
-    encoding: 'binary',
-}): AsyncIOResult<ArrayBuffer>;
-export function readFile(filePath: string, options: {
-    encoding: 'blob',
-}): AsyncIOResult<Blob>;
-export function readFile(filePath: string, options: {
-    encoding: 'utf8',
-}): AsyncIOResult<string>;
 export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): AsyncIOResult<T> {
     assertAbsolutePath(filePath);
 
