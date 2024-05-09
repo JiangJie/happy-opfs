@@ -40,7 +40,7 @@ export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableItera
  * @param options
  */
 export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'binary',
+    encoding: 'binary';
 }): AsyncIOResult<ArrayBuffer>;
 /**
  * Returns AsyncIOResult<Blob>.
@@ -48,7 +48,7 @@ export function readFile(filePath: string, options: ReadOptions & {
  * @param options
  */
 export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'blob',
+    encoding: 'blob';
 }): AsyncIOResult<Blob>;
 /**
  * Returns AsyncIOResult<string>.
@@ -56,7 +56,7 @@ export function readFile(filePath: string, options: ReadOptions & {
  * @param options
  */
 export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'utf8',
+    encoding: 'utf8';
 }): AsyncIOResult<string>;
 /**
  * Returns AsyncIOResult<ArrayBuffer>.
