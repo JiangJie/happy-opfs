@@ -22,5 +22,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: latest
-      - run: npm install jsr -g
+      - run: npm install pnpm jsr -g
+      - run: pnpm install
       - run: jsr publish
