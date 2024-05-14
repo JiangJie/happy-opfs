@@ -5,11 +5,10 @@
   "license": "GPL-3.0",
   "version": "1.0.7",
   "type": "module",
-  "source": "./src/mod.ts",
-  "main": "./dist/main.cjs",
-  "module": "./dist/main.mjs",
-  "types": "./dist/types.d.ts",
-  "exports": "./src/mod.ts",
+  "source": "src/mod.ts",
+  "main": "dist/main.cjs",
+  "module": "dist/main.mjs",
+  "types": "dist/types.d.ts",
   "files": [
     "LICENSE",
     "README.md",
@@ -20,13 +19,13 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "clean": "npx rimraf .parcel-cache dist",
-    "check": "npx tsc --noEmit",
-    "lint": "npx eslint src/",
-    "prebuild": "npx rimraf dist && npm run check && npm run lint",
-    "build": "npx rollup --config rollup.config.mjs",
-    "prepublishOnly": "npm run build",
-    "start": "npx parcel serve tests/index.html --dist-dir dist/dev --port 8443 --https --no-cache"
+    "clean": "pnpm exec rimraf .parcel-cache dist",
+    "check": "pnpm exec tsc --noEmit",
+    "lint": "pnpm exec eslint src/",
+    "prebuild": "pnpm exec rimraf dist && pnpm run check && pnpm run lint",
+    "build": "pnpm exec rollup --config rollup.config.mjs",
+    "prepublishOnly": "pnpm run build",
+    "start": "pnpm exec parcel serve tests/index.html --dist-dir dist/dev --port 8443 --https --no-cache"
   },
   "repository": {
     "type": "git",
@@ -53,10 +52,11 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@happy-js/happy-rusty": "npm:@jsr/happy-js__happy-rusty@^1.0.6",
-    "@std/path": "npm:@jsr/std__path@^0.224.0"
+    "@std/path": "npm:@jsr/std__path@^0.224.0",
+    "happy-rusty": "^1.0.9"
   },
   "@parcel/resolver-default": {
     "packageExports": true
-  }
+  },
+  "packageManager": "pnpm@9.1.1+sha512.14e915759c11f77eac07faba4d019c193ec8637229e62ec99eefb7cf3c3b75c64447882b7c485142451ee3a6b408059cdfb7b7fa0341b975f12d0f7629c71195"
 }

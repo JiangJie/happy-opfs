@@ -1,5 +1,5 @@
-import { Err, Ok, type AsyncIOResult } from '@happy-js/happy-rusty';
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
+import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { CURRENT_DIR, ROOT_DIR } from './constants.ts';
 
 /**

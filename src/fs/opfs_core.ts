@@ -1,5 +1,5 @@
-import { Err, Ok, type AsyncIOResult, type Result } from '@happy-js/happy-rusty';
 import { basename, dirname } from '@std/path/posix';
+import { Err, Ok, type AsyncIOResult, type Result } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';

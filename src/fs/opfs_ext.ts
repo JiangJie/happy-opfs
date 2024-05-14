@@ -1,4 +1,4 @@
-import { Err, Ok, type AsyncIOResult } from '@happy-js/happy-rusty';
+import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ExistsOptions, WriteFileContent } from './defines.ts';
