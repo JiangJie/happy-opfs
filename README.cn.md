@@ -1,17 +1,31 @@
 # 快乐地使用 OPFS
 
+[![NPM version](http://img.shields.io/npm/v/happy-opfs.svg)](https://npmjs.org/package/happy-opfs)
+[![JSR Version](https://jsr.io/badges/@happy-js/happy-opfs)](https://jsr.io/@happy-js/happy-opfs)
+[![JSR Score](https://jsr.io/badges/@happy-js/happy-opfs/score)](https://jsr.io/@happy-js/happy-opfs/score)
+
 这是一套参考 [Deno Runtime File_System](https://deno.land/api#File_System) 和 [Deno @std/fs](https://jsr.io/@std/fs) API，基于 OPFS 实现的浏览器可用的 fs 模块。
 
 ## 安装
 
-通过 [JSR](https://jsr.io/@happy-js/happy-opfs) (**推荐**)
+pnpm
 ```
-npx jsr add @happy-js/happy-opfs
+pnpm add happy-opfs
 ```
 
-或者直接使用 npm
+yarn
+```
+yarn add happy-opfs
+```
+
+npm
 ```
 npm install --save happy-opfs
+```
+
+通过 JSR
+```
+jsr add @happy-js/happy-opfs
 ```
 
 ## 什么是 OPFS
@@ -32,7 +46,7 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 ## 示例
 
 ```ts
-import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from '@happy-js/happy-opfs';
+import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
 
 // Check if OPFS is supported
 console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
@@ -86,8 +100,8 @@ for await (const [name, handle] of (await readDir('/')).unwrap()) {
 ```
 git clone https://github.com/JiangJie/happy-opfs.git
 cd happy-opfs
-npm ci
-npm start
+pnpm install
+pnpm start
 ```
 
 通过浏览器打开 [https://localhost:8443/](https://localhost:8443/)，打开开发者工具观察 console 的输出。

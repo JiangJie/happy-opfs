@@ -1,21 +1,37 @@
-<p align="center">
-    <a href="README.cn.md">[中文]</a>
-</p>
-
 # Use OPFS happily
+
+[![NPM version](http://img.shields.io/npm/v/happy-opfs.svg)](https://npmjs.org/package/happy-opfs)
+[![JSR Version](https://jsr.io/badges/@happy-js/happy-opfs)](https://jsr.io/@happy-js/happy-opfs)
+[![JSR Score](https://jsr.io/badges/@happy-js/happy-opfs/score)](https://jsr.io/@happy-js/happy-opfs/score)
+
+---
+
+<a href="README.cn.md">[中文]</a>
+
+---
 
 This is a browser-compatible fs module based on OPFS, which references the [Deno Runtime File_System](https://deno.land/api#File_System) and [Deno @std/fs](https://jsr.io/@std/fs) APIs.
 
 ## Installation
 
-Via [JSR](https://jsr.io/@happy-js/happy-opfs) (**recommand**)
+via pnpm
 ```
-npx jsr add @happy-js/happy-opfs
+pnpm add happy-opfs
+```
+
+or via yarn
+```
+yarn add happy-opfs
 ```
 
 or just from npm
 ```
 npm install --save happy-opfs
+```
+
+via JSR
+```
+jsr add @happy-js/happy-opfs
 ```
 
 ## What is OPFS
@@ -36,7 +52,7 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 ## Examples
 
 ```ts
-import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from '@happy-js/happy-opfs';
+import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
 
 // Check if OPFS is supported
 console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
@@ -90,8 +106,8 @@ You can find the above example code in the file `tests/index.ts`, or you can vie
 ```
 git clone https://github.com/JiangJie/happy-opfs.git
 cd happy-opfs
-npm ci
-npm start
+pnpm install
+pnpm start
 ```
 
 Open [https://localhost:8443/](https://localhost:8443/) in your browser and open the developer tools to observe the console output.
