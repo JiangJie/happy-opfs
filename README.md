@@ -1,6 +1,7 @@
 # Use OPFS happily
 
-[![NPM version](http://img.shields.io/npm/v/happy-opfs.svg)](https://npmjs.org/package/happy-opfs)
+[![NPM version](https://img.shields.io/npm/v/happy-opfs.svg)](https://npmjs.org/package/happy-opfs)
+[![NPM downloads](https://badgen.net/npm/dm/happy-opfs)](https://npmjs.org/package/happy-opfs)
 [![JSR Version](https://jsr.io/badges/@happy-js/happy-opfs)](https://jsr.io/@happy-js/happy-opfs)
 [![JSR Score](https://jsr.io/badges/@happy-js/happy-opfs/score)](https://jsr.io/@happy-js/happy-opfs/score)
 
@@ -15,21 +16,25 @@ This is a browser-compatible fs module based on OPFS, which references the [Deno
 ## Installation
 
 via pnpm
+
 ```
 pnpm add happy-opfs
 ```
 
 or via yarn
+
 ```
 yarn add happy-opfs
 ```
 
 or just from npm
+
 ```
 npm install --save happy-opfs
 ```
 
 via JSR
+
 ```
 jsr add @happy-js/happy-opfs
 ```
@@ -46,8 +51,8 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 
 ## Why Reference Deno Instead of Node.js
 
-* The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.
-* Deno natively supports TypeScript, while Node.js currently does not without the use of additional tools.
+-   The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.
+-   Deno natively supports TypeScript, while Node.js currently does not without the use of additional tools.
 
 ## Examples
 
@@ -55,7 +60,7 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
 
 // Check if OPFS is supported
-console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
+console.log(`OPFS is${isOPFSSupported() ? '' : ' not'} supported`);
 
 // Clear all files and folders
 await remove('/');
@@ -97,7 +102,7 @@ console.assert((await uploadFile('/post.json', 'https://jsonplaceholder.typicode
 for await (const [name, handle] of (await readDir('/')).unwrap()) {
     // post.json is a file
     // happy is a directory
-    console.log(`${ name } is a ${ handle.kind }`);
+    console.log(`${name} is a ${handle.kind}`);
 }
 ```
 
