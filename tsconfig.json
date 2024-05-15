@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    // Enable latest features
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
