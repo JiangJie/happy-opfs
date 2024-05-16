@@ -1,5 +1,5 @@
 import { basename, dirname } from '@std/path/posix';
-import { Err, Ok, type AsyncIOResult, type Result } from 'happy-rusty';
+import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
@@ -169,6 +169,8 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
  * @returns
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
+    type T = FileSystemHandle;
+
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
@@ -181,7 +183,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     if (!childName) {
         // root
         // reuse
-        return dirHandle as unknown as Result<FileSystemHandle, Error>;
+        return dirHandle as unknown as IOResult<T>;
     }
 
     // 当前只有靠遍历检查

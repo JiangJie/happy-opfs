@@ -22,6 +22,8 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncI
  * @returns
  */
 export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
+    type T = boolean;
+
     assertAbsolutePath(dirPath);
 
     const res = await readDir(dirPath);
@@ -34,14 +36,14 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
         return res;
     }
 
-    const items: AsyncIOResult<boolean>[] = [];
+    const items: AsyncIOResult<T>[] = [];
 
     for await (const [name] of res.unwrap()) {
         items.push(remove(`${ dirPath }/${ name }`));
     }
 
-    const success: IOResult<boolean> = await Promise.all(items).then((x) => {
-        let err: IOResult<boolean> | null = null;
+    const success: IOResult<T> = await Promise.all(items).then((x) => {
+        let err: IOResult<T> | null = null;
 
         const success = x.every(y => {
             if (y.isErr()) {
@@ -116,18 +118,20 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
  * @returns
  */
 export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
+    type T = boolean;
+
     assertFileUrl(fileUrl);
     assertAbsolutePath(filePath);
 
     return fetch(fileUrl, {
         redirect: 'follow',
         ...requestInit,
-    }).then(res => {
+    }).then(async (res): AsyncIOResult<T> => {
         if (!res.ok) {
-            return Err<boolean, Error>(new Error(`downloadFile fetch status: ${ res.status }`));
+            return Err(new Error(`downloadFile fetch status: ${ res.status }`));
         }
 
-        return res.blob().then(blob => {
+        return await res.blob().then((blob) => {
             return writeFile(filePath, blob);
         });
     }).catch(err => {
@@ -144,6 +148,8 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Re
  * @returns
  */
 export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
+    type T = boolean;
+
     assertFileUrl(fileUrl);
 
     const data = await readBlobFile(filePath);
@@ -155,12 +161,12 @@ export async function uploadFile(filePath: string, fileUrl: string, requestInit?
         method: 'POST',
         ...requestInit,
         body: data.unwrap(),
-    }).then(res => {
+    }).then((res): IOResult<T> => {
         if (!res.ok) {
-            return Err<boolean, Error>(new Error(`uploadFile fetch status: ${ res.status }`));
+            return Err(new Error(`uploadFile fetch status: ${ res.status }`));
         }
 
-        return Ok<boolean, Error>(true);
+        return Ok(true);
     }).catch(err => {
         const errMsg: string = err?.message ?? `uploadFile fetch error ${ err }`;
         return Err(new Error(errMsg));
