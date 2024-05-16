@@ -1,8 +1,8 @@
-import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
+import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ExistsOptions, WriteFileContent } from './defines.ts';
-import { readFile, stat, writeFile } from './opfs_core.ts';
+import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
  * 将内容写入文件末尾
@@ -14,6 +14,48 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncI
     return writeFile(filePath, contents, {
         append: true,
     });
+}
+
+/**
+ * 清空文件夹
+ * @param dirPath 文件夹路径
+ * @returns
+ */
+export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
+    assertAbsolutePath(dirPath);
+
+    const res = await readDir(dirPath);
+    if (res.isErr()) {
+        if (res.err().name === NOT_FOUND_ERROR) {
+            // 不存在则创建
+            return mkdir(dirPath);
+        }
+
+        return res;
+    }
+
+    const items: AsyncIOResult<boolean>[] = [];
+
+    for await (const [name] of res.unwrap()) {
+        items.push(remove(`${ dirPath }/${ name }`));
+    }
+
+    const success: IOResult<boolean> = await Promise.all(items).then((x) => {
+        let err: IOResult<boolean> | null = null;
+
+        const success = x.every(y => {
+            if (y.isErr()) {
+                err = y;
+                return false;
+            }
+
+            return y.unwrap();
+        });
+
+        return err ?? Ok(success);
+    });
+
+    return success;
 }
 
 /**
