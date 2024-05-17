@@ -27,7 +27,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     console.assert((await exists('/happy/b.txt')).unwrap());
 
     // Download a file
-    const downloadRes = await downloadFile('https://happy-js.free.beeceptor.com/todos/1', '/todo.json');
+    const downloadRes = await downloadFile('https://jsonplaceholder.typicode.com/todos/1', '/todo.json');
     if (downloadRes.isOk()) {
         console.assert(downloadRes.unwrap());
     } else {
@@ -46,14 +46,19 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     await writeFile('/todo.json', JSON.stringify(postJson));
 
     // Upload a file
-    console.assert((await uploadFile('/todo.json', 'https://happy-js.free.beeceptor.com/todos')).unwrap());
+    console.assert((await uploadFile('/todo.json', 'https://jsonplaceholder.typicode.com/todos')).unwrap());
+
+    // Will create directory
+    await emptyDir('/not-exists');
 
     // List all files and folders in the root directory
     for await (const [name, handle] of (await readDir('/')).unwrap()) {
         // todo.json is a file
+        // not-exists is a directory
         // happy is a directory
         console.log(`${ name } is a ${ handle.kind }`);
     }
 
+    // Comment this line to view using OPFS Explorer
     await remove('/');
 })();
