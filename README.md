@@ -57,13 +57,13 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 ## Examples
 
 ```ts
-import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
+import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
 
 // Check if OPFS is supported
 console.log(`OPFS is${isOPFSSupported() ? '' : ' not'} supported`);
 
 // Clear all files and folders
-await remove('/');
+await emptyDir('/');
 // Recursively create the /happy/opfs directory
 await mkdir('/happy/opfs');
 // Create and write file content
@@ -85,25 +85,35 @@ console.assert(!(await exists('/happy/opfs')).unwrap());
 console.assert((await exists('/happy/b.txt')).unwrap());
 
 // Download a file
-console.assert((await downloadFile('https://jsonplaceholder.typicode.com/posts/1', '/post.json')).unwrap());
+const downloadRes = await downloadFile('https://happy-js.free.beeceptor.com/todos/1', '/todo.json');
+if (downloadRes.isOk()) {
+    console.assert(downloadRes.unwrap());
+} else {
+    console.assert(downloadRes.err() instanceof Error);
+}
 
-const postData = (await readTextFile('/post.json')).unwrap();
-const postJson = JSON.parse(postData);
-console.assert(postJson.userId === 1);
+const postData = (await readTextFile('/todo.json')).unwrap();
+const postJson: {
+    id: number;
+    title: string;
+} = JSON.parse(postData);
+console.assert(postJson.id === 1);
 
 // Modify the file
 postJson.title = 'minigame-std';
-await writeFile('/post.json', JSON.stringify(postJson));
+await writeFile('/todo.json', JSON.stringify(postJson));
 
 // Upload a file
-console.assert((await uploadFile('/post.json', 'https://jsonplaceholder.typicode.com/posts')).unwrap());
+console.assert((await uploadFile('/todo.json', 'https://happy-js.free.beeceptor.com/todos')).unwrap());
 
 // List all files and folders in the root directory
 for await (const [name, handle] of (await readDir('/')).unwrap()) {
-    // post.json is a file
+    // todo.json is a file
     // happy is a directory
     console.log(`${name} is a ${handle.kind}`);
 }
+
+await remove('/');
 ```
 
 You can find the above example code in the file `tests/index.ts`, or you can view the runtime effect using the following steps.

@@ -9,21 +9,25 @@
 ## 安装
 
 pnpm
+
 ```
 pnpm add happy-opfs
 ```
 
 yarn
+
 ```
 yarn add happy-opfs
 ```
 
 npm
+
 ```
 npm install --save happy-opfs
 ```
 
 通过 JSR
+
 ```
 jsr add @happy-js/happy-opfs
 ```
@@ -40,19 +44,19 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 
 ## 为什么参考 Deno 而不是 Node.js
 
-* 早期的 Node.js fs API 是基于回调的语法，虽然较新的版本支持了 Promise 语法，而 Deno fs API 则一开始就是基于 Promise 语法，这样来说的话，Deno 有更少的历史包袱，要实现和 Native 兼容的 API，选择 Deno 做为参考显然更合适。
-* Deno 原生支持 TypeScript，而 Node.js 在不借助于其它工具的情况下暂不支持。
+-   早期的 Node.js fs API 是基于回调的语法，虽然较新的版本支持了 Promise 语法，而 Deno fs API 则一开始就是基于 Promise 语法，这样来说的话，Deno 有更少的历史包袱，要实现和 Native 兼容的 API，选择 Deno 做为参考显然更合适。
+-   Deno 原生支持 TypeScript，而 Node.js 在不借助于其它工具的情况下暂不支持。
 
 ## 示例
 
 ```ts
-import { appendFile, downloadFile, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
+import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
 
 // Check if OPFS is supported
-console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
+console.log(`OPFS is${isOPFSSupported() ? '' : ' not'} supported`);
 
 // Clear all files and folders
-await remove('/');
+await emptyDir('/');
 // Recursively create the /happy/opfs directory
 await mkdir('/happy/opfs');
 // Create and write file content
@@ -74,25 +78,35 @@ console.assert(!(await exists('/happy/opfs')).unwrap());
 console.assert((await exists('/happy/b.txt')).unwrap());
 
 // Download a file
-console.assert((await downloadFile('https://jsonplaceholder.typicode.com/posts/1', '/post.json')).unwrap());
+const downloadRes = await downloadFile('https://happy-js.free.beeceptor.com/todos/1', '/todo.json');
+if (downloadRes.isOk()) {
+    console.assert(downloadRes.unwrap());
+} else {
+    console.assert(downloadRes.err() instanceof Error);
+}
 
-const postData = (await readTextFile('/post.json')).unwrap();
-const postJson = JSON.parse(postData);
-console.assert(postJson.userId === 1);
+const postData = (await readTextFile('/todo.json')).unwrap();
+const postJson: {
+    id: number;
+    title: string;
+} = JSON.parse(postData);
+console.assert(postJson.id === 1);
 
 // Modify the file
 postJson.title = 'minigame-std';
-await writeFile('/post.json', JSON.stringify(postJson));
+await writeFile('/todo.json', JSON.stringify(postJson));
 
 // Upload a file
-console.assert((await uploadFile('/post.json', 'https://jsonplaceholder.typicode.com/posts')).unwrap());
+console.assert((await uploadFile('/todo.json', 'https://happy-js.free.beeceptor.com/todos')).unwrap());
 
 // List all files and folders in the root directory
 for await (const [name, handle] of (await readDir('/')).unwrap()) {
-    // post.json is a file
+    // todo.json is a file
     // happy is a directory
-    console.log(`${ name } is a ${ handle.kind }`);
+    console.log(`${name} is a ${handle.kind}`);
 }
+
+await remove('/');
 ```
 
 以上示例代码可以在文件`tests/index.ts`找到，也可以通过以下方式查看运行时效果。
