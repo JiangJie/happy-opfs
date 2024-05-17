@@ -17,14 +17,12 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncI
 }
 
 /**
- * 清空文件夹
+ * 清空文件夹，不存在则创建
  * @param dirPath 文件夹路径
  * @returns
  */
 export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
     type T = boolean;
-
-    assertAbsolutePath(dirPath);
 
     const res = await readDir(dirPath);
     if (res.isErr()) {
