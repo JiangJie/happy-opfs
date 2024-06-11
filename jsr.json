@@ -1,4 +1,5 @@
 {
+  "$schema": "https://jsr.io/schema/config-file.v1.json",
   "name": "@happy-js/happy-opfs",
   "version": "1.0.9",
   "exports": "./src/mod.ts",
