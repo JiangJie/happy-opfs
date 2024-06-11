@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc-plugin-markdown.org/schema.json",
+  "entryPoints": ["src/mod.ts"],
+  "out": "docs",
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none",
+  "entryFileName": "index",
+  "enumMembersFormat": "table",
+  "parametersFormat": "table",
+  "propertiesFormat": "table",
+  "typeDeclarationFormat": "table",
+  "indexFormat": "table",
+  "useCodeBlocks": true,
+  "expandObjects": true
+}

@@ -7,7 +7,7 @@
 
 ---
 
-<a href="README.cn.md">[中文]</a>
+## [中文](README.cn.md)
 
 ---
 
@@ -60,8 +60,12 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
 
 (async () => {
+    const mockServer = 'https://16a6dafa-2258-4a83-88fa-31a409e42b17.mock.pstmn.io';
+    const mockTodos = `${ mockServer }/todos`;
+    const mockTodo1 = `${ mockTodos }/1`;
+
     // Check if OPFS is supported
-    console.log(`OPFS is${isOPFSSupported() ? '' : ' not'} supported`);
+    console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
 
     // Clear all files and folders
     await emptyDir('/');
@@ -86,26 +90,26 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     console.assert((await exists('/happy/b.txt')).unwrap());
 
     // Download a file
-    const downloadRes = await downloadFile('https://jsonplaceholder.typicode.com/todos/1', '/todo.json');
+    const downloadRes = await downloadFile(mockTodo1, '/todo.json');
     if (downloadRes.isOk()) {
         console.assert(downloadRes.unwrap());
+
+        const postData = (await readTextFile('/todo.json')).unwrap();
+        const postJson: {
+            id: number;
+            title: string;
+        } = JSON.parse(postData);
+        console.assert(postJson.id === 1);
+
+        // Modify the file
+        postJson.title = 'happy-opfs';
+        await writeFile('/todo.json', JSON.stringify(postJson));
+
+        // Upload a file
+        console.assert((await uploadFile('/todo.json', mockTodos)).unwrap());
     } else {
-        console.assert(downloadRes.err() instanceof Error);
+        console.assert(downloadRes.unwrapErr() instanceof Error);
     }
-
-    const postData = (await readTextFile('/todo.json')).unwrap();
-    const postJson: {
-        id: number;
-        title: string;
-    } = JSON.parse(postData);
-    console.assert(postJson.id === 1);
-
-    // Modify the file
-    postJson.title = 'minigame-std';
-    await writeFile('/todo.json', JSON.stringify(postJson));
-
-    // Upload a file
-    console.assert((await uploadFile('/todo.json', 'https://jsonplaceholder.typicode.com/todos')).unwrap());
 
     // Will create directory
     await emptyDir('/not-exists');
@@ -115,7 +119,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
         // todo.json is a file
         // not-exists is a directory
         // happy is a directory
-        console.log(`${name} is a ${handle.kind}`);
+        console.log(`${ name } is a ${ handle.kind }`);
     }
 
     // Comment this line to view using OPFS Explorer
@@ -135,3 +139,5 @@ pnpm start
 Open [https://localhost:8443/](https://localhost:8443/) in your browser and open the developer tools to observe the console output.
 
 You can also install the [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) browser extension to visually inspect the file system status.
+
+## [Docs](docs/index.md)

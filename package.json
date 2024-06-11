@@ -14,6 +14,7 @@
     "README.md",
     "README.cn.md",
     "package.json",
+    "docs",
     "src",
     "dist"
   ],
@@ -24,6 +25,8 @@
     "lint": "pnpm exec eslint src/",
     "prebuild": "pnpm dlx rimraf dist && pnpm run check && pnpm run lint",
     "build": "pnpm exec rollup --config rollup.config.mjs",
+    "predocs": "pnpm dlx rimraf docs",
+    "docs": "pnpm exec typedoc",
     "prepublishOnly": "pnpm run build",
     "start": "pnpm exec parcel serve tests/index.html --dist-dir dist/dev --port 8443 --https --no-cache"
   },
@@ -48,6 +51,8 @@
     "rollup": "^4.18.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-esbuild": "^6.1.1",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-markdown": "^4.0.3",
     "typescript": "^5.4.5"
   },
   "dependencies": {
