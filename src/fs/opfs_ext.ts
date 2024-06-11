@@ -5,10 +5,11 @@ import type { ExistsOptions, WriteFileContent } from './defines.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
- * 将内容写入文件末尾
- * @param filePath 要写入的文件路径
- * @param contents 写入内容
- * @returns
+ * Appends content to a file at the specified path.
+ *
+ * @param filePath - The path of the file to append to.
+ * @param contents - The content to append to the file.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the content was successfully appended.
  */
 export function appendFile(filePath: string, contents: WriteFileContent): AsyncIOResult<boolean> {
     return writeFile(filePath, contents, {
@@ -17,9 +18,10 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncI
 }
 
 /**
- * 清空文件夹，不存在则创建
- * @param dirPath 文件夹路径
- * @returns
+ * Empties the contents of a directory at the specified path.
+ *
+ * @param dirPath - The path of the directory to empty.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully emptied.
  */
 export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
     type T = boolean;
@@ -59,8 +61,11 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
 }
 
 /**
- * 检查路径是否存在
- * @param path 要检查的文件（夹）路径
+ * Checks whether a file or directory exists at the specified path.
+ *
+ * @param path - The path of the file or directory to check for existence.
+ * @param options - Optional existence options.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory exists.
  */
 export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
     const status = await stat(path);
@@ -86,9 +91,10 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
 }
 
 /**
- * 以Blob格式读取文件
- * @param filePath 要读取的文件路径
- * @returns
+ * Reads the content of a file at the specified path as a Blob.
+ *
+ * @param filePath - The path of the file to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
  */
 export function readBlobFile(filePath: string): AsyncIOResult<Blob> {
     return readFile(filePath, {
@@ -97,9 +103,10 @@ export function readBlobFile(filePath: string): AsyncIOResult<Blob> {
 }
 
 /**
- * 以字符串格式读取文件
- * @param filePath 要读取的文件路径
- * @returns
+ * Reads the content of a file at the specified path as a string.
+ *
+ * @param filePath - The path of the file to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a string.
  */
 export function readTextFile(filePath: string): AsyncIOResult<string> {
     return readFile(filePath, {
@@ -108,11 +115,12 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
 }
 
 /**
- * 下载文件保存到本地
- * @param fileUrl 要下载的文件url
- * @param filePath 保存到本地的文件路径
- * @param requestInit 传递给`fetch`的参数
- * @returns
+ * Downloads a file from a URL and saves it to the specified path.
+ *
+ * @param fileUrl - The URL of the file to download.
+ * @param filePath - The path where the downloaded file will be saved.
+ * @param requestInit - Optional request initialization parameters.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully downloaded and saved.
  */
 export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
     type T = boolean;
@@ -138,11 +146,12 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Re
 }
 
 /**
- * 上传文件
- * @param filePath 本地文件路径
- * @param fileUrl 上传url
- * @param requestInit 传递给`fetch`的参数
- * @returns
+ * Uploads a file from the specified path to a URL.
+ *
+ * @param filePath - The path of the file to upload.
+ * @param fileUrl - The URL where the file will be uploaded.
+ * @param requestInit - Optional request initialization parameters.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully uploaded.
  */
 export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
     type T = boolean;

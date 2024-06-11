@@ -3,13 +3,14 @@ import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { CURRENT_DIR, ROOT_DIR } from './constants.ts';
 
 /**
- * cache the root directory handle
+ * The root directory handle of the file system.
  */
 let fsRoot: FileSystemDirectoryHandle;
 
 /**
- * get cached root directory handle
- * @returns
+ * Retrieves the root directory handle of the file system.
+ *
+ * @returns A promise that resolves to the `FileSystemDirectoryHandle` of the root directory.
  */
 async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
     fsRoot ??= await navigator.storage.getDirectory();
@@ -17,37 +18,41 @@ async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
 }
 
 /**
- * 是否支持OPFS
- * @returns true 如果支持
+ * Checks if the Origin Private File System (OPFS) is supported in the current environment.
+ *
+ * @returns A boolean indicating whether OPFS is supported.
  */
 export function isOPFSSupported(): boolean {
     return typeof navigator?.storage?.getDirectory === 'function';
 }
 
 /**
- * path是否是根路径
- * @param path
- * @returns
+ * Checks if the provided path is the root directory path.
+ *
+ * @param path - The path to check.
+ * @returns A boolean indicating whether the path is the root directory path.
  */
 export function isRootPath(path: string): boolean {
     return path === ROOT_DIR;
 }
 
 /**
- * 检查是否`.`
- * @param dirPath 通常是通过`dirname`返回的文件夹路径
- * @returns
+ * Checks if the provided directory path is the current directory.
+ *
+ * @param dirPath - The directory path to check.
+ * @returns A boolean indicating whether the directory path is the current directory.
  */
 export function isCurrentDir(dirPath: string): boolean {
     return dirPath === CURRENT_DIR;
 }
 
 /**
- * 获取或者创建子目录
- * @param dirHandle
- * @param dirName 子目录名
- * @param options
- * @returns
+ * Asynchronously obtains a handle to a child directory from the given parent directory handle.
+ *
+ * @param dirHandle - The handle to the parent directory.
+ * @param dirName - The name of the child directory to retrieve.
+ * @param options - Optional parameters that specify options such as whether to create the directory if it does not exist.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle` for the child directory.
  */
 export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     const handle = await dirHandle.getDirectoryHandle(dirName, options).catch((err: DOMException) => {
@@ -59,11 +64,12 @@ export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, di
 }
 
 /**
- * 获取或者创建子文件
- * @param dirHandle
- * @param fileName
- * @param options
- * @returns
+ * Retrieves a file handle for a child file within a directory.
+ *
+ * @param dirHandle - The directory handle to search within.
+ * @param fileName - The name of the file to retrieve.
+ * @param options - Optional parameters for getting the file handle.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
 export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const handle = await dirHandle.getFileHandle(fileName, options).catch((err: DOMException) => {
@@ -75,10 +81,11 @@ export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, f
 }
 
 /**
- * 根据路径获取文件夹handle
- * @param dirPath 文件夹路径
- * @param options
- * @returns
+ * Retrieves a directory handle given a path.
+ *
+ * @param dirPath - The path of the directory to retrieve.
+ * @param options - Optional parameters for getting the directory handle.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     // 从root开始向下创建
@@ -122,10 +129,11 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
 }
 
 /**
- * 根据路径获取文件handle
- * @param filePath 文件路径
- * @param options
- * @returns
+ * Retrieves a file handle given a file path.
+ *
+ * @param filePath - The path of the file to retrieve.
+ * @param options - Optional parameters for getting the file handle.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const isCreate = options?.create ?? false;

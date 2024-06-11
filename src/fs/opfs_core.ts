@@ -6,8 +6,10 @@ import type { ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } fro
 import { getDirHandle, getFileHandle, isCurrentDir, isRootPath } from './helpers.ts';
 
 /**
- * 递归创建文件夹，相当于`mkdir -p`
- * @param dirPath 要创建的文件夹路径
+ * Creates a new directory at the specified path same as `mkdir -p`.
+ *
+ * @param dirPath - The path where the new directory will be created.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully created.
  */
 export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
     assertAbsolutePath(dirPath);
@@ -20,9 +22,10 @@ export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
 }
 
 /**
- * 读取文件夹一级子内容
- * @param dirPath 文件夹路径
- * @returns
+ * Reads the contents of a directory at the specified path.
+ *
+ * @param dirPath - The path of the directory to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing an async iterable iterator over the entries of the directory.
  */
 export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableIterator<[string, FileSystemHandle]>> {
     assertAbsolutePath(dirPath);
@@ -33,39 +36,53 @@ export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableItera
 }
 
 /**
- * Returns AsyncIOResult<ArrayBuffer>.
- * @param filePath
- * @param options
+ * Reads the content of a file at the specified path as an ArrayBuffer.
+ *
+ * @param filePath - The path of the file to read.
+ * @param options - Read options specifying the 'binary' encoding.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
  */
 export function readFile(filePath: string, options: ReadOptions & {
     encoding: 'binary';
 }): AsyncIOResult<ArrayBuffer>;
+
 /**
- * Returns AsyncIOResult<Blob>.
- * @param filePath
- * @param options
+ * Reads the content of a file at the specified path as a Blob.
+ *
+ * @param filePath - The path of the file to read.
+ * @param options - Read options specifying the 'blob' encoding.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
  */
 export function readFile(filePath: string, options: ReadOptions & {
     encoding: 'blob';
 }): AsyncIOResult<Blob>;
+
 /**
- * Returns AsyncIOResult<string>.
- * @param filePath
- * @param options
+ * Reads the content of a file at the specified path as a string.
+ *
+ * @param filePath - The path of the file to read.
+ * @param options - Read options specifying the 'utf8' encoding.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a string.
  */
 export function readFile(filePath: string, options: ReadOptions & {
     encoding: 'utf8';
 }): AsyncIOResult<string>;
+
 /**
- * Returns AsyncIOResult<ArrayBuffer>.
- * @param filePath
+ * Reads the content of a file at the specified path as an ArrayBuffer by default.
+ *
+ * @param filePath - The path of the file to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
  */
 export function readFile(filePath: string): AsyncIOResult<ArrayBuffer>;
+
 /**
- * 读取文件内容，默认返回`ArrayBuffer`
- * @param filePath 文件路径
- * @param options 可按编码返回不同的格式
- * @returns {AsyncIOResult<T>}
+ * Reads the content of a file at the specified path with the specified options.
+ *
+ * @template T The type of the content to read from the file.
+ * @param filePath - The path of the file to read.
+ * @param options - Optional read options.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content.
  */
 export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): AsyncIOResult<T> {
     assertAbsolutePath(filePath);
@@ -92,9 +109,10 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 }
 
 /**
- * 删除文件或文件夹，相当于`rm -rf`
- * @param path 文件（夹）路径
- * @returns
+ * Removes a file or directory at the specified path same as `rm -rf`.
+ *
+ * @param path - The path of the file or directory to remove.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully removed.
  */
 export async function remove(path: string): AsyncIOResult<boolean> {
     assertAbsolutePath(path);
@@ -124,10 +142,11 @@ export async function remove(path: string): AsyncIOResult<boolean> {
 }
 
 /**
- * 剪切文件或文件夹
- * @param oldPath
- * @param newPath
- * @returns
+ * Renames a file or directory from an old path to a new path.
+ *
+ * @param oldPath - The current path of the file or directory.
+ * @param newPath - The new path of the file or directory.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully renamed.
  */
 export async function rename(oldPath: string, newPath: string): AsyncIOResult<boolean> {
     assertAbsolutePath(oldPath);
@@ -161,9 +180,10 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
 }
 
 /**
- * fs.stat
- * @param path
- * @returns
+ * Retrieves the status of a file or directory at the specified path.
+ *
+ * @param path - The path of the file or directory to retrieve status for.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     type T = FileSystemHandle;
@@ -196,11 +216,12 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
 }
 
 /**
- * 写入文件内容，如果文件不存在默认会创建
- * @param filePath 文件路径
- * @param contents 文件内容
- * @param options
- * @returns
+ * Writes content to a file at the specified path.
+ *
+ * @param filePath - The path of the file to write to.
+ * @param contents - The content to write to the file.
+ * @param options - Optional write options.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully written.
  */
 export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncIOResult<boolean> {
     assertAbsolutePath(filePath);

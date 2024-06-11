@@ -2,8 +2,10 @@ import invariant from 'tiny-invariant';
 import { ROOT_DIR } from './constants.ts';
 
 /**
- * assert path starts with /
- * @param path
+ * Asserts that the provided path is an absolute path.
+ *
+ * @param path - The file path to validate.
+ * @throws Will throw an error if the path is not an absolute path.
  */
 export function assertAbsolutePath(path: string): void {
     invariant(typeof path === 'string', () => `Path must be a string but received ${ path }`);
@@ -11,9 +13,10 @@ export function assertAbsolutePath(path: string): void {
 }
 
 /**
- * assert url is a string
+ * Asserts that the provided URL is a valid file URL.
  *
- * @param fileUrl
+ * @param fileUrl - The file URL to validate.
+ * @throws Will throw an error if the URL is not a valid file URL.
  */
 export function assertFileUrl(fileUrl: string): void {
     invariant(typeof fileUrl === 'string', () => `File url must be a string but received ${ fileUrl }`);

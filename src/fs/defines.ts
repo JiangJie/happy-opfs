@@ -1,62 +1,59 @@
 /**
- * file content type for write, support `ArrayBuffer` `TypedArray` `Blob` `string`.
+ * Represents the possible content types that can be written to a file.
  */
 export type WriteFileContent = BufferSource | Blob | string;
 
 /**
- * file content type for read result, support `ArrayBuffer` `Blob` `string`.
+ * Represents the possible content types that can be read from a file.
  */
 export type ReadFileContent = ArrayBuffer | Blob | string;
 
 /**
- * read file options
+ * Options for reading files with specified encoding.
  */
 export interface ReadOptions {
     /**
-     * read file encoding type, support `binary(ArrayBuffer)` `utf8(string)` `blob(Blob)`
-     *
-     * @default {FileEncoding.binary}
+     * The encoding to use for reading the file's content.
+     * @defaultValue `'binary'`
      */
     encoding?: FileEncoding;
 }
 
 /**
- * write file options
+ * Options for writing files, including flags for creation and appending.
  */
 export interface WriteOptions {
     /**
-     * create file if not exists
-     *
-     * @default {true}
+     * Whether to create the file if it does not exist.
+     * @defaultValue `true`
      */
     create?: boolean;
+
     /**
-     * append mode
-     *
-     * @default {false}
+     * Whether to append to the file if it already exists.
+     * @defaultValue `false`
      */
     append?: boolean;
 }
 
 /**
- * options to check path exists
+ * Options to determine the existence of a file or directory.
  */
 export interface ExistsOptions {
     /**
-     * check directory exists
-     *
-     * @default {false}
+     * Whether to check for the existence of a directory.
+     * @defaultValue `false`
      */
     isDirectory?: boolean;
+
     /**
-     * check file exists
-     *
-     * @default {false}
+     * Whether to check for the existence of a file.
+     * @defaultValue `false`
      */
     isFile?: boolean;
 }
 
 /**
- * read file encoding type
+ * Supported file encodings for reading and writing files.
  */
 export type FileEncoding = 'binary' | 'utf8' | 'blob';

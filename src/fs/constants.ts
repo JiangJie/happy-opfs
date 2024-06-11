@@ -1,16 +1,15 @@
 /**
- * root path is `/`
+ * A constant representing the root directory path.
  */
 export const ROOT_DIR = '/' as const;
 
 /**
- * current directory is `.`
+ * A constant representing the current directory path.
  */
 export const CURRENT_DIR = '.' as const;
 
 /**
- * path not found error name
- *
- * name of DOMException.NOT_FOUND_ERR
+ * A constant representing the error thrown when a file or directory is not found.
+ * Name of DOMException.NOT_FOUND_ERR.
  */
 export const NOT_FOUND_ERROR = 'NotFoundError' as const;
