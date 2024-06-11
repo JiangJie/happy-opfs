@@ -15,7 +15,8 @@ export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
     const dirHandle = await getDirHandle(dirPath, {
         create: true,
     });
-    return dirHandle.isOk() ? Ok(true) : dirHandle;
+
+    return dirHandle.isErr() ? (dirHandle as unknown as IOResult<boolean>) : Ok(true);
 }
 
 /**
@@ -27,11 +28,8 @@ export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableItera
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath);
-    if (dirHandle.isErr()) {
-        return dirHandle;
-    }
 
-    return Ok(dirHandle.unwrap().entries());
+    return dirHandle.isErr() ? (dirHandle as unknown as IOResult<AsyncIterableIterator<[string, FileSystemHandle]>>) : Ok(dirHandle.unwrap().entries());
 }
 
 /**
@@ -74,8 +72,7 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 
     const fileHandle = await getFileHandle(filePath);
     if (fileHandle.isErr()) {
-        // reuse err
-        return fileHandle;
+        return fileHandle as unknown as IOResult<T>;
     }
 
     const file = await fileHandle.unwrap().getFile();
@@ -107,7 +104,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
 
     const dirHandle = await getDirHandle(dirPath);
     if (dirHandle.isErr()) {
-        return dirHandle;
+        return dirHandle as unknown as IOResult<boolean>;
     }
 
     // root
@@ -137,7 +134,7 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
 
     const fileHandle = await getFileHandle(oldPath);
     if (fileHandle.isErr()) {
-        return fileHandle;
+        return fileHandle as unknown as IOResult<boolean>;
     }
 
     const dirPath = dirname(oldPath);
@@ -152,7 +149,7 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
 
     const newDirHandle = await getDirHandle(newDirPath);
     if (newDirHandle.isErr()) {
-        return newDirHandle;
+        return newDirHandle as unknown as IOResult<boolean>;
     }
 
     const newName = basename(newPath);
@@ -182,7 +179,6 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     const childName = basename(path);
     if (!childName) {
         // root
-        // reuse
         return dirHandle as unknown as IOResult<T>;
     }
 
@@ -216,8 +212,7 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
         create,
     });
     if (fileHandle.isErr()) {
-        // reuse err
-        return fileHandle;
+        return fileHandle as unknown as IOResult<boolean>;
     }
 
     const writable = await fileHandle.unwrap().createWritable({

@@ -13,4 +13,4 @@ export const CURRENT_DIR = '.' as const;
  *
  * name of DOMException.NOT_FOUND_ERR
  */
-export const NOT_FOUND_ERROR = 'NotFoundError';
+export const NOT_FOUND_ERROR = 'NotFoundError' as const;

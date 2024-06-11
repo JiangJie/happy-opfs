@@ -9,6 +9,7 @@ const input = 'src/mod.ts';
 const external = [
     /^@std\/path/,
     'happy-rusty',
+    'tiny-invariant',
 ];
 
 /**

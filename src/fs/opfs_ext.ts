@@ -26,12 +26,12 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
 
     const res = await readDir(dirPath);
     if (res.isErr()) {
-        if (res.err().name === NOT_FOUND_ERROR) {
+        if (res.unwrapErr().name === NOT_FOUND_ERROR) {
             // 不存在则创建
             return mkdir(dirPath);
         }
 
-        return res;
+        return res as unknown as IOResult<T>;
     }
 
     const items: AsyncIOResult<T>[] = [];
@@ -65,11 +65,10 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
 export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
     const status = await stat(path);
     if (status.isErr()) {
-        if (status.err().name === NOT_FOUND_ERROR) {
+        if (status.unwrapErr().name === NOT_FOUND_ERROR) {
             return Ok(false);
         }
-        // reuse
-        return status;
+        return status as unknown as IOResult<boolean>;
     }
 
     const { isDirectory = false, isFile = false } = options ?? {};
@@ -152,7 +151,7 @@ export async function uploadFile(filePath: string, fileUrl: string, requestInit?
 
     const data = await readBlobFile(filePath);
     if (data.isErr()) {
-        return data;
+        return data as unknown as IOResult<T>;
     }
 
     return fetch(fileUrl, {
