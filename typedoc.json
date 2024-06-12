@@ -4,7 +4,7 @@
   "out": "docs",
   "plugin": ["typedoc-plugin-markdown"],
   "readme": "none",
-  "entryFileName": "index",
+  "entryFileName": "README",
   "enumMembersFormat": "table",
   "parametersFormat": "table",
   "propertiesFormat": "table",
