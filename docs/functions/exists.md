@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / exists
+[happy-opfs](../README.md) / exists
 
 # Function: exists()
 
@@ -27,4 +27,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the file or dir
 
 ## Source
 
-[fs/opfs\_ext.ts:70](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_ext.ts#L70)
+[fs/opfs\_ext.ts:70](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_ext.ts#L70)

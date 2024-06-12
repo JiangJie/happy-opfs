@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / mkdir
+[happy-opfs](../README.md) / mkdir
 
 # Function: mkdir()
 
@@ -26,4 +26,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the directory w
 
 ## Source
 
-[fs/opfs\_core.ts:14](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_core.ts#L14)
+[fs/opfs\_core.ts:14](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L14)

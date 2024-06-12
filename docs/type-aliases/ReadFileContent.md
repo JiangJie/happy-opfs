@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / ReadFileContent
+[happy-opfs](../README.md) / ReadFileContent
 
 # Type alias: ReadFileContent
 
@@ -14,4 +14,4 @@ Represents the possible content types that can be read from a file.
 
 ## Source
 
-[fs/defines.ts:9](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/defines.ts#L9)
+[fs/defines.ts:9](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/defines.ts#L9)

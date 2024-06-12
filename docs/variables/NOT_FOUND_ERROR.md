@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / NOT\_FOUND\_ERROR
+[happy-opfs](../README.md) / NOT\_FOUND\_ERROR
 
 # Variable: NOT\_FOUND\_ERROR
 
@@ -15,4 +15,4 @@ Name of DOMException.NOT_FOUND_ERR.
 
 ## Source
 
-[fs/constants.ts:15](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/constants.ts#L15)
+[fs/constants.ts:15](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/constants.ts#L15)

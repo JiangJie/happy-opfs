@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / WriteFileContent
+[happy-opfs](../README.md) / WriteFileContent
 
 # Type alias: WriteFileContent
 
@@ -14,4 +14,4 @@ Represents the possible content types that can be written to a file.
 
 ## Source
 
-[fs/defines.ts:4](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/defines.ts#L4)
+[fs/defines.ts:4](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/defines.ts#L4)

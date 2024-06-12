@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / isRootPath
+[happy-opfs](../README.md) / isRootPath
 
 # Function: isRootPath()
 
@@ -26,4 +26,4 @@ A boolean indicating whether the path is the root directory path.
 
 ## Source
 
-[fs/helpers.ts:35](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/helpers.ts#L35)
+[fs/helpers.ts:35](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/helpers.ts#L35)

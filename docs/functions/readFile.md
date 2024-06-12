@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / readFile
+[happy-opfs](../README.md) / readFile
 
 # Function: readFile()
 
@@ -29,7 +29,7 @@ A promise that resolves to an `AsyncIOResult` containing the file content as an 
 
 ### Source
 
-[fs/opfs\_core.ts:45](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_core.ts#L45)
+[fs/opfs\_core.ts:45](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L45)
 
 ## readFile(filePath, options)
 
@@ -54,7 +54,7 @@ A promise that resolves to an `AsyncIOResult` containing the file content as a B
 
 ### Source
 
-[fs/opfs\_core.ts:56](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_core.ts#L56)
+[fs/opfs\_core.ts:56](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L56)
 
 ## readFile(filePath, options)
 
@@ -79,7 +79,7 @@ A promise that resolves to an `AsyncIOResult` containing the file content as a s
 
 ### Source
 
-[fs/opfs\_core.ts:67](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_core.ts#L67)
+[fs/opfs\_core.ts:67](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L67)
 
 ## readFile(filePath)
 
@@ -103,4 +103,4 @@ A promise that resolves to an `AsyncIOResult` containing the file content as an 
 
 ### Source
 
-[fs/opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_core.ts#L77)
+[fs/opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L77)

@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / isOPFSSupported
+[happy-opfs](../README.md) / isOPFSSupported
 
 # Function: isOPFSSupported()
 
@@ -20,4 +20,4 @@ A boolean indicating whether OPFS is supported.
 
 ## Source
 
-[fs/helpers.ts:25](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/helpers.ts#L25)
+[fs/helpers.ts:25](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/helpers.ts#L25)

@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / assertAbsolutePath
+[happy-opfs](../README.md) / assertAbsolutePath
 
 # Function: assertAbsolutePath()
 
@@ -28,4 +28,4 @@ Will throw an error if the path is not an absolute path.
 
 ## Source
 
-[fs/assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/assertions.ts#L10)
+[fs/assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/assertions.ts#L10)

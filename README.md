@@ -140,4 +140,4 @@ Open [https://localhost:8443/](https://localhost:8443/) in your browser and open
 
 You can also install the [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) browser extension to visually inspect the file system status.
 
-## [Docs](docs/index.md)
+## [Docs](docs/README.md)

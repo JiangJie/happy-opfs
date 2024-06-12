@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / FileEncoding
+[happy-opfs](../README.md) / FileEncoding
 
 # Type alias: FileEncoding
 
@@ -14,4 +14,4 @@ Supported file encodings for reading and writing files.
 
 ## Source
 
-[fs/defines.ts:54](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/defines.ts#L54)
+[fs/defines.ts:59](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/defines.ts#L59)

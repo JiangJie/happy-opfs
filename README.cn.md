@@ -133,4 +133,4 @@ pnpm start
 
 你也可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) 浏览器扩展，以便直观地查看文件系统状态。
 
-## [文档](docs/index.md)
+## [文档](docs/README.md)

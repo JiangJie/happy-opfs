@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / readBlobFile
+[happy-opfs](../README.md) / readBlobFile
 
 # Function: readBlobFile()
 
@@ -26,4 +26,4 @@ A promise that resolves to an `AsyncIOResult` containing the file content as a B
 
 ## Source
 
-[fs/opfs\_ext.ts:99](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_ext.ts#L99)
+[fs/opfs\_ext.ts:99](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_ext.ts#L99)

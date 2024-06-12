@@ -1,8 +1,8 @@
-[**happy-opfs**](../index.md) • **Docs**
+[**happy-opfs**](../README.md) • **Docs**
 
 ***
 
-[happy-opfs](../index.md) / stat
+[happy-opfs](../README.md) / stat
 
 # Function: stat()
 
@@ -26,4 +26,4 @@ A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
 
 ## Source
 
-[fs/opfs\_core.ts:188](https://github.com/JiangJie/happy-opfs/blob/80a97ca3a4288ae6abeed9ee9e10ef7f0d31fc68/src/fs/opfs_core.ts#L188)
+[fs/opfs\_core.ts:188](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L188)
