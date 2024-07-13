@@ -10,7 +10,7 @@ Options to determine the existence of a file or directory.
 
 ## Properties
 
-| Property | Type | Default value | Description |
-| :------ | :------ | :------ | :------ |
-| `isDirectory?` | `boolean` | `false` | <p>Whether to check for the existence of a directory.</p> |
-| `isFile?` | `boolean` | `false` | <p>Whether to check for the existence of a file.</p> |
+| Property | Type | Default value | Description | Defined in |
+| ------ | ------ | ------ | ------ | ------ |
+| `isDirectory?` | `boolean` | `false` | Whether to check for the existence of a directory. | [defines.ts:47](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/defines.ts#L47) |
+| `isFile?` | `boolean` | `false` | Whether to check for the existence of a file. | [defines.ts:53](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/defines.ts#L53) |

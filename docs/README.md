@@ -7,7 +7,7 @@
 ## Interfaces
 
 | Interface | Description |
-| :------ | :------ |
+| ------ | ------ |
 | [ExistsOptions](interfaces/ExistsOptions.md) | Options to determine the existence of a file or directory. |
 | [ReadOptions](interfaces/ReadOptions.md) | Options for reading files with specified encoding. |
 | [WriteOptions](interfaces/WriteOptions.md) | Options for writing files, including flags for creation and appending. |
@@ -15,7 +15,7 @@
 ## Type Aliases
 
 | Type alias | Description |
-| :------ | :------ |
+| ------ | ------ |
 | [FileEncoding](type-aliases/FileEncoding.md) | Supported file encodings for reading and writing files. |
 | [ReadFileContent](type-aliases/ReadFileContent.md) | Represents the possible content types that can be read from a file. |
 | [WriteFileContent](type-aliases/WriteFileContent.md) | Represents the possible content types that can be written to a file. |
@@ -23,13 +23,13 @@
 ## Variables
 
 | Variable | Description |
-| :------ | :------ |
+| ------ | ------ |
 | [NOT\_FOUND\_ERROR](variables/NOT_FOUND_ERROR.md) | A constant representing the error thrown when a file or directory is not found. Name of DOMException.NOT_FOUND_ERR. |
 
 ## Functions
 
 | Function | Description |
-| :------ | :------ |
+| ------ | ------ |
 | [appendFile](functions/appendFile.md) | Appends content to a file at the specified path. |
 | [assertAbsolutePath](functions/assertAbsolutePath.md) | Asserts that the provided path is an absolute path. |
 | [assertFileUrl](functions/assertFileUrl.md) | Asserts that the provided URL is a valid file URL. |

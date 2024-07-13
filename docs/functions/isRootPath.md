@@ -15,7 +15,7 @@ Checks if the provided path is the root directory path.
 ## Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `path` | `string` | The path to check. |
 
 ## Returns
@@ -24,6 +24,6 @@ Checks if the provided path is the root directory path.
 
 A boolean indicating whether the path is the root directory path.
 
-## Source
+## Defined in
 
-[fs/helpers.ts:35](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/helpers.ts#L35)
+[helpers.ts:35](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/helpers.ts#L35)

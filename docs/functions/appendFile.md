@@ -15,7 +15,7 @@ Appends content to a file at the specified path.
 ## Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to append to. |
 | `contents` | [`WriteFileContent`](../type-aliases/WriteFileContent.md) | The content to append to the file. |
 
@@ -25,6 +25,6 @@ Appends content to a file at the specified path.
 
 A promise that resolves to an `AsyncIOResult` indicating whether the content was successfully appended.
 
-## Source
+## Defined in
 
-[fs/opfs\_ext.ts:14](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_ext.ts#L14)
+[opfs\_ext.ts:14](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_ext.ts#L14)

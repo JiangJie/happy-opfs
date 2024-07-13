@@ -18,7 +18,7 @@ Writes content to a file at the specified path.
 ## Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to write to. |
 | `contents` | [`WriteFileContent`](../type-aliases/WriteFileContent.md) | The content to write to the file. |
 | `options`? | [`WriteOptions`](../interfaces/WriteOptions.md) | Optional write options. |
@@ -29,6 +29,6 @@ Writes content to a file at the specified path.
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully written.
 
-## Source
+## Defined in
 
-[fs/opfs\_core.ts:226](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L226)
+[opfs\_core.ts:226](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L226)

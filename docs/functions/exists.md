@@ -15,7 +15,7 @@ Checks whether a file or directory exists at the specified path.
 ## Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `path` | `string` | The path of the file or directory to check for existence. |
 | `options`? | [`ExistsOptions`](../interfaces/ExistsOptions.md) | Optional existence options. |
 
@@ -25,6 +25,6 @@ Checks whether a file or directory exists at the specified path.
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file or directory exists.
 
-## Source
+## Defined in
 
-[fs/opfs\_ext.ts:70](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_ext.ts#L70)
+[opfs\_ext.ts:70](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_ext.ts#L70)

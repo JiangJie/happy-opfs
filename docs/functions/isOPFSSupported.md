@@ -18,6 +18,6 @@ Checks if the Origin Private File System (OPFS) is supported in the current envi
 
 A boolean indicating whether OPFS is supported.
 
-## Source
+## Defined in
 
-[fs/helpers.ts:25](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/helpers.ts#L25)
+[helpers.ts:25](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/helpers.ts#L25)

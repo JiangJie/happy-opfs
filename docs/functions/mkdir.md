@@ -15,7 +15,7 @@ Creates a new directory at the specified path same as `mkdir -p`.
 ## Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `dirPath` | `string` | The path where the new directory will be created. |
 
 ## Returns
@@ -24,6 +24,6 @@ Creates a new directory at the specified path same as `mkdir -p`.
 
 A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully created.
 
-## Source
+## Defined in
 
-[fs/opfs\_core.ts:14](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L14)
+[opfs\_core.ts:14](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L14)

@@ -15,7 +15,7 @@ Asserts that the provided path is an absolute path.
 ## Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `path` | `string` | The file path to validate. |
 
 ## Returns
@@ -26,6 +26,6 @@ Asserts that the provided path is an absolute path.
 
 Will throw an error if the path is not an absolute path.
 
-## Source
+## Defined in
 
-[fs/assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/assertions.ts#L10)
+[assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/assertions.ts#L10)

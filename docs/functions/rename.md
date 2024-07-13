@@ -15,7 +15,7 @@ Renames a file or directory from an old path to a new path.
 ## Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `oldPath` | `string` | The current path of the file or directory. |
 | `newPath` | `string` | The new path of the file or directory. |
 
@@ -25,6 +25,6 @@ Renames a file or directory from an old path to a new path.
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully renamed.
 
-## Source
+## Defined in
 
-[fs/opfs\_core.ts:151](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L151)
+[opfs\_core.ts:151](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L151)

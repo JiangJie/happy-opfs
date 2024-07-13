@@ -6,6 +6,20 @@
 
 # Function: readFile()
 
+Reads the content of a file at the specified path with the specified options.
+
+## Template
+
+The type of the content to read from the file.
+
+## Param
+
+The path of the file to read.
+
+## Param
+
+Optional read options.
+
 ## readFile(filePath, options)
 
 ```ts
@@ -17,7 +31,7 @@ Reads the content of a file at the specified path as an ArrayBuffer.
 ### Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to read. |
 | `options` | [`ReadOptions`](../interfaces/ReadOptions.md) & \{ `encoding`: `"binary"`; \} | Read options specifying the 'binary' encoding. |
 
@@ -27,9 +41,9 @@ Reads the content of a file at the specified path as an ArrayBuffer.
 
 A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
 
-### Source
+### Defined in
 
-[fs/opfs\_core.ts:45](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L45)
+[opfs\_core.ts:45](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L45)
 
 ## readFile(filePath, options)
 
@@ -42,7 +56,7 @@ Reads the content of a file at the specified path as a Blob.
 ### Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to read. |
 | `options` | [`ReadOptions`](../interfaces/ReadOptions.md) & \{ `encoding`: `"blob"`; \} | Read options specifying the 'blob' encoding. |
 
@@ -52,9 +66,9 @@ Reads the content of a file at the specified path as a Blob.
 
 A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
 
-### Source
+### Defined in
 
-[fs/opfs\_core.ts:56](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L56)
+[opfs\_core.ts:56](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L56)
 
 ## readFile(filePath, options)
 
@@ -67,7 +81,7 @@ Reads the content of a file at the specified path as a string.
 ### Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to read. |
 | `options` | [`ReadOptions`](../interfaces/ReadOptions.md) & \{ `encoding`: `"utf8"`; \} | Read options specifying the 'utf8' encoding. |
 
@@ -77,9 +91,9 @@ Reads the content of a file at the specified path as a string.
 
 A promise that resolves to an `AsyncIOResult` containing the file content as a string.
 
-### Source
+### Defined in
 
-[fs/opfs\_core.ts:67](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L67)
+[opfs\_core.ts:67](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L67)
 
 ## readFile(filePath)
 
@@ -92,7 +106,7 @@ Reads the content of a file at the specified path as an ArrayBuffer by default.
 ### Parameters
 
 | Parameter | Type | Description |
-| :------ | :------ | :------ |
+| ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to read. |
 
 ### Returns
@@ -101,6 +115,6 @@ Reads the content of a file at the specified path as an ArrayBuffer by default.
 
 A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
 
-### Source
+### Defined in
 
-[fs/opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/opfs_core.ts#L77)
+[opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L77)

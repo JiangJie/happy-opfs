@@ -4,7 +4,7 @@
 
 [happy-opfs](../README.md) / FileEncoding
 
-# Type alias: FileEncoding
+# Type Alias: FileEncoding
 
 ```ts
 type FileEncoding: "binary" | "utf8" | "blob";
@@ -12,6 +12,6 @@ type FileEncoding: "binary" | "utf8" | "blob";
 
 Supported file encodings for reading and writing files.
 
-## Source
+## Defined in
 
-[fs/defines.ts:59](https://github.com/JiangJie/happy-opfs/blob/fcbf5b5ef2676cbf90b3a855acdadcf7a79ef72c/src/fs/defines.ts#L59)
+[defines.ts:59](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/defines.ts#L59)
