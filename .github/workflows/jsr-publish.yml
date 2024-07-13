@@ -24,4 +24,4 @@ jobs:
           node-version: latest
       - run: npm install pnpm -g
       - run: pnpm install
-      - run: npx jsr publish
+      - run: npx jsr publish --config jsr.json
