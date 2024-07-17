@@ -1,5 +1,5 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
-import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { CURRENT_DIR, ROOT_DIR } from './constants.ts';
 
 /**
@@ -146,7 +146,7 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
     });
 
     if (dirHandle.isErr()) {
-        return dirHandle as unknown as IOResult<FileSystemFileHandle>;
+        return dirHandle.asErr();
     }
 
     return getChildFileHandle(dirHandle.unwrap(), fileName, {

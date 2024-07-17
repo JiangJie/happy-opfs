@@ -1,5 +1,5 @@
 import { basename, dirname } from '@std/path/posix';
-import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
@@ -18,7 +18,7 @@ export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
         create: true,
     });
 
-    return dirHandle.isErr() ? (dirHandle as unknown as IOResult<boolean>) : Ok(true);
+    return dirHandle.isErr() ? dirHandle.asErr() : Ok(true);
 }
 
 /**
@@ -32,7 +32,7 @@ export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableItera
 
     const dirHandle = await getDirHandle(dirPath);
 
-    return dirHandle.isErr() ? (dirHandle as unknown as IOResult<AsyncIterableIterator<[string, FileSystemHandle]>>) : Ok(dirHandle.unwrap().entries());
+    return dirHandle.isErr() ? dirHandle.asErr() : Ok(dirHandle.unwrap().entries());
 }
 
 /**
@@ -89,7 +89,7 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 
     const fileHandle = await getFileHandle(filePath);
     if (fileHandle.isErr()) {
-        return fileHandle as unknown as IOResult<T>;
+        return fileHandle.asErr();
     }
 
     const file = await fileHandle.unwrap().getFile();
@@ -122,7 +122,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
 
     const dirHandle = await getDirHandle(dirPath);
     if (dirHandle.isErr()) {
-        return dirHandle as unknown as IOResult<boolean>;
+        return dirHandle.asErr();
     }
 
     // root
@@ -153,7 +153,7 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
 
     const fileHandle = await getFileHandle(oldPath);
     if (fileHandle.isErr()) {
-        return fileHandle as unknown as IOResult<boolean>;
+        return fileHandle.asErr();
     }
 
     const dirPath = dirname(oldPath);
@@ -168,7 +168,7 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
 
     const newDirHandle = await getDirHandle(newDirPath);
     if (newDirHandle.isErr()) {
-        return newDirHandle as unknown as IOResult<boolean>;
+        return newDirHandle.asErr();
     }
 
     const newName = basename(newPath);
@@ -186,8 +186,6 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
-    type T = FileSystemHandle;
-
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
@@ -199,7 +197,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     const childName = basename(path);
     if (!childName) {
         // root
-        return dirHandle as unknown as IOResult<T>;
+        return dirHandle.asErr();
     }
 
     // 当前只有靠遍历检查
@@ -233,7 +231,7 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
         create,
     });
     if (fileHandle.isErr()) {
-        return fileHandle as unknown as IOResult<boolean>;
+        return fileHandle.asErr();
     }
 
     const writable = await fileHandle.unwrap().createWritable({

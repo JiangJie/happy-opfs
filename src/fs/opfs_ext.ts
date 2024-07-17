@@ -33,7 +33,7 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
             return mkdir(dirPath);
         }
 
-        return res as unknown as IOResult<T>;
+        return res.asErr();
     }
 
     const items: AsyncIOResult<T>[] = [];
@@ -73,7 +73,7 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
         if (status.unwrapErr().name === NOT_FOUND_ERROR) {
             return Ok(false);
         }
-        return status as unknown as IOResult<boolean>;
+        return status.asErr();
     }
 
     const { isDirectory = false, isFile = false } = options ?? {};
@@ -160,7 +160,7 @@ export async function uploadFile(filePath: string, fileUrl: string, requestInit?
 
     const data = await readBlobFile(filePath);
     if (data.isErr()) {
-        return data as unknown as IOResult<T>;
+        return data.asErr();
     }
 
     return fetch(fileUrl, {
