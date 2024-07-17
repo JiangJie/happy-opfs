@@ -26,4 +26,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the directory w
 
 ## Defined in
 
-[opfs\_core.ts:14](https://github.com/JiangJie/happy-opfs/blob/573f9d2f13523da5aaf43c4022204dc4a870819c/src/fs/opfs_core.ts#L14)
+[opfs\_core.ts:14](https://github.com/JiangJie/happy-opfs/blob/7cd01910b3abb83abc0f7edbbf013c47ae6a060f/src/fs/opfs_core.ts#L14)
