@@ -11,5 +11,6 @@
   "typeDeclarationFormat": "table",
   "indexFormat": "table",
   "useCodeBlocks": true,
-  "expandObjects": true
+  "expandObjects": true,
+  "exclude": ["**/node_modules/**"]
 }
