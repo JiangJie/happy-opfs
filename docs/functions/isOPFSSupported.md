@@ -20,4 +20,4 @@ A boolean indicating whether OPFS is supported.
 
 ## Defined in
 
-[helpers.ts:25](https://github.com/JiangJie/happy-opfs/blob/dc95a422852928393060b63cb34de24c88ad98b4/src/fs/helpers.ts#L25)
+[helpers.ts:25](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/helpers.ts#L25)

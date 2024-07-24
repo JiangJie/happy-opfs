@@ -14,4 +14,4 @@ Supported file encodings for reading and writing files.
 
 ## Defined in
 
-[defines.ts:59](https://github.com/JiangJie/happy-opfs/blob/dc95a422852928393060b63cb34de24c88ad98b4/src/fs/defines.ts#L59)
+[defines.ts:59](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/defines.ts#L59)
