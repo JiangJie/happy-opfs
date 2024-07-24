@@ -9,6 +9,7 @@
 | Interface | Description |
 | ------ | ------ |
 | [ExistsOptions](interfaces/ExistsOptions.md) | Options to determine the existence of a file or directory. |
+| [FsRequestInit](interfaces/FsRequestInit.md) | fetch-t options for download and upload. |
 | [ReadOptions](interfaces/ReadOptions.md) | Options for reading files with specified encoding. |
 | [WriteOptions](interfaces/WriteOptions.md) | Options for writing files, including flags for creation and appending. |
 
