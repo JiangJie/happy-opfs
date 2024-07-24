@@ -1,7 +1,8 @@
+import { ABORT_ERROR, fetchT, type FetchTask } from '@happy-ts/fetch-t';
 import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import type { ExistsOptions, WriteFileContent } from './defines.ts';
+import type { ExistsOptions, FsRequestInit, WriteFileContent } from './defines.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -122,33 +123,57 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully downloaded and saved.
  */
-export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): AsyncIOResult<Response> {
-    type T = Response;
-
+export function downloadFile(fileUrl: string, filePath: string, requestInit?: FsRequestInit): FetchTask<Response> {
     assertFileUrl(fileUrl);
     assertAbsolutePath(filePath);
 
-    return fetch(fileUrl, {
+    let aborted = false;
+
+    const fetchTask = fetchT(fileUrl, {
         redirect: 'follow',
         ...requestInit,
-    }).then(async (res): AsyncIOResult<T> => {
-        if (!res.ok) {
-            return Err(new Error(`downloadFile fetch status: ${ res.status }`));
-        }
-
-        const writeRes = await res.blob().then((blob) => {
-            return writeFile(filePath, blob);
-        });
-
-        if (writeRes.isErr()) {
-            return writeRes.asErr();
-        }
-
-        return Ok(res);
-    }).catch(err => {
-        const errMsg: string = err?.message ?? `downloadFile fetch error ${ err }`;
-        return Err(new Error(errMsg));
+        abortable: true,
     });
+
+    return {
+        abort(...args: Parameters<typeof fetchTask.abort>): void {
+            aborted = true;
+            fetchTask.abort(...args);
+        },
+
+        aborted,
+
+        response: Promise.resolve().then(async (): AsyncIOResult<Response> => {
+            const result = await fetchTask.response;
+            if (result.isErr()) {
+                return result.asErr();
+            }
+
+            const res = result.unwrap();
+            if (!res.ok) {
+                return Err(new Error(`downloadFile fetch status: ${ res.status }`));
+            }
+
+            const blob = await res.blob();
+
+            // maybe aborted
+            if (aborted) {
+                const error = new Error();
+                error.name = ABORT_ERROR;
+                return Err(error);
+            }
+
+            const writeResult = await writeFile(filePath, blob);
+            if (writeResult.isErr()) {
+                return writeResult.asErr();
+            }
+
+            return Ok(res);
+        }).catch(err => {
+            const errMsg: string = err?.message ?? `downloadFile fetch error ${ err }`;
+            return Err(new Error(errMsg));
+        }),
+    };
 }
 
 /**
@@ -159,28 +184,55 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Re
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully uploaded.
  */
-export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): AsyncIOResult<Response> {
-    type T = Response;
-
+export function uploadFile(filePath: string, fileUrl: string, requestInit?: FsRequestInit): FetchTask<Response> {
     assertFileUrl(fileUrl);
 
-    const data = await readBlobFile(filePath);
-    if (data.isErr()) {
-        return data.asErr();
-    }
+    let aborted = false;
 
-    return fetch(fileUrl, {
-        method: 'POST',
-        ...requestInit,
-        body: data.unwrap(),
-    }).then((res): IOResult<T> => {
-        if (!res.ok) {
-            return Err(new Error(`uploadFile fetch status: ${ res.status }`));
-        }
+    let fetchTask: FetchTask<Response>;
 
-        return Ok(res);
-    }).catch(err => {
-        const errMsg: string = err?.message ?? `uploadFile fetch error ${ err }`;
-        return Err(new Error(errMsg));
-    });
+    return {
+        abort(...args: Parameters<typeof fetchTask.abort>): void {
+            aborted = true;
+            fetchTask?.abort(...args);
+        },
+
+        aborted,
+
+        response: Promise.resolve().then(async (): AsyncIOResult<Response> => {
+            const fileResult = await readBlobFile(filePath)
+            if (fileResult.isErr()) {
+                return fileResult.asErr();
+            }
+
+            // maybe aborted
+            if (aborted) {
+                const error = new Error();
+                error.name = ABORT_ERROR;
+                return Err(error);
+            }
+
+            fetchTask = fetchT(fileUrl, {
+                method: 'POST',
+                ...requestInit,
+                abortable: true,
+                body: fileResult.unwrap(),
+            });
+
+            const result = await fetchTask.response;
+            if (result.isErr()) {
+                return result.asErr();
+            }
+
+            const res = result.unwrap();
+            if (!res.ok) {
+                return Err(new Error(`uploadFile fetch status: ${ res.status }`));
+            }
+
+            return Ok(res);
+        }).catch(err => {
+            const errMsg: string = err?.message ?? `uploadFile fetch error ${ err }`;
+            return Err(new Error(errMsg));
+        }),
+    };
 }

@@ -57,3 +57,13 @@ export interface ExistsOptions {
  * Supported file encodings for reading and writing files.
  */
 export type FileEncoding = 'binary' | 'utf8' | 'blob';
+
+/**
+ * fetch-t options for download and upload.
+ */
+export interface FsRequestInit extends RequestInit {
+    /**
+     * Specifies the maximum time in milliseconds to wait for the fetch request to complete.
+     */
+    timeout?: number;
+}
