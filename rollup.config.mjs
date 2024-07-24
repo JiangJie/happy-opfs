@@ -10,6 +10,7 @@ const external = [
     /^@std\/path/,
     'happy-rusty',
     'tiny-invariant',
+    '@happy-ts/fetch-t',
 ];
 
 /**
