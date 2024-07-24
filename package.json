@@ -44,19 +44,19 @@
     "private"
   ],
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.16.1",
-    "@typescript-eslint/parser": "^7.16.1",
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.17.0",
     "eslint": "^8.57.0",
     "parcel": "^2.12.0",
-    "rollup": "^4.18.1",
+    "rollup": "^4.19.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-esbuild": "^6.1.1",
-    "typedoc": "^0.26.4",
-    "typedoc-plugin-markdown": "^4.2.1",
-    "typescript": "^5.5.3"
+    "typedoc": "^0.26.5",
+    "typedoc-plugin-markdown": "^4.2.2",
+    "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@std/path": "npm:@jsr/std__path@1.0.0",
+    "@std/path": "npm:@jsr/std__path@1.0.1",
     "happy-rusty": "^1.1.2",
     "tiny-invariant": "^1.3.3"
   },
