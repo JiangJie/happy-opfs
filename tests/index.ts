@@ -33,7 +33,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     // Download a file
     const downloadRes = await downloadFile(mockTodo1, '/todo.json');
     if (downloadRes.isOk()) {
-        console.assert(downloadRes.unwrap());
+        console.assert(downloadRes.unwrap() instanceof Response);
 
         const postData = (await readTextFile('/todo.json')).unwrap();
         const postJson: {
@@ -47,7 +47,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
         await writeFile('/todo.json', JSON.stringify(postJson));
 
         // Upload a file
-        console.assert((await uploadFile('/todo.json', mockTodos)).unwrap());
+        console.assert((await uploadFile('/todo.json', mockTodos)).unwrap() instanceof Response);
     } else {
         console.assert(downloadRes.unwrapErr() instanceof Error);
     }

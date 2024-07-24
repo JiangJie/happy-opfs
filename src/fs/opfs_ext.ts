@@ -122,8 +122,8 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully downloaded and saved.
  */
-export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
-    type T = boolean;
+export function downloadFile(fileUrl: string, filePath: string, requestInit?: RequestInit): AsyncIOResult<Response> {
+    type T = Response;
 
     assertFileUrl(fileUrl);
     assertAbsolutePath(filePath);
@@ -136,9 +136,15 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Re
             return Err(new Error(`downloadFile fetch status: ${ res.status }`));
         }
 
-        return await res.blob().then((blob) => {
+        const writeRes = await res.blob().then((blob) => {
             return writeFile(filePath, blob);
         });
+
+        if (writeRes.isErr()) {
+            return writeRes.asErr();
+        }
+
+        return Ok(res);
     }).catch(err => {
         const errMsg: string = err?.message ?? `downloadFile fetch error ${ err }`;
         return Err(new Error(errMsg));
@@ -153,8 +159,8 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Re
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully uploaded.
  */
-export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): AsyncIOResult<boolean> {
-    type T = boolean;
+export async function uploadFile(filePath: string, fileUrl: string, requestInit?: RequestInit): AsyncIOResult<Response> {
+    type T = Response;
 
     assertFileUrl(fileUrl);
 
@@ -172,7 +178,7 @@ export async function uploadFile(filePath: string, fileUrl: string, requestInit?
             return Err(new Error(`uploadFile fetch status: ${ res.status }`));
         }
 
-        return Ok(true);
+        return Ok(res);
     }).catch(err => {
         const errMsg: string = err?.message ?? `uploadFile fetch error ${ err }`;
         return Err(new Error(errMsg));
