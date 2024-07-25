@@ -32,7 +32,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
 
     // Download a file
     const downloadTask = downloadFile(mockTodo1, '/todo.json', {
-        timeout: 10,
+        timeout: 1000,
     });
     const downloadRes = await downloadTask.response;
     if (downloadRes.isOk()) {

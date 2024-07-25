@@ -67,3 +67,13 @@ export interface FsRequestInit extends RequestInit {
      */
     timeout?: number;
 }
+
+/**
+ * fetch-t request options for uploading files.
+ */
+export interface UploadRequestInit extends FsRequestInit {
+    /**
+     * The filename to use when uploading the file.
+     */
+    filename?: string;
+}

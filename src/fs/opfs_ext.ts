@@ -1,8 +1,9 @@
 import { ABORT_ERROR, fetchT, type FetchTask } from '@happy-ts/fetch-t';
+import { basename } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import type { ExistsOptions, FsRequestInit, WriteFileContent } from './defines.ts';
+import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -184,7 +185,7 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Fs
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully uploaded.
  */
-export function uploadFile(filePath: string, fileUrl: string, requestInit?: FsRequestInit): FetchTask<Response> {
+export function uploadFile(filePath: string, fileUrl: string, requestInit?: UploadRequestInit): FetchTask<Response> {
     assertFileUrl(fileUrl);
 
     let aborted = false;
@@ -212,11 +213,20 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: FsRe
                 return Err(error);
             }
 
+            const {
+                // default file name
+                filename = basename(filePath),
+                ...rest
+            } = requestInit ?? {};
+
+            const formData = new FormData();
+            formData.append(filename, fileResult.unwrap(), filename);
+
             fetchTask = fetchT(fileUrl, {
                 method: 'POST',
-                ...requestInit,
+                ...rest,
                 abortable: true,
-                body: fileResult.unwrap(),
+                body: formData,
             });
 
             const result = await fetchTask.response;
