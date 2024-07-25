@@ -21,7 +21,7 @@ Uploads a file from the specified path to a URL.
 | ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to upload. |
 | `fileUrl` | `string` | The URL where the file will be uploaded. |
-| `requestInit`? | [`FsRequestInit`](../interfaces/FsRequestInit.md) | Optional request initialization parameters. |
+| `requestInit`? | [`UploadRequestInit`](../interfaces/UploadRequestInit.md) | Optional request initialization parameters. |
 
 ## Returns
 
@@ -31,4 +31,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the file was su
 
 ## Defined in
 
-[opfs\_ext.ts:187](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/opfs_ext.ts#L187)
+[opfs\_ext.ts:188](https://github.com/JiangJie/happy-opfs/blob/0955d4be7b0440a9e0261193bc3c402389d8f518/src/fs/opfs_ext.ts#L188)

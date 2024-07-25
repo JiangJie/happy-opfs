@@ -41,6 +41,8 @@ Reads the content of a file at the specified path as an ArrayBuffer.
 
 A promise that resolves to an `AsyncIOResult` containing the file content.
 
+A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
+
 ### Template
 
 The type of the content to read from the file.
@@ -55,7 +57,7 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:45](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/opfs_core.ts#L45)
+[opfs\_core.ts:45](https://github.com/JiangJie/happy-opfs/blob/0955d4be7b0440a9e0261193bc3c402389d8f518/src/fs/opfs_core.ts#L45)
 
 ## readFile(filePath, options)
 
@@ -78,6 +80,8 @@ Reads the content of a file at the specified path as a Blob.
 
 A promise that resolves to an `AsyncIOResult` containing the file content.
 
+A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
+
 ### Template
 
 The type of the content to read from the file.
@@ -92,7 +96,7 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:56](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/opfs_core.ts#L56)
+[opfs\_core.ts:56](https://github.com/JiangJie/happy-opfs/blob/0955d4be7b0440a9e0261193bc3c402389d8f518/src/fs/opfs_core.ts#L56)
 
 ## readFile(filePath, options)
 
@@ -115,6 +119,8 @@ Reads the content of a file at the specified path as a string.
 
 A promise that resolves to an `AsyncIOResult` containing the file content.
 
+A promise that resolves to an `AsyncIOResult` containing the file content as a string.
+
 ### Template
 
 The type of the content to read from the file.
@@ -129,7 +135,7 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:67](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/opfs_core.ts#L67)
+[opfs\_core.ts:67](https://github.com/JiangJie/happy-opfs/blob/0955d4be7b0440a9e0261193bc3c402389d8f518/src/fs/opfs_core.ts#L67)
 
 ## readFile(filePath)
 
@@ -151,6 +157,8 @@ Reads the content of a file at the specified path as an ArrayBuffer by default.
 
 A promise that resolves to an `AsyncIOResult` containing the file content.
 
+A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
+
 ### Template
 
 The type of the content to read from the file.
@@ -165,4 +173,4 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/opfs_core.ts#L77)
+[opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/0955d4be7b0440a9e0261193bc3c402389d8f518/src/fs/opfs_core.ts#L77)

@@ -28,4 +28,4 @@ Will throw an error if the path is not an absolute path.
 
 ## Defined in
 
-[assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/fa6bc23a30a47c302610ab09429219f90b89d4ad/src/fs/assertions.ts#L10)
+[assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/0955d4be7b0440a9e0261193bc3c402389d8f518/src/fs/assertions.ts#L10)
