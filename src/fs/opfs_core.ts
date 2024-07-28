@@ -1,8 +1,8 @@
-import { basename, dirname } from '@std/path/posix';
+import { basename, dirname, join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
-import type { ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
+import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isRootPath } from './helpers.ts';
 
 /**
@@ -25,14 +25,36 @@ export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
  * Reads the contents of a directory at the specified path.
  *
  * @param dirPath - The path of the directory to read.
+ * @param options - Options of readdir.
  * @returns A promise that resolves to an `AsyncIOResult` containing an async iterable iterator over the entries of the directory.
  */
-export async function readDir(dirPath: string): AsyncIOResult<AsyncIterableIterator<[string, FileSystemHandle]>> {
+export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<ReadDirEntry>> {
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath);
 
-    return dirHandle.isErr() ? dirHandle.asErr() : Ok(dirHandle.unwrap().entries());
+    if (dirHandle.isErr()) {
+        return dirHandle.asErr();
+    }
+
+    async function* read(dirHandle: FileSystemDirectoryHandle, dirPath: string): AsyncIterableIterator<ReadDirEntry> {
+        const entries = dirHandle.entries();
+
+        for await (const [name, handle] of entries) {
+            const path = join(dirPath, name);
+
+            yield {
+                path,
+                handle,
+            };
+
+            if (handle.kind === 'directory' && options?.recursive) {
+                yield* read(await dirHandle.getDirectoryHandle(name), path);
+            }
+        }
+    }
+
+    return Ok(read(dirHandle.unwrap(), dirPath));
 }
 
 /**

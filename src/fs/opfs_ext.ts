@@ -40,8 +40,8 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
 
     const items: AsyncIOResult<T>[] = [];
 
-    for await (const [name] of res.unwrap()) {
-        items.push(remove(`${ dirPath }/${ name }`));
+    for await (const { path } of res.unwrap()) {
+        items.push(remove(path));
     }
 
     const success: IOResult<T> = await Promise.all(items).then((x) => {

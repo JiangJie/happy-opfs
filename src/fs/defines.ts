@@ -77,3 +77,27 @@ export interface UploadRequestInit extends FsRequestInit {
      */
     filename?: string;
 }
+
+/**
+ * Options for reading directories.
+ */
+export interface ReadDirOptions {
+    /**
+     * Whether to recursively read the contents of directories.
+     */
+    recursive: boolean;
+}
+
+/**
+ * An entry returned by `readDir`.
+ */
+export interface ReadDirEntry {
+    /**
+     * The relative path of the entry.
+     */
+    path: string;
+    /**
+     * The handle of the entry.
+     */
+    handle: FileSystemHandle;
+}
