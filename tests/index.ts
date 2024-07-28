@@ -20,7 +20,10 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     await appendFile('/happy/b.txt', ' happy opfs');
 
     // File no longer exists
-    console.assert((await stat('/happy/opfs/a.txt')).isErr());
+    const statRes = await stat('/happy/opfs/a.txt');
+    console.assert(statRes.isErr());
+    console.log(statRes.unwrapErr().message);
+
     console.assert((await readFile('/happy/b.txt')).unwrap().byteLength === 21);
     // Automatically normalize the path
     console.assert((await readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');

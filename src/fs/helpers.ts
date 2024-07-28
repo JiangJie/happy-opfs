@@ -56,11 +56,13 @@ export function isCurrentDir(dirPath: string): boolean {
  */
 export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     const handle = await dirHandle.getDirectoryHandle(dirName, options).catch((err: DOMException) => {
-        console.warn(`getChildDirHandle of ${ dirName } fail: ${ err.name }, ${ err.message }`);
-        return err;
+        const error = new Error(`getChildDirHandle of \`${ dirName }\` fail: ${ err.name }, ${ err.message }`);
+        error.name = err.name;
+
+        return error;
     });
 
-    return handle instanceof FileSystemDirectoryHandle ? Ok(handle) : Err(handle as Error);
+    return handle instanceof FileSystemDirectoryHandle ? Ok(handle) : Err(handle);
 }
 
 /**
@@ -73,11 +75,13 @@ export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, di
  */
 export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const handle = await dirHandle.getFileHandle(fileName, options).catch((err: DOMException) => {
-        console.warn(`getChildFileHandle of ${ fileName } fail: ${ err.name }, ${ err.message }`);
-        return err;
+        const error = new Error(`getChildFileHandle of \`${ fileName }\` fail: ${ err.name }, ${ err.message }`);
+        error.name = err.name;
+
+        return error;
     });
 
-    return handle instanceof FileSystemFileHandle ? Ok(handle) : Err(handle as Error);
+    return handle instanceof FileSystemFileHandle ? Ok(handle) : Err(handle);
 }
 
 /**
