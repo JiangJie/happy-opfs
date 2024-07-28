@@ -84,7 +84,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
 
     // Download a file
     const downloadTask = downloadFile(mockTodo1, '/todo.json', {
-        timeout: 10,
+        timeout: 1000,
     });
     const downloadRes = await downloadTask.response;
     if (downloadRes.isOk()) {
@@ -111,11 +111,16 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     await emptyDir('/not-exists');
 
     // List all files and folders in the root directory
-    for await (const [name, handle] of (await readDir('/')).unwrap()) {
-        // todo.json is a file
-        // not-exists is a directory
-        // happy is a directory
-        console.log(`${ name } is a ${ handle.kind }`);
+    for await (const { path, handle } of (await readDir('/', {
+        recursive: true,
+    })).unwrap()) {
+        /**
+         * /todo.json is a file
+         * /not-exists is a directory
+         * /happy is a directory
+         * /happy/b.txt is a file
+         */
+        console.log(`${ path } is a ${ handle.kind }`);
     }
 
     // Comment this line to view using OPFS Explorer

@@ -7,7 +7,7 @@
 # Function: readDir()
 
 ```ts
-function readDir(dirPath): AsyncIOResult<AsyncIterableIterator<[string, FileSystemHandle]>>
+function readDir(dirPath, options?): AsyncIOResult<AsyncIterableIterator<ReadDirEntry>>
 ```
 
 Reads the contents of a directory at the specified path.
@@ -17,13 +17,14 @@ Reads the contents of a directory at the specified path.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `dirPath` | `string` | The path of the directory to read. |
+| `options`? | [`ReadDirOptions`](../interfaces/ReadDirOptions.md) | Options of readdir. |
 
 ## Returns
 
-`AsyncIOResult`\<`AsyncIterableIterator`\<[`string`, `FileSystemHandle`]\>\>
+`AsyncIOResult`\<`AsyncIterableIterator`\<[`ReadDirEntry`](../interfaces/ReadDirEntry.md)\>\>
 
 A promise that resolves to an `AsyncIOResult` containing an async iterable iterator over the entries of the directory.
 
 ## Defined in
 
-[opfs\_core.ts:30](https://github.com/JiangJie/happy-opfs/blob/0955d4be7b0440a9e0261193bc3c402389d8f518/src/fs/opfs_core.ts#L30)
+[opfs\_core.ts:31](https://github.com/JiangJie/happy-opfs/blob/4af0ec94e963041b297916e2971f6a01ca677a5c/src/fs/opfs_core.ts#L31)
