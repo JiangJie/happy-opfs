@@ -93,7 +93,7 @@ export interface ReadDirOptions {
  */
 export interface ReadDirEntry {
     /**
-     * The relative path of the entry.
+     * The relative path of the entry from readDir the path parameter.
      */
     path: string;
     /**

@@ -37,19 +37,18 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         return dirHandle.asErr();
     }
 
-    async function* read(dirHandle: FileSystemDirectoryHandle, dirPath: string): AsyncIterableIterator<ReadDirEntry> {
+    async function* read(dirHandle: FileSystemDirectoryHandle, dirName: string): AsyncIterableIterator<ReadDirEntry> {
         const entries = dirHandle.entries();
 
         for await (const [name, handle] of entries) {
-            const path = join(dirPath, name);
-
             yield {
-                path,
+                // relative path from `dirPath`
+                path: dirName === dirPath ? name : join(dirName, name),
                 handle,
             };
 
             if (handle.kind === 'directory' && options?.recursive) {
-                yield* read(await dirHandle.getDirectoryHandle(name), path);
+                yield* read(await dirHandle.getDirectoryHandle(name), name);
             }
         }
     }
