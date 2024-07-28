@@ -15,4 +15,4 @@ Name of DOMException.NOT_FOUND_ERR.
 
 ## Defined in
 
-[constants.ts:15](https://github.com/JiangJie/happy-opfs/blob/4af0ec94e963041b297916e2971f6a01ca677a5c/src/fs/constants.ts#L15)
+[constants.ts:15](https://github.com/JiangJie/happy-opfs/blob/3032e80ad2449bcf9084365afada1536627f498f/src/fs/constants.ts#L15)

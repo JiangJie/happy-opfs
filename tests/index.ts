@@ -66,10 +66,10 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
         recursive: true,
     })).unwrap()) {
         /**
-         * /todo.json is a file
-         * /not-exists is a directory
-         * /happy is a directory
-         * /happy/b.txt is a file
+         * todo.json is a file
+         * not-exists is a directory
+         * happy is a directory
+         * happy/b.txt is a file
          */
         console.log(`${ path } is a ${ handle.kind }`);
     }

@@ -26,4 +26,4 @@ A boolean indicating whether the directory path is the current directory.
 
 ## Defined in
 
-[helpers.ts:45](https://github.com/JiangJie/happy-opfs/blob/4af0ec94e963041b297916e2971f6a01ca677a5c/src/fs/helpers.ts#L45)
+[helpers.ts:45](https://github.com/JiangJie/happy-opfs/blob/3032e80ad2449bcf9084365afada1536627f498f/src/fs/helpers.ts#L45)

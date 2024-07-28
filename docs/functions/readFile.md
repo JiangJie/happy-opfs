@@ -57,7 +57,7 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:67](https://github.com/JiangJie/happy-opfs/blob/4af0ec94e963041b297916e2971f6a01ca677a5c/src/fs/opfs_core.ts#L67)
+[opfs\_core.ts:66](https://github.com/JiangJie/happy-opfs/blob/3032e80ad2449bcf9084365afada1536627f498f/src/fs/opfs_core.ts#L66)
 
 ## readFile(filePath, options)
 
@@ -96,7 +96,7 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:78](https://github.com/JiangJie/happy-opfs/blob/4af0ec94e963041b297916e2971f6a01ca677a5c/src/fs/opfs_core.ts#L78)
+[opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/3032e80ad2449bcf9084365afada1536627f498f/src/fs/opfs_core.ts#L77)
 
 ## readFile(filePath, options)
 
@@ -135,7 +135,7 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:89](https://github.com/JiangJie/happy-opfs/blob/4af0ec94e963041b297916e2971f6a01ca677a5c/src/fs/opfs_core.ts#L89)
+[opfs\_core.ts:88](https://github.com/JiangJie/happy-opfs/blob/3032e80ad2449bcf9084365afada1536627f498f/src/fs/opfs_core.ts#L88)
 
 ## readFile(filePath)
 
@@ -173,4 +173,4 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:99](https://github.com/JiangJie/happy-opfs/blob/4af0ec94e963041b297916e2971f6a01ca677a5c/src/fs/opfs_core.ts#L99)
+[opfs\_core.ts:98](https://github.com/JiangJie/happy-opfs/blob/3032e80ad2449bcf9084365afada1536627f498f/src/fs/opfs_core.ts#L98)
