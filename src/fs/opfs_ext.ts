@@ -2,8 +2,8 @@ import { ABORT_ERROR, fetchT, type FetchTask } from '@happy-ts/fetch-t';
 import { basename } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
-import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
+import { isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -30,7 +30,7 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
 
     const res = await readDir(dirPath);
     if (res.isErr()) {
-        if (res.unwrapErr().name === NOT_FOUND_ERROR) {
+        if (isNotFoundError(res.unwrapErr())) {
             // 不存在则创建
             return mkdir(dirPath);
         }
@@ -72,7 +72,7 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
 export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
     const status = await stat(path);
     if (status.isErr()) {
-        if (status.unwrapErr().name === NOT_FOUND_ERROR) {
+        if (isNotFoundError(status.unwrapErr())) {
             return Ok(false);
         }
         return status.asErr();

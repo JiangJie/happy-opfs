@@ -101,3 +101,9 @@ export interface ReadDirEntry {
      */
     handle: FileSystemHandle;
 }
+
+/**
+ * A constant representing the error thrown when a file or directory is not found.
+ * Name of DOMException.NOT_FOUND_ERR.
+ */
+export const NOT_FOUND_ERROR = 'NotFoundError' as const;

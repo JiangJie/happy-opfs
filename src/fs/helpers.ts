@@ -1,6 +1,7 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { CURRENT_DIR, ROOT_DIR } from './constants.ts';
+import { NOT_FOUND_ERROR } from './defines.ts';
 
 /**
  * The root directory handle of the file system.
@@ -156,4 +157,13 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
     return getChildFileHandle(dirHandle.unwrap(), fileName, {
         create: isCreate,
     });
+}
+
+/**
+ * Whether the error is a `NotFoundError`.
+ * @param err - The error to check.
+ * @returns `true` if the error is a `NotFoundError`, otherwise `false`.
+ */
+export function isNotFoundError(err: Error): boolean {
+    return err.name === NOT_FOUND_ERROR;
 }
