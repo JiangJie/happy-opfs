@@ -2,7 +2,7 @@ import { basename, dirname, join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR, type ReadDirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
-import { getDirHandle, getFileHandle, isCurrentDir, isRootPath } from './helpers.ts';
+import { getDirHandle, getFileHandle, isCurrentDir, isNotFoundError, isRootPath } from './helpers.ts';
 
 /**
  * Creates a new directory at the specified path same as `mkdir -p`.
@@ -142,6 +142,11 @@ export async function remove(path: string): AsyncIOResult<boolean> {
 
     const dirHandle = await getDirHandle(dirPath);
     if (dirHandle.isErr()) {
+        if (isNotFoundError(dirHandle.unwrapErr())) {
+            // not found as success
+            return Ok(true);
+        }
+
         return dirHandle.asErr();
     }
 
