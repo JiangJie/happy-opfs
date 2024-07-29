@@ -1,5 +1,5 @@
 import { ABORT_ERROR, fetchT, type FetchTask } from '@happy-ts/fetch-t';
-import { basename } from '@std/path/posix';
+import { basename, join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
@@ -41,7 +41,7 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
     const items: AsyncIOResult<T>[] = [];
 
     for await (const { path } of res.unwrap()) {
-        items.push(remove(path));
+        items.push(remove(join(dirPath, path)));
     }
 
     const success: IOResult<T> = await Promise.all(items).then((x) => {
