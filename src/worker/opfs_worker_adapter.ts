@@ -17,6 +17,14 @@ let messenger: SyncMessenger;
  * @returns
  */
 export function startMainMessenger(options: MainMessengerOptions): Promise<void> {
+    if (typeof window === 'undefined') {
+        throw new Error('Only can use in main thread');
+    }
+
+    if (messenger) {
+        throw new Error('Main messenger already started');
+    }
+
     return new Promise(resolve => {
         const {
             worker,

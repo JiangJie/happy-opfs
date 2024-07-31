@@ -23,6 +23,14 @@ let messenger: SyncMessenger;
  * Start runner loop.
  */
 export function startWorkerMessenger() {
+    if (typeof window !== 'undefined') {
+        throw new Error('Only can use in worker');
+    }
+
+    if (messenger) {
+        throw new Error('Worker messenger already started');
+    }
+
     onmessage = (event: MessageEvent<SharedArrayBuffer>) => {
         // created at main thread and transfer to worker
         const sab = event.data;
