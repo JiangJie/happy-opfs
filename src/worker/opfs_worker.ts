@@ -61,64 +61,68 @@ export function startWorkerMessenger() {
  * Run worker loop.
  */
 async function runWorkerLoop(): Promise<void> {
-    await respondToMainFromWorker(messenger, async (data) => {
-        const { encoder, decoder } = messenger;
+    try {
+        await respondToMainFromWorker(messenger, async (data) => {
+            const { encoder, decoder } = messenger;
 
-        const [op, ...args] = decoder.read(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
-        const handle = asyncOps[op];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const res = await (handle as any)(...args);
+            const [op, ...args] = decoder.read(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
+            const handle = asyncOps[op];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const res = await (handle as any)(...args);
 
-        let response: Uint8Array;
+            let response: Uint8Array;
 
-        if (res.isErr()) {
-            // without result success
-            response = encoder.encode([serializeError(res.unwrapErr())]);
-        } else {
-            // manually serialize response
-            let rawResponse;
+            if (res.isErr()) {
+                // without result success
+                response = encoder.encode([serializeError(res.unwrapErr())]);
+            } else {
+                // manually serialize response
+                let rawResponse;
 
-            if (op === WorkerAsyncOp.readBlobFile) {
-                const file: File = res.unwrap();
+                if (op === WorkerAsyncOp.readBlobFile) {
+                    const file: File = res.unwrap();
 
-                rawResponse = await serializeFile(file);
-            } else if (op === WorkerAsyncOp.readDir) {
-                const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
-                const entries: ReadDirEntrySync[] = [];
+                    rawResponse = await serializeFile(file);
+                } else if (op === WorkerAsyncOp.readDir) {
+                    const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
+                    const entries: ReadDirEntrySync[] = [];
 
-                for await (const entry of iterator) {
-                    entries.push({
-                        path: entry.path,
-                        handle: {
-                            name: entry.handle.name,
-                            kind: entry.handle.kind,
-                        },
-                    });
+                    for await (const entry of iterator) {
+                        entries.push({
+                            path: entry.path,
+                            handle: {
+                                name: entry.handle.name,
+                                kind: entry.handle.kind,
+                            },
+                        });
+                    }
+
+                    rawResponse = entries;
+                } else if (op === WorkerAsyncOp.stat) {
+                    const data: FileSystemHandle = res.unwrap();
+
+                    const handle: FileSystemHandleLike = {
+                        name: data.name,
+                        kind: data.kind,
+                    };
+
+                    rawResponse = handle;
+                } else {
+                    // others are all boolean
+                    const data: boolean = res.unwrap();
+
+                    rawResponse = data;
                 }
 
-                rawResponse = entries;
-            } else if (op === WorkerAsyncOp.stat) {
-                const data: FileSystemHandle = res.unwrap();
-
-                const handle: FileSystemHandleLike = {
-                    name: data.name,
-                    kind: data.kind,
-                };
-
-                rawResponse = handle;
-            } else {
-                // others are all boolean
-                const data: boolean = res.unwrap();
-
-                rawResponse = data;
+                // without error
+                response = encoder.encode([null, rawResponse]);
             }
 
-            // without error
-            response = encoder.encode([null, rawResponse]);
-        }
-
-        return response;
-    });
+            return response;
+        });
+    } catch {
+        // empty
+    }
 
     // loop forever
     runWorkerLoop();
