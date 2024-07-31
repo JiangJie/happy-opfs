@@ -102,7 +102,7 @@ export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult
 /**
  * Sync version of `readFile`.
  */
-export function readFileSync(filePath: string, options: ReadOptions): IOResult<ArrayBuffer> {
+export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ArrayBuffer> {
     const res: IOResult<FileLike> = callWorkerOp('readBlobFile', filePath, options);
 
     if (res.isErr()) {
