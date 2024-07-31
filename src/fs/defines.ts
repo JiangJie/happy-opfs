@@ -1,3 +1,11 @@
+export { TIMEOUT_ERROR } from '@happy-ts/fetch-t';
+
+/**
+ * A constant representing the error thrown when a file or directory is not found.
+ * Name of DOMException.NOT_FOUND_ERR.
+ */
+export const NOT_FOUND_ERROR = 'NotFoundError' as const;
+
 /**
  * Represents the possible content types that can be written to a file.
  */
@@ -96,6 +104,7 @@ export interface ReadDirEntry {
      * The relative path of the entry from readDir the path parameter.
      */
     path: string;
+
     /**
      * The handle of the entry.
      */
@@ -103,7 +112,91 @@ export interface ReadDirEntry {
 }
 
 /**
- * A constant representing the error thrown when a file or directory is not found.
- * Name of DOMException.NOT_FOUND_ERR.
+ * An entry returned by `readDirSync`.
  */
-export const NOT_FOUND_ERROR = 'NotFoundError' as const;
+export interface ReadDirEntrySync {
+    /**
+     * The relative path of the entry from readDir the path parameter.
+     */
+    path: string;
+
+    /**
+     * The handle of the entry.
+     */
+    handle: FileSystemHandleLike;
+}
+
+/**
+ * A handle to a file or directory returned by `statSync`.
+ */
+export interface FileSystemHandleLike {
+    /**
+     * The name of the entry.
+     */
+    name: string;
+
+    /**
+     * The kind of the entry.
+     */
+    kind: FileSystemHandleKind;
+}
+
+/**
+ * Serializable version of Error.
+ */
+export interface ErrorLike {
+    /**
+     * The name of the error.
+     */
+    name: string;
+
+    /**
+     * The message of the error.
+     */
+    message: string;
+}
+
+/**
+ * Serializable version of File.
+ */
+export interface FileLike {
+    /**
+     * The name of the file.
+     */
+    name: string;
+
+    /**
+     * The type of the file.
+     */
+    type: string;
+
+    /**
+     * The last modified time of the file.
+     */
+    lastModified: number;
+
+    /**
+     * The binary data of the file.
+     */
+    data: Uint8Array;
+}
+
+/**
+ * Setup options of the main messenger.
+ */
+export interface MainMessengerOptions {
+    /**
+     * The worker to communicate with.
+     */
+    worker: Worker | URL | string;
+
+    /**
+     * The length of the buffer to use for communication.
+    */
+    bufferLength?: number;
+
+    /**
+     * The timeout for operations.
+     */
+    opTimeout?: number;
+}
