@@ -2,14 +2,22 @@ import type { FileSystemHandleLike, ReadDirEntry, ReadDirEntrySync } from '../fs
 import { mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core';
 import { appendFile, emptyDir, exists, readBlobFile } from '../fs/opfs_ext';
 import { serializeError, serializeFile } from './helpers';
-import { respondToMainFromWorker, SyncMessenger } from './shared';
+import { respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared';
 
 /**
  * Async I/O operations which allow to call from main thread.
  */
 const asyncOps = {
-    mkdir, readDir, remove, rename, stat, writeFile,
-    appendFile, emptyDir, exists, readBlobFile,
+    [WorkerAsyncOp.mkdir]: mkdir,
+    [WorkerAsyncOp.readDir]: readDir,
+    [WorkerAsyncOp.remove]: remove,
+    [WorkerAsyncOp.rename]: rename,
+    [WorkerAsyncOp.stat]: stat,
+    [WorkerAsyncOp.writeFile]: writeFile,
+    [WorkerAsyncOp.appendFile]: appendFile,
+    [WorkerAsyncOp.emptyDir]: emptyDir,
+    [WorkerAsyncOp.exists]: exists,
+    [WorkerAsyncOp.readBlobFile]: readBlobFile,
 };
 
 /**
@@ -56,7 +64,7 @@ async function runWorkerLoop(): Promise<void> {
     await respondToMainFromWorker(messenger, async (data) => {
         const { encoder, decoder } = messenger;
 
-        const [op, ...args] = decoder.read(data) as [keyof typeof asyncOps, ...Parameters<typeof asyncOps[keyof typeof asyncOps]>];
+        const [op, ...args] = decoder.read(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
         const handle = asyncOps[op];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const res = await (handle as any)(...args);
@@ -70,11 +78,11 @@ async function runWorkerLoop(): Promise<void> {
             // manually serialize response
             let rawResponse;
 
-            if (op === 'readBlobFile') {
+            if (op === WorkerAsyncOp.readBlobFile) {
                 const file: File = res.unwrap();
 
                 rawResponse = await serializeFile(file);
-            } else if (op === 'readDir') {
+            } else if (op === WorkerAsyncOp.readDir) {
                 const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
                 const entries: ReadDirEntrySync[] = [];
 
@@ -89,7 +97,7 @@ async function runWorkerLoop(): Promise<void> {
                 }
 
                 rawResponse = entries;
-            } else if (op === 'stat') {
+            } else if (op === WorkerAsyncOp.stat) {
                 const data: FileSystemHandle = res.unwrap();
 
                 const handle: FileSystemHandleLike = {

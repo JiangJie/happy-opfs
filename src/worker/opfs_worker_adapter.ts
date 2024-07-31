@@ -2,7 +2,7 @@ import { Err, Ok, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import type { ExistsOptions, FileLike, FileSystemHandleLike, MainMessengerOptions, ReadDirEntrySync, ReadDirOptions, ReadOptions, WriteFileContent, WriteOptions } from '../fs/defines';
 import { deserializeError, deserializeFile, setGlobalOpTimeout } from './helpers';
-import { callWorkerFromMain, SyncMessenger } from './shared';
+import { callWorkerFromMain, SyncMessenger, WorkerAsyncOp } from './shared';
 
 /**
  * Cache the messenger instance.
@@ -57,12 +57,12 @@ export function startMainMessenger(options: MainMessengerOptions): Promise<void>
 
 /**
  * Call worker I/O operation.
- * @param op - I/O operation name.
+ * @param op - I/O operation enum.
  * @param args - I/O operation arguments.
  * @returns - I/O operation result.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callWorkerOp<T>(op: string, ...args: any[]): IOResult<T> {
+function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
     if (!messenger) {
         // too early
         return Err(new Error('Worker not initialized. Come back later.'));
@@ -89,21 +89,21 @@ function callWorkerOp<T>(op: string, ...args: any[]): IOResult<T> {
  * Sync version of `mkdir`.
  */
 export function mkdirSync(dirPath: string): IOResult<boolean> {
-    return callWorkerOp('mkdir', dirPath);
+    return callWorkerOp(WorkerAsyncOp.mkdir, dirPath);
 }
 
 /**
  * Sync version of `readDir`.
  */
 export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult<ReadDirEntrySync[]> {
-    return callWorkerOp('readDir', dirPath, options);
+    return callWorkerOp(WorkerAsyncOp.readDir, dirPath, options);
 }
 
 /**
  * Sync version of `readFile`.
  */
 export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ArrayBuffer> {
-    const res: IOResult<FileLike> = callWorkerOp('readBlobFile', filePath, options);
+    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath, options);
 
     if (res.isErr()) {
         return res.asErr();
@@ -118,21 +118,21 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
  * Sync version of `remove`.
  */
 export function removeSync(path: string): IOResult<boolean> {
-    return callWorkerOp('remove', path);
+    return callWorkerOp(WorkerAsyncOp.remove, path);
 }
 
 /**
  * Sync version of `rename`.
  */
 export function renameSync(oldPath: string, newPath: string): IOResult<boolean> {
-    return callWorkerOp('rename', oldPath, newPath);
+    return callWorkerOp(WorkerAsyncOp.rename, oldPath, newPath);
 }
 
 /**
  * Sync version of `stat`.
  */
 export function statSync(path: string): IOResult<FileSystemHandleLike> {
-    const res: IOResult<FileSystemHandleLike> = callWorkerOp('stat', path);
+    const res: IOResult<FileSystemHandleLike> = callWorkerOp(WorkerAsyncOp.stat, path);
 
     if (res.isErr()) {
         return res.asErr();
@@ -145,35 +145,35 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
  * Sync version of `writeFile`.
  */
 export function writeFileSync(filePath: string, contents: WriteFileContent, options?: WriteOptions): IOResult<boolean> {
-    return callWorkerOp('writeFile', filePath, contents, options);
+    return callWorkerOp(WorkerAsyncOp.writeFile, filePath, contents, options);
 }
 
 /**
  * Sync version of `appendFile`.
  */
 export function appendFileSync(filePath: string, contents: WriteFileContent): IOResult<boolean> {
-    return callWorkerOp('appendFile', filePath, contents);
+    return callWorkerOp(WorkerAsyncOp.appendFile, filePath, contents);
 }
 
 /**
  * Sync version of `emptyDir`.
  */
 export function emptyDirSync(dirPath: string): IOResult<boolean> {
-    return callWorkerOp('emptyDir', dirPath);
+    return callWorkerOp(WorkerAsyncOp.emptyDir, dirPath);
 }
 
 /**
  * Sync version of `exists`.
  */
 export function existsSync(path: string, options?: ExistsOptions): IOResult<boolean> {
-    return callWorkerOp('exists', path, options);
+    return callWorkerOp(WorkerAsyncOp.exists, path, options);
 }
 
 /**
  * Sync version of `readBlobFile`.
  */
 export function readBlobFileSync(filePath: string): IOResult<Blob> {
-    const res: IOResult<FileLike> = callWorkerOp('readBlobFile', filePath);
+    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
 
     if (res.isErr()) {
         return res.asErr();
@@ -186,7 +186,7 @@ export function readBlobFileSync(filePath: string): IOResult<Blob> {
  * Sync version of `readTextFile`.
  */
 export function readTextFileSync(filePath: string): IOResult<string> {
-    const res: IOResult<FileLike> = callWorkerOp('readBlobFile', filePath);
+    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
 
     if (res.isErr()) {
         return res.asErr();

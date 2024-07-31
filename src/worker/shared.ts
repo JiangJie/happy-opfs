@@ -3,6 +3,24 @@ import { CborEncoder } from 'json-joy/esm/json-pack/cbor/CborEncoder';
 import { sleepUntil } from './helpers';
 
 /**
+ * Async I/O operations called from main thread to worker thread.
+ */
+export const enum WorkerAsyncOp {
+    // core
+    mkdir,
+    readDir,
+    remove,
+    rename,
+    stat,
+    writeFile,
+    // ext
+    appendFile,
+    emptyDir,
+    exists,
+    readBlobFile,
+}
+
+/**
  * Inspired by [memfs](https://github.com/streamich/memfs/blob/master/src/fsa-to-node/worker/SyncMessenger.ts).
  *
  * Used both in main thread and worker thread.
