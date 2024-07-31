@@ -223,7 +223,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     const childName = basename(path);
     if (!childName) {
         // root
-        return dirHandle.asErr();
+        return dirHandle;
     }
 
     // 当前只有靠遍历检查
@@ -233,7 +233,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
         }
     }
 
-    const err = new Error(`${ NOT_FOUND_ERROR }: '${ path }' not found.`);
+    const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'.`);
     err.name = NOT_FOUND_ERROR;
 
     return Err(err);
