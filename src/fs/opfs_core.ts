@@ -233,7 +233,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
         }
     }
 
-    const err = new Error(`${ path } not found`);
+    const err = new Error(`${ NOT_FOUND_ERROR }: '${ path }' not found.`);
     err.name = NOT_FOUND_ERROR;
 
     return Err(err);
