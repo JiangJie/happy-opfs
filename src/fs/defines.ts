@@ -182,9 +182,9 @@ export interface FileLike {
 }
 
 /**
- * Setup options of the main messenger.
+ * Setup options of `connectSyncAgent`.
  */
-export interface MainMessengerOptions {
+export interface SyncAgentOptions {
     /**
      * The worker to communicate with.
      */

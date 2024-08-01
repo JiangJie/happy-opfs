@@ -1,6 +1,6 @@
 import { Err, Ok, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, FileLike, FileSystemHandleLike, MainMessengerOptions, ReadDirEntrySync, ReadDirOptions, ReadOptions, WriteFileContent, WriteOptions } from '../fs/defines';
+import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines';
 import { deserializeError, deserializeFile, setGlobalOpTimeout } from './helpers';
 import { callWorkerFromMain, SyncMessenger, WorkerAsyncOp } from './shared';
 
@@ -10,11 +10,11 @@ import { callWorkerFromMain, SyncMessenger, WorkerAsyncOp } from './shared';
 let messenger: SyncMessenger;
 
 /**
- * Start main messenger to communicate with worker.
- * @param options - MainMessengerOptions
+ * Communicate with worker.
+ * @param options - SyncAgentOptions
  * @returns
  */
-export function startMainMessenger(options: MainMessengerOptions): Promise<void> {
+export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
     if (typeof window === 'undefined') {
         throw new Error('Only can use in main thread');
     }

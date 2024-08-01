@@ -1,4 +1,4 @@
-import { appendFileSync, emptyDirSync, existsSync, mkdirSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, startMainMessenger, statSync, writeFileSync } from '../src/mod';
+import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, statSync, writeFileSync } from '../src/mod';
 
 function run() {
     emptyDirSync('/');
@@ -37,10 +37,14 @@ function run() {
 }
 
 export async function testSync() {
-    await startMainMessenger({
+    await connectSyncAgent({
         worker: new Worker(new URL('worker.ts', import.meta.url), {
             type: 'module'
         }),
+        // SharedArrayBuffer size between main thread and worker
+        bufferLength: 10 * 1024 * 1024,
+        // max wait time at main thread per operation
+        opTimeout: 3000,
     });
 
     for (let index = 0; index < 1; index++) {

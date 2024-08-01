@@ -1,3 +1,3 @@
-import { startWorkerMessenger } from '../src/mod';
+import { startSyncAgent } from '../src/mod';
 
-startWorkerMessenger();
+startSyncAgent();

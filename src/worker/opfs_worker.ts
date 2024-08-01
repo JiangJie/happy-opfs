@@ -26,11 +26,11 @@ const asyncOps = {
 let messenger: SyncMessenger;
 
 /**
- * Start worker messenger.
+ * Start worker agent.
  * Listens to postMessage from main thread.
  * Start runner loop.
  */
-export function startWorkerMessenger() {
+export function startSyncAgent() {
     if (typeof window !== 'undefined') {
         throw new Error('Only can use in worker');
     }
