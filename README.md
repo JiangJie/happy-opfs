@@ -54,6 +54,18 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 -   The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.
 -   Deno natively supports TypeScript, while Node.js currently does not without the use of additional tools.
 
+## Synchronous support
+
+> [!NOTE]
+However, it is more recommended to use the asynchronous interface because the main thread does not provide a synchronous interface. In order to force the implementation of synchronous syntax, the I/O operation needs to be moved to the `Worker`, and the main thread needs to be blocked until the `Worker` completes the I/O operation, which obviously causes performance loss.
+
+And because the `Worker` needs to be started, the synchronous interface can only be used after the `Worker` is started, and any reading and writing before that will fail.
+
+**Please note** that in order to share data between the main thread and the `Worker`, `SharedArrayBuffer` needs to be used, so two additional `HTTP Response Headers` are required for this:
+`'Cross-Origin-Opener-Policy': 'same-origin'`
+`'Cross-Origin-Embedder-Policy': 'require-corp'`.
+Otherwise, an error `ReferenceError: SharedArrayBuffer is not defined` will be thrown.
+
 ## Examples
 
 ```ts
@@ -139,7 +151,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
 })();
 ```
 
-You can find the above example code in the file `tests/index.ts`, or you can view the runtime effect using the following steps.
+You can find the above example code in the file [tests/async.ts](tests/async.ts), or you can view the runtime effect using the following steps.
 
 ```
 git clone https://github.com/JiangJie/happy-opfs.git
@@ -151,5 +163,34 @@ pnpm start
 Open [https://localhost:8443/](https://localhost:8443/) in your browser and open the developer tools to observe the console output.
 
 You can also install the [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) browser extension to visually inspect the file system status.
+
+### Synchronization Example
+
+`worker.ts`
+```ts
+import { startSyncAgent } from 'happy-opfs';
+
+startSyncAgent();
+```
+
+`index.ts`
+```ts
+import { connectSyncAgent, mkdirSync } from 'happy-opfs';
+
+await connectSyncAgent({
+    worker: new Worker(new URL('worker.ts', import.meta.url), {
+        type: 'module'
+    }),
+    // SharedArrayBuffer size between main thread and worker
+    bufferLength: 10 * 1024 * 1024,
+    // max wait time at main thread per operation
+    opTimeout: 3000,
+});
+
+mkdirSync('/happy/opfs');
+// other sync operations
+```
+
+See [tests/sync.ts](tests/sync.ts) for details.
 
 ## [Docs](docs/README.md)

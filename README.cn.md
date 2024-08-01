@@ -47,6 +47,20 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 -   早期的 Node.js fs API 是基于回调的语法，虽然较新的版本支持了 Promise 语法，而 Deno fs API 则一开始就是基于 Promise 语法，这样来说的话，Deno 有更少的历史包袱，要实现和 Native 兼容的 API，选择 Deno 做为参考显然更合适。
 -   Deno 原生支持 TypeScript，而 Node.js 在不借助于其它工具的情况下暂不支持。
 
+## 是否支持同步接口
+
+**支持**
+
+> [!NOTE]
+但更推荐使用异步接口，因为主线程并未提供同步接口，为了强制实现同步语法，需要将 I/O 操作移到 `Worker` 进行，同时主线程需要处于阻塞状态，直到 `Worker` 完成 I/O 操作，这显然会带来性能上的损失。
+
+并且由于需要启动 `Worker，同步接口需要在` `Worker` 启动后才能使用，在此之前任何读写都会失败。
+
+**请注意**，为了在主线程和 `Worker` 之间共享数据，需要使用 `SharedArrayBuffer`，为此需要两个额外的 `HTTP Response Header`:
+`'Cross-Origin-Opener-Policy': 'same-origin'`
+`'Cross-Origin-Embedder-Policy': 'require-corp'`。
+否则会报错 `ReferenceError: SharedArrayBuffer is not defined`。
+
 ## 示例
 
 ```ts
@@ -132,7 +146,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
 })();
 ```
 
-以上示例代码可以在文件`tests/index.ts`找到，也可以通过以下方式查看运行时效果。
+以上示例代码可以在 [tests/async.ts](tests/async.ts) 找到，也可以通过以下方式查看运行时效果。
 
 ```
 git clone https://github.com/JiangJie/happy-opfs.git
@@ -144,5 +158,34 @@ pnpm start
 通过浏览器打开 [https://localhost:8443/](https://localhost:8443/)，打开开发者工具观察 console 的输出。
 
 你也可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) 浏览器扩展，以便直观地查看文件系统状态。
+
+### 同步示例
+
+`worker.ts`
+```ts
+import { startSyncAgent } from 'happy-opfs';
+
+startSyncAgent();
+```
+
+`index.ts`
+```ts
+import { connectSyncAgent, mkdirSync } from 'happy-opfs';
+
+await connectSyncAgent({
+    worker: new Worker(new URL('worker.ts', import.meta.url), {
+        type: 'module'
+    }),
+    // SharedArrayBuffer size between main thread and worker
+    bufferLength: 10 * 1024 * 1024,
+    // max wait time at main thread per operation
+    opTimeout: 3000,
+});
+
+mkdirSync('/happy/opfs');
+// other sync operations
+```
+
+详见 [tests/sync.ts](tests/sync.ts)。
 
 ## [文档](docs/README.md)
