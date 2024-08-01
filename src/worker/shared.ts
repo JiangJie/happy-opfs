@@ -130,7 +130,6 @@ export function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): 
 export async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
     const { i32a, u8a, headerLength, maxDataLength, encoder } = messenger;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         if (Atomics.load(i32a, WORKER_LOCK_INDEX) === WORKER_UNLOCKED) {
             break;

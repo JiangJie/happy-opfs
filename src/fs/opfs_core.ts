@@ -57,17 +57,6 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
 }
 
 /**
- * Reads the content of a file at the specified path as an ArrayBuffer.
- *
- * @param filePath - The path of the file to read.
- * @param options - Read options specifying the 'binary' encoding.
- * @returns A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
- */
-export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'binary';
-}): AsyncIOResult<ArrayBuffer>;
-
-/**
  * Reads the content of a file at the specified path as a Blob.
  *
  * @param filePath - The path of the file to read.
@@ -93,9 +82,12 @@ export function readFile(filePath: string, options: ReadOptions & {
  * Reads the content of a file at the specified path as an ArrayBuffer by default.
  *
  * @param filePath - The path of the file to read.
+ * @param options - Read options specifying the 'binary' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
  */
-export function readFile(filePath: string): AsyncIOResult<ArrayBuffer>;
+export function readFile(filePath: string, options?: ReadOptions & {
+    encoding: 'binary';
+}): AsyncIOResult<ArrayBuffer>;
 
 /**
  * Reads the content of a file at the specified path with the specified options.

@@ -22,7 +22,7 @@
   "scripts": {
     "clean": "pnpm dlx rimraf .parcel-cache dist",
     "check": "pnpm exec tsc --noEmit",
-    "lint": "pnpm exec eslint src/",
+    "lint": "pnpm exec eslint .",
     "prebuild": "pnpm dlx rimraf dist && pnpm run check && pnpm run lint",
     "build": "pnpm exec rollup --config rollup.config.mjs",
     "predocs": "pnpm dlx rimraf docs",
@@ -44,16 +44,17 @@
     "private"
   ],
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.17.0",
-    "@typescript-eslint/parser": "^7.17.0",
-    "eslint": "^8.57.0",
+    "@eslint/js": "^9.8.0",
+    "@types/eslint__js": "^8.42.3",
+    "eslint": "^9.8.0",
     "parcel": "^2.12.0",
-    "rollup": "^4.19.1",
+    "rollup": "^4.19.2",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-esbuild": "^6.1.1",
     "typedoc": "^0.26.5",
     "typedoc-plugin-markdown": "^4.2.3",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.0.0"
   },
   "dependencies": {
     "@happy-ts/fetch-t": "^1.0.16",
@@ -65,5 +66,5 @@
   "@parcel/resolver-default": {
     "packageExports": true
   },
-  "packageManager": "pnpm@9.5.0"
+  "packageManager": "pnpm@9.6.0"
 }

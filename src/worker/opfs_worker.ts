@@ -62,7 +62,6 @@ export function startSyncAgent() {
  */
 async function runWorkerLoop(): Promise<void> {
     // loop forever
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         try {
             await respondToMainFromWorker(messenger, async (data) => {
