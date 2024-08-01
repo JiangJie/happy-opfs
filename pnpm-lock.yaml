@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@happy-ts/fetch-t':
-        specifier: ^1.0.16
-        version: 1.0.16
+        specifier: ^1.0.17
+        version: 1.0.17
       '@std/path':
         specifier: npm:@jsr/std__path@1.0.2
         version: '@jsr/std__path@1.0.2'
       happy-rusty:
-        specifier: ^1.1.2
-        version: 1.1.2
+        specifier: ^1.2.0
+        version: 1.2.0
       json-joy:
         specifier: ^12.6.0
         version: 12.6.0(tslib@2.6.3)
@@ -236,8 +236,8 @@ packages:
     resolution: {integrity: sha512-BsWiH1yFGjXXS2yvrf5LyuoSIIbPrGUWob917o+BTKuZ7qJdxX8aJLRxs1fS9n6r7vESrq1OUqb68dANcFXuQQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@happy-ts/fetch-t@1.0.16':
-    resolution: {integrity: sha512-/YbFCqluQboQEeyD/dF/ob12oPr/A2PqrJlLWqh9ZIcLc6FTx2ENqNH2m9b2v0RMSw+zuGBxh5P2tOGa4enqwA==}
+  '@happy-ts/fetch-t@1.0.17':
+    resolution: {integrity: sha512-Zzt12jzVQOpGHUHFQ1dpCDqqstn/qPcl2MSMkAka9l6kE9ytn9wK0E4NIh2G1WVKd2bAvaf/gVIlyZYuxoBvHQ==}
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -725,8 +725,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@shikijs/core@1.12.0':
-    resolution: {integrity: sha512-mc1cLbm6UQ8RxLc0dZES7v5rkH+99LxQp/ZvTqV3NLyYsO/fD6JhEflP1H5b2SDq9gI0+0G36AVZWxvounfR9w==}
+  '@shikijs/core@1.12.1':
+    resolution: {integrity: sha512-biCz/mnkMktImI6hMfMX3H9kOeqsInxWEyCHbSlL8C/2TR1FqfmGxTLRNwYCKsyCyxWLbB8rEqXRVZuyxuLFmA==}
 
   '@swc/core-darwin-arm64@1.7.4':
     resolution: {integrity: sha512-RbWrdGh+x9xKFUA9/kPZRR8OPxUsDUuPyLjPIGLYZMO+ftht2vhVH7QsUq6lg+jAP34eIya72UA1isiZe+BRaA==}
@@ -1214,8 +1214,8 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  happy-rusty@1.1.2:
-    resolution: {integrity: sha512-+GCLe790pFrd3d9r8X5zE0fBzNl6Hvgk7djMYQqd7e8ItTZ4dvX0Jd8nbFIPwLPHAlE45JLsWVsRa3BFNLZItg==}
+  happy-rusty@1.2.0:
+    resolution: {integrity: sha512-rWR3EOvbnlYiufhiZEwUUnDIfX6MXDJh1CtISJYX4hGpEUdK2O8z9/qjbfdRvS9pbMklvWScN0Iu2e3pIY91bg==}
 
   has-flag@3.0.0:
     resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
@@ -1630,8 +1630,8 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  shiki@1.12.0:
-    resolution: {integrity: sha512-BuAxWOm5JhRcbSOl7XCei8wGjgJJonnV0oipUupPY58iULxUGyHhW5CF+9FRMuM1pcJ5cGEJGll1LusX6FwpPA==}
+  shiki@1.12.1:
+    resolution: {integrity: sha512-nwmjbHKnOYYAe1aaQyEBHvQymJgfm86ZSS7fT8OaPRr4sbAcBNz7PbfAikMEFSDQ6se2j2zobkXvVKcBOm0ysg==}
 
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -1892,9 +1892,9 @@ snapshots:
 
   '@eslint/object-schema@2.1.4': {}
 
-  '@happy-ts/fetch-t@1.0.16':
+  '@happy-ts/fetch-t@1.0.17':
     dependencies:
-      happy-rusty: 1.1.2
+      happy-rusty: 1.2.0
       tiny-invariant: 1.3.3
 
   '@humanwhocodes/module-importer@1.0.1': {}
@@ -2605,7 +2605,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.19.2':
     optional: true
 
-  '@shikijs/core@1.12.0':
+  '@shikijs/core@1.12.1':
     dependencies:
       '@types/hast': 3.0.4
 
@@ -3120,7 +3120,7 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  happy-rusty@1.1.2: {}
+  happy-rusty@1.2.0: {}
 
   has-flag@3.0.0: {}
 
@@ -3511,9 +3511,9 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
-  shiki@1.12.0:
+  shiki@1.12.1:
     dependencies:
-      '@shikijs/core': 1.12.0
+      '@shikijs/core': 1.12.1
       '@types/hast': 3.0.4
 
   slash@3.0.0: {}
@@ -3585,7 +3585,7 @@ snapshots:
       lunr: 2.3.9
       markdown-it: 14.1.0
       minimatch: 9.0.5
-      shiki: 1.12.0
+      shiki: 1.12.1
       typescript: 5.5.4
       yaml: 2.5.0
 
