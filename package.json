@@ -41,7 +41,10 @@
     "directory",
     "opfs",
     "origin",
-    "private"
+    "private",
+    "worker",
+    "sync",
+    "async"
   ],
   "devDependencies": {
     "@eslint/js": "^9.8.0",
