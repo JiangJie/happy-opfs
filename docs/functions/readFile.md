@@ -23,45 +23,6 @@ Optional read options.
 ## readFile(filePath, options)
 
 ```ts
-function readFile(filePath, options): AsyncIOResult<ArrayBuffer>
-```
-
-Reads the content of a file at the specified path as an ArrayBuffer.
-
-### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `filePath` | `string` | The path of the file to read. |
-| `options` | [`ReadOptions`](../interfaces/ReadOptions.md) & \{ `encoding`: `"binary"`; \} | Read options specifying the 'binary' encoding. |
-
-### Returns
-
-`AsyncIOResult`\<`ArrayBuffer`\>
-
-A promise that resolves to an `AsyncIOResult` containing the file content.
-
-A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
-
-### Template
-
-The type of the content to read from the file.
-
-### Param
-
-The path of the file to read.
-
-### Param
-
-Optional read options.
-
-### Defined in
-
-[opfs\_core.ts:65](https://github.com/JiangJie/happy-opfs/blob/d68792f9a5e7b6adf88f024f94912569e3fce9ab/src/fs/opfs_core.ts#L65)
-
-## readFile(filePath, options)
-
-```ts
 function readFile(filePath, options): AsyncIOResult<Blob>
 ```
 
@@ -96,7 +57,7 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:76](https://github.com/JiangJie/happy-opfs/blob/d68792f9a5e7b6adf88f024f94912569e3fce9ab/src/fs/opfs_core.ts#L76)
+[fs/opfs\_core.ts:66](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/opfs_core.ts#L66)
 
 ## readFile(filePath, options)
 
@@ -135,12 +96,12 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:87](https://github.com/JiangJie/happy-opfs/blob/d68792f9a5e7b6adf88f024f94912569e3fce9ab/src/fs/opfs_core.ts#L87)
+[fs/opfs\_core.ts:77](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/opfs_core.ts#L77)
 
-## readFile(filePath)
+## readFile(filePath, options)
 
 ```ts
-function readFile(filePath): AsyncIOResult<ArrayBuffer>
+function readFile(filePath, options?): AsyncIOResult<ArrayBuffer>
 ```
 
 Reads the content of a file at the specified path as an ArrayBuffer by default.
@@ -150,6 +111,7 @@ Reads the content of a file at the specified path as an ArrayBuffer by default.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `filePath` | `string` | The path of the file to read. |
+| `options`? | [`ReadOptions`](../interfaces/ReadOptions.md) & \{ `encoding`: `"binary"`; \} | Read options specifying the 'binary' encoding. |
 
 ### Returns
 
@@ -173,4 +135,4 @@ Optional read options.
 
 ### Defined in
 
-[opfs\_core.ts:97](https://github.com/JiangJie/happy-opfs/blob/d68792f9a5e7b6adf88f024f94912569e3fce9ab/src/fs/opfs_core.ts#L97)
+[fs/opfs\_core.ts:88](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/opfs_core.ts#L88)

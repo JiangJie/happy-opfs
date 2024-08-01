@@ -12,4 +12,4 @@ Options for reading directories.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `recursive` | `boolean` | Whether to recursively read the contents of directories. | [defines.ts:88](https://github.com/JiangJie/happy-opfs/blob/d68792f9a5e7b6adf88f024f94912569e3fce9ab/src/fs/defines.ts#L88) |
+| `recursive` | `boolean` | Whether to recursively read the contents of directories. | [fs/defines.ts:96](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L96) |
