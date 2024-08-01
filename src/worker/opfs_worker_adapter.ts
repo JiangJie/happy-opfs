@@ -43,15 +43,15 @@ export function startMainMessenger(options: MainMessengerOptions): Promise<void>
 
         const sab = new SharedArrayBuffer(bufferLength);
 
-        workerAdapter.postMessage(sab);
-
-        workerAdapter.onmessage = (event: MessageEvent<boolean>) => {
+        workerAdapter.addEventListener('message', (event: MessageEvent<boolean>) => {
             if (event.data) {
                 messenger = new SyncMessenger(sab);
 
                 resolve();
             }
-        };
+        });
+
+        workerAdapter.postMessage(sab);
     });
 }
 
@@ -80,8 +80,8 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
         const result: IOResult<T> = decodedResponse[0] ? Err(deserializeError(decodedResponse[0])) : Ok(decodedResponse[1]);
 
         return result;
-    } catch (error: unknown) {
-        return Err(error as Error);
+    } catch (err) {
+        return Err(err as Error);
     }
 }
 

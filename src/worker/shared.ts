@@ -21,16 +21,53 @@ export const enum WorkerAsyncOp {
 }
 
 /**
+ * Main thread lock index used in Int32Array.
+ */
+const MAIN_LOCK_INDEX = 0;
+
+/**
+ * Worker thread lock index used in Int32Array.
+ */
+const WORKER_LOCK_INDEX = 1;
+
+/**
+ * Data index used in Int32Array.
+ */
+const DATA_INDEX = 2;
+
+/**
+ * Main thread locked value.
+ */
+const MAIN_LOCKED = 1;
+
+/**
+ * Main thread unlocked value.
+ * Default.
+ */
+const MAIN_UNLOCKED = 0;
+
+/**
+ * Worker thread locked value.
+ * Default.
+ */
+const WORKER_LOCKED = MAIN_UNLOCKED;
+
+/**
+ * Worker thread unlocked value.
+ */
+const WORKER_UNLOCKED = MAIN_LOCKED;
+
+/**
  * Inspired by [memfs](https://github.com/streamich/memfs/blob/master/src/fsa-to-node/worker/SyncMessenger.ts).
  *
  * Used both in main thread and worker thread.
  */
 export class SyncMessenger {
     // View of SharedArrayBuffer, used to communicate between main thread and worker.
-    readonly int32: Int32Array;
+    readonly i32a: Int32Array;
     // View of the same SharedArrayBuffer, used to read and write binary data.
-    readonly uint8: Uint8Array;
-    // int int int int
+    readonly u8a: Uint8Array;
+    // 4 int: MAIN_LOCK_INDEX WORKER_LOCK_INDEX DATA_INDEX NOT_USE
     readonly headerLength = 4 * 4;
     // maximum length of data to be sent. If data is longer than this, it will throw an error.
     readonly maxDataLength: number;
@@ -41,8 +78,8 @@ export class SyncMessenger {
     readonly decoder = new CborDecoderBase();
 
     constructor(sab: SharedArrayBuffer) {
-        this.int32 = new Int32Array(sab);
-        this.uint8 = new Uint8Array(sab);
+        this.i32a = new Int32Array(sab);
+        this.u8a = new Uint8Array(sab);
         this.maxDataLength = sab.byteLength - this.headerLength;
     }
 }
@@ -55,7 +92,7 @@ export class SyncMessenger {
  * @returns - Response buffer which is encoded return value.
  */
 export function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Array {
-    const { int32, uint8, headerLength, maxDataLength } = messenger;
+    const { i32a, u8a, headerLength, maxDataLength } = messenger;
     const requestLength = data.byteLength;
 
     // check whether request is too large
@@ -63,22 +100,23 @@ export function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): 
         throw new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider grow the size of SharedArrayBuffer.`);
     }
 
-    // condition of waiting at main thread
-    int32[1] = 1;
+    // lock main thread
+    Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_LOCKED);
 
     // payload and length
-    int32[2] = requestLength;
-    uint8.set(data, headerLength);
+    i32a[DATA_INDEX] = requestLength;
+    u8a.set(data, headerLength);
 
     // wakeup worker
-    Atomics.notify(int32, 0);
+    // Atomics.notify(i32a, WORKER_LOCK_INDEX); // this may not work
+    Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_UNLOCKED);
 
-    // main thread waiting
-    sleepUntil(() => int32[1] === 0);
+    // wait for worker to finish
+    sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
 
     // worker return
-    const responseLength = int32[2];
-    const response = uint8.slice(headerLength, headerLength + responseLength);
+    const responseLength = i32a[DATA_INDEX];
+    const response = u8a.slice(headerLength, headerLength + responseLength);
 
     return response;
 }
@@ -90,16 +128,25 @@ export function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): 
  * @param transfer - Function to transfer request data.
  */
 export async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
-    const { int32, uint8, headerLength, maxDataLength, encoder } = messenger;
+    const { i32a, u8a, headerLength, maxDataLength, encoder } = messenger;
 
-    const res = Atomics.wait(int32, 0, 0);
-    if (res !== 'ok') {
-        throw new Error(`Unexpected Atomics.wait result: ${ res }`);
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        if (Atomics.load(i32a, WORKER_LOCK_INDEX) === WORKER_UNLOCKED) {
+            break;
+        }
     }
 
+    // because of `Atomics.notify` may not work
+    // const waitRes = Atomics.wait(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
+    // if (waitRes !== 'ok') {
+    //     throw new Error(`Unexpected Atomics.wait result: ${ waitRes }`);
+    // }
+
     // payload and length
-    const requestLength = int32[2];
-    const data = uint8.slice(headerLength, headerLength + requestLength);
+    const requestLength = i32a[DATA_INDEX];
+    // console.log(`requestLength: ${ requestLength }`);
+    const data = u8a.slice(headerLength, headerLength + requestLength);
 
     // call async I/O operation
     let response = await transfer(data);
@@ -116,14 +163,20 @@ export async function respondToMainFromWorker(messenger: SyncMessenger, transfer
 
         // the error is too large?
         if (response.byteLength > maxDataLength) {
+            // lock worker thread before throw
+            Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
+
             throw new RangeError(message);
         }
     }
 
     // write response data
-    int32[2] = response.byteLength;
-    uint8.set(response, headerLength);
+    i32a[DATA_INDEX] = response.byteLength;
+    u8a.set(response, headerLength);
+
+    // lock worker thread
+    Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
 
     // wakeup main thread
-    int32[1] = 0;
+    Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_UNLOCKED);
 }
