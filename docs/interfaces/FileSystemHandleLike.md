@@ -12,5 +12,5 @@ A handle to a file or directory returned by `statSync`.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `kind` | `FileSystemHandleKind` | The kind of the entry. | [fs/defines.ts:141](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L141) |
-| `name` | `string` | The name of the entry. | [fs/defines.ts:136](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L136) |
+| `kind` | `FileSystemHandleKind` | The kind of the entry. | [fs/defines.ts:133](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/fs/defines.ts#L133) |
+| `name` | `string` | The name of the entry. | [fs/defines.ts:128](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/fs/defines.ts#L128) |

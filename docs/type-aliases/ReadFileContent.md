@@ -14,4 +14,4 @@ Represents the possible content types that can be read from a file.
 
 ## Defined in
 
-[fs/defines.ts:17](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L17)
+[fs/defines.ts:9](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/fs/defines.ts#L9)

@@ -33,7 +33,9 @@
 
 | Variable | Description |
 | ------ | ------ |
+| [CURRENT\_DIR](variables/CURRENT_DIR.md) | A constant representing the current directory path. |
 | [NOT\_FOUND\_ERROR](variables/NOT_FOUND_ERROR.md) | A constant representing the error thrown when a file or directory is not found. Name of DOMException.NOT_FOUND_ERR. |
+| [ROOT\_DIR](variables/ROOT_DIR.md) | A constant representing the root directory path. |
 
 ## Functions
 
@@ -49,9 +51,7 @@
 | [emptyDirSync](functions/emptyDirSync.md) | Sync version of `emptyDir`. |
 | [exists](functions/exists.md) | Checks whether a file or directory exists at the specified path. |
 | [existsSync](functions/existsSync.md) | Sync version of `exists`. |
-| [isCurrentDir](functions/isCurrentDir.md) | Checks if the provided directory path is the current directory. |
 | [isOPFSSupported](functions/isOPFSSupported.md) | Checks if the Origin Private File System (OPFS) is supported in the current environment. |
-| [isRootPath](functions/isRootPath.md) | Checks if the provided path is the root directory path. |
 | [mkdir](functions/mkdir.md) | Creates a new directory at the specified path same as `mkdir -p`. |
 | [mkdirSync](functions/mkdirSync.md) | Sync version of `mkdir`. |
 | [readBlobFile](functions/readBlobFile.md) | Reads the content of a file at the specified path as a Blob. |

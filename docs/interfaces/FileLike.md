@@ -12,7 +12,7 @@ Serializable version of File.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `data` | `Uint8Array` | The binary data of the file. | [fs/defines.ts:181](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L181) |
-| `lastModified` | `number` | The last modified time of the file. | [fs/defines.ts:176](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L176) |
-| `name` | `string` | The name of the file. | [fs/defines.ts:166](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L166) |
-| `type` | `string` | The type of the file. | [fs/defines.ts:171](https://github.com/JiangJie/happy-opfs/blob/3f62bbf8fdd56458cded8789b78dded5dd27b670/src/fs/defines.ts#L171) |
+| `data` | `Uint8Array` | The binary data of the file. | [fs/defines.ts:173](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/fs/defines.ts#L173) |
+| `lastModified` | `number` | The last modified time of the file. | [fs/defines.ts:168](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/fs/defines.ts#L168) |
+| `name` | `string` | The name of the file. | [fs/defines.ts:158](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/fs/defines.ts#L158) |
+| `type` | `string` | The type of the file. | [fs/defines.ts:163](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/fs/defines.ts#L163) |
