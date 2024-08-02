@@ -1,5 +1,5 @@
 import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from '../src/mod.ts';
-import { mockTodo1, mockTodos } from './constants.ts';
+import { mockAll, mockSingle } from './constants.ts';
 
 export async function testAsync() {
     // Check if OPFS is supported
@@ -31,7 +31,7 @@ export async function testAsync() {
     console.assert((await exists('/happy/b.txt')).unwrap());
 
     // Download a file
-    const downloadTask = downloadFile(mockTodo1, '/todo.json', {
+    const downloadTask = downloadFile(mockSingle, '/todo.json', {
         timeout: 1000,
     });
     const downloadRes = await downloadTask.response;
@@ -50,7 +50,7 @@ export async function testAsync() {
         await writeFile('/todo.json', JSON.stringify(postJson));
 
         // Upload a file
-        console.assert((await uploadFile('/todo.json', mockTodos).response).unwrap() instanceof Response);
+        console.assert((await uploadFile('/todo.json', mockAll).response).unwrap() instanceof Response);
     } else {
         console.assert(downloadRes.unwrapErr() instanceof Error);
     }

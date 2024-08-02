@@ -1,4 +1,4 @@
-const mockServer = 'https://16a6dafa-2258-4a83-88fa-31a409e42b17.mock.pstmn.io';
+const mockServer = 'https://fakestoreapi.com';
 
-export const mockTodos = `${ mockServer }/todos`;
-export const mockTodo1 = `${ mockTodos }/1`;
+export const mockAll = `${ mockServer }/products`;
+export const mockSingle = `${ mockAll }/1`;
