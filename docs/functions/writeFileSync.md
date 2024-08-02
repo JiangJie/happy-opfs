@@ -29,4 +29,4 @@ Sync version of `writeFile`.
 
 ## Defined in
 
-[worker/opfs\_worker\_adapter.ts:147](https://github.com/JiangJie/happy-opfs/blob/e9fb685299dadc4e6e669ad2019dbf147a8f564a/src/worker/opfs_worker_adapter.ts#L147)
+[worker/opfs\_worker\_adapter.ts:147](https://github.com/JiangJie/happy-opfs/blob/948cb3ee1ba6a4ce667d07bda817012e57b50bb8/src/worker/opfs_worker_adapter.ts#L147)

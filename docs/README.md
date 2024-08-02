@@ -11,6 +11,7 @@
 | [ErrorLike](interfaces/ErrorLike.md) | Serializable version of Error. |
 | [ExistsOptions](interfaces/ExistsOptions.md) | Options to determine the existence of a file or directory. |
 | [FileLike](interfaces/FileLike.md) | Serializable version of File. |
+| [FileSystemFileHandleLike](interfaces/FileSystemFileHandleLike.md) | A handle to a file or directory returned by `statSync`. |
 | [FileSystemHandleLike](interfaces/FileSystemHandleLike.md) | A handle to a file or directory returned by `statSync`. |
 | [FsRequestInit](interfaces/FsRequestInit.md) | fetch-t options for download and upload. |
 | [ReadDirEntry](interfaces/ReadDirEntry.md) | An entry returned by `readDir`. |
@@ -69,6 +70,7 @@
 | [startSyncAgent](functions/startSyncAgent.md) | Start worker agent. Listens to postMessage from main thread. Start runner loop. |
 | [stat](functions/stat.md) | Retrieves the status of a file or directory at the specified path. |
 | [statSync](functions/statSync.md) | Sync version of `stat`. |
+| [toFileSystemHandleLike](functions/toFileSystemHandleLike.md) | Serialize a `FileSystemHandle` to plain object. |
 | [uploadFile](functions/uploadFile.md) | Uploads a file from the specified path to a URL. |
 | [writeFile](functions/writeFile.md) | Writes content to a file at the specified path. |
 | [writeFileSync](functions/writeFileSync.md) | Sync version of `writeFile`. |
