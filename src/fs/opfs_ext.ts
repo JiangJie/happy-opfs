@@ -143,7 +143,9 @@ export function downloadFile(fileUrl: string, filePath: string, requestInit?: Fs
             fetchTask.abort(...args);
         },
 
-        aborted,
+        get aborted(): boolean {
+            return aborted;
+        },
 
         response: Promise.resolve().then(async (): AsyncIOResult<Response> => {
             const result = await fetchTask.response;
@@ -199,7 +201,9 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
             fetchTask?.abort(...args);
         },
 
-        aborted,
+        get aborted(): boolean {
+            return aborted;
+        },
 
         response: Promise.resolve().then(async (): AsyncIOResult<Response> => {
             const fileResult = await readBlobFile(filePath)
