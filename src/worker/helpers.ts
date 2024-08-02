@@ -31,11 +31,13 @@ export function deserializeError(error: ErrorLike): Error {
  * @returns Serializable version of File.
  */
 export async function serializeFile(file: File): Promise<FileLike> {
+    const ab = await file.arrayBuffer();
     return {
         name: file.name,
         type: file.type,
         lastModified: file.lastModified,
-        data: new Uint8Array(await file.arrayBuffer()),
+        size: ab.byteLength,
+        data: new Uint8Array(ab),
     };
 }
 

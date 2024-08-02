@@ -1,4 +1,4 @@
-import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from '../src/mod.ts';
+import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, toFileSystemHandleLike, uploadFile, writeFile, type FileSystemFileHandleLike } from '../src/mod.ts';
 import { mockAll, mockSingle } from './constants.ts';
 
 export async function testAsync() {
@@ -62,13 +62,13 @@ export async function testAsync() {
     for await (const { path, handle } of (await readDir('/', {
         recursive: true,
     })).unwrap()) {
-        /**
-         * todo.json is a file
-         * not-exists is a directory
-         * happy is a directory
-         * happy/b.txt is a file
-         */
-        console.log(`${ path } is a ${ handle.kind }`);
+        const handleLike = await toFileSystemHandleLike(handle);
+        if (handleLike.kind === 'file') {
+            const file = handleLike as FileSystemFileHandleLike;
+            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
+        } else {
+            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }`);
+        }
     }
 
     // Comment this line to view using OPFS Explorer

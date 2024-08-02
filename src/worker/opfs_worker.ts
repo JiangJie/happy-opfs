@@ -1,6 +1,7 @@
-import type { FileSystemHandleLike, ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
+import type { ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
 import { mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, emptyDir, exists, readBlobFile } from '../fs/opfs_ext.ts';
+import { toFileSystemHandleLike } from '../fs/utils.ts';
 import { serializeError, serializeFile } from './helpers.ts';
 import { respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
@@ -89,26 +90,20 @@ async function runWorkerLoop(): Promise<void> {
                         const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
                         const entries: ReadDirEntrySync[] = [];
 
-                        for await (const entry of iterator) {
+                        for await (const { path, handle } of iterator) {
+                            const handleLike = await toFileSystemHandleLike(handle);
                             entries.push({
-                                path: entry.path,
-                                handle: {
-                                    name: entry.handle.name,
-                                    kind: entry.handle.kind,
-                                },
+                                path,
+                                handle: handleLike,
                             });
                         }
 
                         rawResponse = entries;
                     } else if (op === WorkerAsyncOp.stat) {
-                        const data: FileSystemHandle = res.unwrap();
+                        const handle: FileSystemHandle = res.unwrap();
+                        const data = await toFileSystemHandleLike(handle);
 
-                        const handle: FileSystemHandleLike = {
-                            name: data.name,
-                            kind: data.kind,
-                        };
-
-                        rawResponse = handle;
+                        rawResponse = data;
                     } else {
                         // others are all boolean
                         const data: boolean = res.unwrap();

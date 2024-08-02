@@ -1,4 +1,4 @@
-import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, statSync, writeFileSync } from '../src/mod.ts';
+import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, statSync, writeFileSync, type FileSystemFileHandleLike } from '../src/mod.ts';
 
 function run() {
     emptyDirSync('/');
@@ -24,12 +24,12 @@ function run() {
     for (const { path, handle } of readDirSync('/', {
         recursive: true,
     }).unwrap()) {
-        /**
-         * not-exists is a directory
-         * happy is a directory
-         * happy/b.txt is a file
-         */
-        console.log(`${ path } is a ${ handle.kind }`);
+        if (handle.kind === 'file') {
+            const file = handle as FileSystemFileHandleLike;
+            console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
+        } else {
+            console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }`);
+        }
     }
 
     // Comment this line to view using OPFS Explorer

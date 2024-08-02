@@ -133,6 +133,23 @@ export interface FileSystemHandleLike {
     kind: FileSystemHandleKind;
 }
 
+export interface FileSystemFileHandleLike extends FileSystemHandleLike {
+    /**
+     * The type of the file.
+     */
+    type: string;
+
+    /**
+     * The size of the file.
+     */
+    size: number;
+
+    /**
+     * The last modified time of the file.
+     */
+    lastModified: number;
+}
+
 /**
  * Serializable version of Error.
  */
@@ -166,6 +183,11 @@ export interface FileLike {
      * The last modified time of the file.
      */
     lastModified: number;
+
+    /**
+     * The size of the file.
+     */
+    size: number;
 
     /**
      * The binary data of the file.
