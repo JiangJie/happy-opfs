@@ -1,6 +1,6 @@
 import { fetchT, type FetchTask } from '@happy-ts/fetch-t';
 import { basename, join } from '@std/path/posix';
-import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_FALSE, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { ABORT_ERROR } from './constants.ts';
 import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
@@ -74,7 +74,7 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
     const status = await stat(path);
     if (status.isErr()) {
         if (isNotFoundError(status.unwrapErr())) {
-            return Ok(false);
+            return RESULT_FALSE;
         }
         return status.asErr();
     }

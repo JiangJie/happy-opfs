@@ -1,5 +1,5 @@
 import { basename, dirname, join } from '@std/path/posix';
-import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_TRUE, type AsyncIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
@@ -18,7 +18,7 @@ export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
         create: true,
     });
 
-    return dirHandle.isErr() ? dirHandle.asErr() : Ok(true);
+    return dirHandle.isErr() ? dirHandle.asErr() : RESULT_TRUE;
 }
 
 /**
@@ -138,7 +138,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
     if (dirHandle.isErr()) {
         if (isNotFoundError(dirHandle.unwrapErr())) {
             // not found as success
-            return Ok(true);
+            return RESULT_TRUE;
         }
 
         return dirHandle.asErr();
@@ -157,7 +157,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
         });
     }
 
-    return Ok(true);
+    return RESULT_TRUE;
 }
 
 /**
@@ -195,7 +195,7 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (fileHandle.unwrap() as any).move(newDirHandle.unwrap(), newName);
 
-    return Ok(true);
+    return RESULT_TRUE;
 }
 
 /**
@@ -270,5 +270,5 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
     await writable.write(params);
     await writable.close();
 
-    return Ok(true);
+    return RESULT_TRUE;
 }
