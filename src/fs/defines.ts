@@ -1,11 +1,3 @@
-export { TIMEOUT_ERROR } from '@happy-ts/fetch-t';
-
-/**
- * A constant representing the error thrown when a file or directory is not found.
- * Name of DOMException.NOT_FOUND_ERR.
- */
-export const NOT_FOUND_ERROR = 'NotFoundError' as const;
-
 /**
  * Represents the possible content types that can be written to a file.
  */

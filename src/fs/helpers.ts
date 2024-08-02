@@ -1,7 +1,6 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
-import { CURRENT_DIR, ROOT_DIR } from './constants.ts';
-import { NOT_FOUND_ERROR } from './defines.ts';
+import { CURRENT_DIR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
  * The root directory handle of the file system.
@@ -16,15 +15,6 @@ let fsRoot: FileSystemDirectoryHandle;
 async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
     fsRoot ??= await navigator.storage.getDirectory();
     return fsRoot;
-}
-
-/**
- * Checks if the Origin Private File System (OPFS) is supported in the current environment.
- *
- * @returns A boolean indicating whether OPFS is supported.
- */
-export function isOPFSSupported(): boolean {
-    return typeof navigator?.storage?.getDirectory === 'function';
 }
 
 /**

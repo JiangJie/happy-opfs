@@ -1,7 +1,8 @@
 import { basename, dirname, join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
-import { NOT_FOUND_ERROR, type ReadDirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions, type WriteFileContent, type WriteOptions } from './defines.ts';
+import { NOT_FOUND_ERROR } from './constants.ts';
+import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isNotFoundError, isRootPath } from './helpers.ts';
 
 /**

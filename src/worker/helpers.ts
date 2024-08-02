@@ -1,5 +1,5 @@
-import { TIMEOUT_ERROR } from '@happy-ts/fetch-t';
-import type { ErrorLike, FileLike } from '../fs/defines';
+import { TIMEOUT_ERROR } from '../fs/constants.ts';
+import type { ErrorLike, FileLike } from '../fs/defines.ts';
 
 /**
  * Serialize an `Error` to plain object.

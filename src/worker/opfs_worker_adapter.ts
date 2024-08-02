@@ -1,8 +1,8 @@
 import { Err, Ok, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines';
-import { deserializeError, deserializeFile, setGlobalOpTimeout } from './helpers';
-import { callWorkerFromMain, SyncMessenger, WorkerAsyncOp } from './shared';
+import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines.ts';
+import { deserializeError, deserializeFile, setGlobalOpTimeout } from './helpers.ts';
+import { callWorkerFromMain, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
 /**
  * Cache the messenger instance.

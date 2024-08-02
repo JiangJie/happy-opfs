@@ -1,3 +1,3 @@
-import { startSyncAgent } from '../src/mod';
+import { startSyncAgent } from '../src/mod.ts';
 
 startSyncAgent();

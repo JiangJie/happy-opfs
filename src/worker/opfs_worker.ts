@@ -1,8 +1,8 @@
-import type { FileSystemHandleLike, ReadDirEntry, ReadDirEntrySync } from '../fs/defines';
-import { mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core';
-import { appendFile, emptyDir, exists, readBlobFile } from '../fs/opfs_ext';
-import { serializeError, serializeFile } from './helpers';
-import { respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared';
+import type { FileSystemHandleLike, ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
+import { mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
+import { appendFile, emptyDir, exists, readBlobFile } from '../fs/opfs_ext.ts';
+import { serializeError, serializeFile } from './helpers.ts';
+import { respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
 /**
  * Async I/O operations which allow to call from main thread.

@@ -1,6 +1,6 @@
 import { CborDecoderBase } from 'json-joy/esm/json-pack/cbor/CborDecoderBase';
 import { CborEncoder } from 'json-joy/esm/json-pack/cbor/CborEncoder';
-import { sleepUntil } from './helpers';
+import { sleepUntil } from './helpers.ts';
 
 /**
  * Async I/O operations called from main thread to worker thread.

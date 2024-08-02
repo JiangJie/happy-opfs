@@ -1,7 +1,8 @@
-import { ABORT_ERROR, fetchT, type FetchTask } from '@happy-ts/fetch-t';
+import { fetchT, type FetchTask } from '@happy-ts/fetch-t';
 import { basename, join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
+import { ABORT_ERROR } from './constants.ts';
 import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
 import { isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
