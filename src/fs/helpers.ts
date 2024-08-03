@@ -45,7 +45,7 @@ export function isCurrentDir(dirPath: string): boolean {
  * @param options - Optional parameters that specify options such as whether to create the directory if it does not exist.
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle` for the child directory.
  */
-export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
+async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     const handle = await dirHandle.getDirectoryHandle(dirName, options).catch((err: DOMException) => {
         const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || '/' }'.`);
         error.name = err.name;
@@ -64,7 +64,7 @@ export async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, di
  * @param options - Optional parameters for getting the file handle.
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
-export async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
+async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const handle = await dirHandle.getFileHandle(fileName, options).catch((err: DOMException) => {
         const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || '/' }'.`);
         error.name = err.name;
