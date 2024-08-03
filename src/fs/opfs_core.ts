@@ -142,7 +142,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
 
     // root
     if (isRootPath(dirPath) && isRootPath(childName)) {
-        // TODO ts还不支持
+        // TODO ts not support yet
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (dirHandle.unwrap() as any).remove({
             recursive: true,
@@ -187,7 +187,7 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
     }
 
     const newName = basename(newPath);
-    // TODO ts还不支持
+    // TODO ts not support yet
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (fileHandle.unwrap() as any).move(newDirHandle.unwrap(), newName);
 
@@ -215,7 +215,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
         return dirHandle;
     }
 
-    // 当前只有靠遍历检查
+    // currently only rely on traversal inspection
     for await (const [name, handle] of dirHandle.unwrap().entries()) {
         if (name === childName) {
             return Ok(handle);
@@ -239,7 +239,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
 export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncIOResult<boolean> {
     assertAbsolutePath(filePath);
 
-    // 默认创建
+    // create as default
     const { append = false, create = true } = options ?? {};
 
     const fileHandle = await getFileHandle(filePath, {

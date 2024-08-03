@@ -23,8 +23,10 @@ export async function toFileSystemHandleLike(handle: FileSystemHandle): Promise<
         return fileHandle;
     }
 
-    return {
+    const handleLike: FileSystemHandleLike= {
         name,
         kind,
     };
+
+    return handleLike;
 }

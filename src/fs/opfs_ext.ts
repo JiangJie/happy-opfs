@@ -30,7 +30,7 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
     const res = await readDir(dirPath);
     if (res.isErr()) {
         if (isNotFoundError(res.unwrapErr())) {
-            // 不存在则创建
+            // create if not exist
             return mkdir(dirPath);
         }
 

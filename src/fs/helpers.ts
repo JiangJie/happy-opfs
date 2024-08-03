@@ -83,11 +83,11 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    // 从root开始向下创建
+    // create from root
     let dirHandle = await getFsRoot();
 
     if (isRootPath(dirPath)) {
-        // 根路径无需创建
+        // root is already the a handle
         return Ok(dirHandle);
     }
 
@@ -105,7 +105,7 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
             dirName = childDirPath.slice(0, index);
             childDirPath = childDirPath.slice(index + 1);
 
-            // 跳过//的情况
+            // skip //
             if (index === 0) {
                 continue;
             }
