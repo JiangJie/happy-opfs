@@ -6,7 +6,7 @@ export type WriteFileContent = BufferSource | Blob | string;
 /**
  * Represents the possible content types that can be read from a file.
  */
-export type ReadFileContent = ArrayBuffer | Blob | string;
+export type ReadFileContent = ArrayBuffer | File | string;
 
 /**
  * Options for reading files with specified encoding.

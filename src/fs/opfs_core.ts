@@ -54,15 +54,15 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
 }
 
 /**
- * Reads the content of a file at the specified path as a Blob.
+ * Reads the content of a file at the specified path as a File.
  *
  * @param filePath - The path of the file to read.
  * @param options - Read options specifying the 'blob' encoding.
- * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a File.
  */
 export function readFile(filePath: string, options: ReadOptions & {
     encoding: 'blob';
-}): AsyncIOResult<Blob>;
+}): AsyncIOResult<File>;
 
 /**
  * Reads the content of a file at the specified path as a string.

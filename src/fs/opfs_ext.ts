@@ -75,12 +75,12 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
 }
 
 /**
- * Reads the content of a file at the specified path as a Blob.
+ * Reads the content of a file at the specified path as a File.
  *
  * @param filePath - The path of the file to read.
- * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a File.
  */
-export function readBlobFile(filePath: string): AsyncIOResult<Blob> {
+export function readBlobFile(filePath: string): AsyncIOResult<File> {
     return readFile(filePath, {
         encoding: 'blob',
     });
