@@ -1,6 +1,6 @@
 import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
 import { basename, join } from '@std/path/posix';
-import { Err, Ok, RESULT_FALSE, type AsyncIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_FALSE, RESULT_TRUE, type AsyncIOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { ABORT_ERROR } from './constants.ts';
 import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
@@ -27,8 +27,6 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncI
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully emptied.
  */
 export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
-    type T = boolean;
-
     const res = await readDir(dirPath);
     if (res.isErr()) {
         if (isNotFoundError(res.unwrapErr())) {
@@ -39,28 +37,17 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
         return res.asErr();
     }
 
-    const items: AsyncIOResult<T>[] = [];
+    const tasks: AsyncIOResult<boolean>[] = [];
 
     for await (const { path } of res.unwrap()) {
-        items.push(remove(join(dirPath, path)));
+        tasks.push(remove(join(dirPath, path)));
     }
 
-    const success: IOResult<T> = await Promise.all(items).then((x) => {
-        let err: IOResult<T> | null = null;
+    const allRes = await Promise.all(tasks);
+    // anyone failed?
+    const fail = allRes.find(x => x.isErr() || !x.unwrap());
 
-        const success = x.every(y => {
-            if (y.isErr()) {
-                err = y;
-                return false;
-            }
-
-            return y.unwrap();
-        });
-
-        return err ?? Ok(success);
-    });
-
-    return success;
+    return fail ?? RESULT_TRUE;
 }
 
 /**
