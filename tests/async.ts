@@ -29,6 +29,7 @@ export async function testAsync() {
 
     console.assert(!(await exists('/happy/opfs')).unwrap());
     console.assert((await exists('/happy/b.txt')).unwrap());
+    console.assert((await stat('/happy/b.txt')).unwrap().kind === 'file');
 
     // Download a file
     const downloadTask = downloadFile(mockSingle, '/todo.json', {

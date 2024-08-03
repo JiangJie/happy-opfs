@@ -19,6 +19,7 @@ function run() {
 
     console.assert(!existsSync('/happy/opfs').unwrap());
     console.assert(existsSync('/happy/b.txt').unwrap());
+    console.assert(statSync('/happy/b.txt').unwrap().kind === 'file');
 
     emptyDirSync('/not-exists');
 
