@@ -31,4 +31,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the file was su
 
 ## Defined in
 
-[fs/opfs\_ext.ts:189](https://github.com/JiangJie/happy-opfs/blob/948cb3ee1ba6a4ce667d07bda817012e57b50bb8/src/fs/opfs_ext.ts#L189)
+[fs/opfs\_ext.ts:179](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/opfs_ext.ts#L179)
