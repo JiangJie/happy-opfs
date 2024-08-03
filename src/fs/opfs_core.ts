@@ -18,7 +18,7 @@ export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
         create: true,
     });
 
-    return dirHandle.isErr() ? dirHandle.asErr() : RESULT_TRUE;
+    return dirHandle.map(() => true);
 }
 
 /**
@@ -32,10 +32,6 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath);
-
-    if (dirHandle.isErr()) {
-        return dirHandle.asErr();
-    }
 
     async function* read(dirHandle: FileSystemDirectoryHandle, subDirPath: string): AsyncIterableIterator<ReadDirEntry> {
         const entries = dirHandle.entries();
@@ -54,7 +50,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         }
     }
 
-    return Ok(read(dirHandle.unwrap(), dirPath));
+    return dirHandle.map(x => read(x, dirPath));
 }
 
 /**
