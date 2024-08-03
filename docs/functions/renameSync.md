@@ -25,4 +25,4 @@ Sync version of `rename`.
 
 ## Defined in
 
-[worker/opfs\_worker\_adapter.ts:127](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/worker/opfs_worker_adapter.ts#L127)
+[worker/opfs\_worker\_adapter.ts:144](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/worker/opfs_worker_adapter.ts#L144)

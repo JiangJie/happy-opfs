@@ -7,10 +7,10 @@
 # Function: readBlobFile()
 
 ```ts
-function readBlobFile(filePath): AsyncIOResult<Blob>
+function readBlobFile(filePath): AsyncIOResult<File>
 ```
 
-Reads the content of a file at the specified path as a Blob.
+Reads the content of a file at the specified path as a File.
 
 ## Parameters
 
@@ -20,10 +20,10 @@ Reads the content of a file at the specified path as a Blob.
 
 ## Returns
 
-`AsyncIOResult`\<`Blob`\>
+`AsyncIOResult`\<`File`\>
 
-A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
+A promise that resolves to an `AsyncIOResult` containing the file content as a File.
 
 ## Defined in
 
-[fs/opfs\_ext.ts:89](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/opfs_ext.ts#L89)
+[fs/opfs\_ext.ts:83](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/opfs_ext.ts#L83)

@@ -12,6 +12,6 @@ Setup options of `connectSyncAgent`.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `bufferLength?` | `number` | The length of the buffer to use for communication. | [fs/defines.ts:212](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/defines.ts#L212) |
-| `opTimeout?` | `number` | The timeout for operations. | [fs/defines.ts:217](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/defines.ts#L217) |
-| `worker` | `string` \| `Worker` \| `URL` | The worker to communicate with. | [fs/defines.ts:207](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/defines.ts#L207) |
+| `bufferLength?` | `number` | The length of the buffer to use for communication. | [fs/defines.ts:210](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/defines.ts#L210) |
+| `opTimeout?` | `number` | The timeout for operations. | [fs/defines.ts:215](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/defines.ts#L215) |
+| `worker` | `string` \| `Worker` \| `URL` | The worker to communicate with. | [fs/defines.ts:205](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/defines.ts#L205) |

@@ -55,11 +55,11 @@
 | [isOPFSSupported](functions/isOPFSSupported.md) | Checks if the Origin Private File System (OPFS) is supported in the current environment. |
 | [mkdir](functions/mkdir.md) | Creates a new directory at the specified path same as `mkdir -p`. |
 | [mkdirSync](functions/mkdirSync.md) | Sync version of `mkdir`. |
-| [readBlobFile](functions/readBlobFile.md) | Reads the content of a file at the specified path as a Blob. |
+| [readBlobFile](functions/readBlobFile.md) | Reads the content of a file at the specified path as a File. |
 | [readBlobFileSync](functions/readBlobFileSync.md) | Sync version of `readBlobFile`. |
 | [readDir](functions/readDir.md) | Reads the contents of a directory at the specified path. |
 | [readDirSync](functions/readDirSync.md) | Sync version of `readDir`. |
-| [readFile](functions/readFile.md) | Reads the content of a file at the specified path as a Blob. |
+| [readFile](functions/readFile.md) | Reads the content of a file at the specified path as a File. |
 | [readFileSync](functions/readFileSync.md) | Sync version of `readFile`. |
 | [readTextFile](functions/readTextFile.md) | Reads the content of a file at the specified path as a string. |
 | [readTextFileSync](functions/readTextFileSync.md) | Sync version of `readTextFile`. |

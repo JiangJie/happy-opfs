@@ -12,5 +12,5 @@ An entry returned by `readDir`.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `handle` | `FileSystemHandle` | The handle of the entry. | [fs/defines.ts:103](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/defines.ts#L103) |
-| `path` | `string` | The relative path of the entry from readDir the path parameter. | [fs/defines.ts:98](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/defines.ts#L98) |
+| `handle` | `FileSystemHandle` | The handle of the entry. | [fs/defines.ts:103](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/defines.ts#L103) |
+| `path` | `string` | The relative path of the entry from readDir the path parameter. | [fs/defines.ts:98](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/defines.ts#L98) |

@@ -16,5 +16,5 @@ fetch-t request options for uploading files.
 
 | Property | Type | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| `filename?` | `string` | The filename to use when uploading the file. | - | [fs/defines.ts:78](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/defines.ts#L78) |
-| `timeout?` | `number` | Specifies the maximum time in milliseconds to wait for the fetch request to complete. | [`FsRequestInit`](FsRequestInit.md).`timeout` | [fs/defines.ts:68](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/defines.ts#L68) |
+| `filename?` | `string` | The filename to use when uploading the file. | - | [fs/defines.ts:78](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/defines.ts#L78) |
+| `timeout?` | `number` | Specifies the maximum time in milliseconds to wait for the fetch request to complete. | [`FsRequestInit`](FsRequestInit.md).`timeout` | [fs/defines.ts:68](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/defines.ts#L68) |

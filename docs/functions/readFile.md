@@ -23,10 +23,10 @@ Optional read options.
 ## readFile(filePath, options)
 
 ```ts
-function readFile(filePath, options): AsyncIOResult<Blob>
+function readFile(filePath, options): AsyncIOResult<File>
 ```
 
-Reads the content of a file at the specified path as a Blob.
+Reads the content of a file at the specified path as a File.
 
 ### Parameters
 
@@ -37,11 +37,11 @@ Reads the content of a file at the specified path as a Blob.
 
 ### Returns
 
-`AsyncIOResult`\<`Blob`\>
+`AsyncIOResult`\<`File`\>
 
 A promise that resolves to an `AsyncIOResult` containing the file content.
 
-A promise that resolves to an `AsyncIOResult` containing the file content as a Blob.
+A promise that resolves to an `AsyncIOResult` containing the file content as a File.
 
 ### Template
 
@@ -57,7 +57,7 @@ Optional read options.
 
 ### Defined in
 
-[fs/opfs\_core.ts:63](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/opfs_core.ts#L63)
+[fs/opfs\_core.ts:63](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/opfs_core.ts#L63)
 
 ## readFile(filePath, options)
 
@@ -96,7 +96,7 @@ Optional read options.
 
 ### Defined in
 
-[fs/opfs\_core.ts:74](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/opfs_core.ts#L74)
+[fs/opfs\_core.ts:74](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/opfs_core.ts#L74)
 
 ## readFile(filePath, options)
 
@@ -135,4 +135,4 @@ Optional read options.
 
 ### Defined in
 
-[fs/opfs\_core.ts:85](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/fs/opfs_core.ts#L85)
+[fs/opfs\_core.ts:85](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/opfs_core.ts#L85)

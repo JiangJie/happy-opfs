@@ -24,4 +24,4 @@ Sync version of `stat`.
 
 ## Defined in
 
-[worker/opfs\_worker\_adapter.ts:134](https://github.com/JiangJie/happy-opfs/blob/584e221ed8f9c25f1e723b7898a60bc25fe8652b/src/worker/opfs_worker_adapter.ts#L134)
+[worker/opfs\_worker\_adapter.ts:151](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/worker/opfs_worker_adapter.ts#L151)
