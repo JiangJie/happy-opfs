@@ -1,5 +1,5 @@
 import { basename, dirname, join } from '@std/path/posix';
-import { Err, Ok, RESULT_TRUE, type AsyncIOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_TRUE, type AsyncIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
@@ -18,7 +18,7 @@ export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
         create: true,
     });
 
-    return dirHandle.map(() => true);
+    return dirHandle.andThen(() => RESULT_TRUE);
 }
 
 /**
@@ -50,7 +50,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         }
     }
 
-    return dirHandle.map(x => read(x, dirPath));
+    return dirHandle.andThen((x): IOResult<AsyncIterableIterator<ReadDirEntry>> => Ok(read(x, dirPath)));
 }
 
 /**
@@ -132,12 +132,8 @@ export async function remove(path: string): AsyncIOResult<boolean> {
 
     const dirHandle = await getDirHandle(dirPath);
     if (dirHandle.isErr()) {
-        if (isNotFoundError(dirHandle.unwrapErr())) {
-            // not found as success
-            return RESULT_TRUE;
-        }
-
-        return dirHandle.asErr();
+        // not found as success
+        return isNotFoundError(dirHandle.unwrapErr()) ? RESULT_TRUE : dirHandle.asErr();
     }
 
     // root

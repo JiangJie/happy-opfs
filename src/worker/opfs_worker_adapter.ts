@@ -1,7 +1,7 @@
 import { Err, Ok, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines.ts';
-import { deserializeError, deserializeFile, setGlobalOpTimeout } from './helpers.ts';
+import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines.ts';
+import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
 import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
 /**
@@ -100,16 +100,35 @@ export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult
 /**
  * Sync version of `readFile`.
  */
-export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ArrayBuffer> {
-    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath, options);
+export function readFileSync(filePath: string, options: ReadOptions & {
+    encoding: 'blob';
+}): IOResult<FileLike>;
+export function readFileSync(filePath: string, options: ReadOptions & {
+    encoding: 'utf8';
+}): IOResult<string>;
+export function readFileSync(filePath: string, options?: ReadOptions & {
+    encoding: 'binary';
+}): IOResult<ArrayBuffer>;
+export function readFileSync<T extends ReadFileContent>(filePath: string, options?: ReadOptions): IOResult<T> {
+    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
 
-    if (res.isErr()) {
-        return res.asErr();
-    }
+    return res.map(file => {
+        // actually data is number array
+        const u8a = new Uint8Array(file.data);
+        file.data = u8a.buffer.slice(u8a.byteOffset, u8a.byteOffset + u8a.byteLength);
 
-    const u8a = new Uint8Array(res.unwrap().data);
-
-    return Ok(u8a.buffer.slice(u8a.byteOffset, u8a.byteOffset + u8a.byteLength));
+        switch (options?.encoding) {
+            case 'blob': {
+                return file as unknown as T;
+            }
+            case 'utf8': {
+                return decodeToString(new Uint8Array(file.data)) as unknown as T;
+            }
+            default: {
+                return file.data as unknown as T;
+            }
+        }
+    });
 }
 
 /**
@@ -130,13 +149,7 @@ export function renameSync(oldPath: string, newPath: string): IOResult<boolean> 
  * Sync version of `stat`.
  */
 export function statSync(path: string): IOResult<FileSystemHandleLike> {
-    const res: IOResult<FileSystemHandleLike> = callWorkerOp(WorkerAsyncOp.stat, path);
-
-    if (res.isErr()) {
-        return res.asErr();
-    }
-
-    return Ok(res.unwrap());
+    return callWorkerOp(WorkerAsyncOp.stat, path);
 }
 
 /**
@@ -170,30 +183,17 @@ export function existsSync(path: string, options?: ExistsOptions): IOResult<bool
 /**
  * Sync version of `readBlobFile`.
  */
-export function readBlobFileSync(filePath: string): IOResult<Blob> {
-    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
-
-    if (res.isErr()) {
-        return res.asErr();
-    }
-
-    const file = res.unwrap();
-    // actually data is number array
-    const u8a = new Uint8Array(file.data);
-    file.data = u8a.buffer.slice(u8a.byteOffset, u8a.byteOffset + u8a.byteLength);
-
-    return Ok(deserializeFile(file));
+export function readBlobFileSync(filePath: string): IOResult<FileLike> {
+    return readFileSync(filePath, {
+        encoding: 'blob',
+    });
 }
 
 /**
  * Sync version of `readTextFile`.
  */
 export function readTextFileSync(filePath: string): IOResult<string> {
-    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
-
-    if (res.isErr()) {
-        return res.asErr();
-    }
-
-    return res.map(x => decodeToString(new Uint8Array(x.data)));
+    return readFileSync(filePath, {
+        encoding: 'utf8',
+    });
 }

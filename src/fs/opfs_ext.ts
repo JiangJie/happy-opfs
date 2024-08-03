@@ -1,6 +1,7 @@
 import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
 import { basename, join } from '@std/path/posix';
-import { Err, Ok, RESULT_FALSE, RESULT_TRUE, type AsyncIOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_FALSE, RESULT_TRUE, type AsyncIOResult, type IOResult } from 'happy-rusty';
+import invariant from 'tiny-invariant';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { ABORT_ERROR } from './constants.ts';
 import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
@@ -28,13 +29,10 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncI
  */
 export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
     const res = await readDir(dirPath);
-    if (res.isErr()) {
-        if (isNotFoundError(res.unwrapErr())) {
-            // create if not exist
-            return mkdir(dirPath);
-        }
 
-        return res.asErr();
+    if (res.isErr()) {
+        // create if not exist
+        return isNotFoundError(res.unwrapErr()) ? mkdir(dirPath) : res.asErr();
     }
 
     const tasks: AsyncIOResult<boolean>[] = [];
@@ -58,26 +56,22 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory exists.
  */
 export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
-    const status = await stat(path);
-    if (status.isErr()) {
-        if (isNotFoundError(status.unwrapErr())) {
-            return RESULT_FALSE;
-        }
-        return status.asErr();
-    }
-
     const { isDirectory = false, isFile = false } = options ?? {};
 
-    if (isDirectory && isFile) {
-        throw new TypeError('ExistsOptions.isDirectory and ExistsOptions.isFile must not be true together.');
-    }
+    invariant(!(isDirectory && isFile), () => 'ExistsOptions.isDirectory and ExistsOptions.isFile must not be true together.');
 
-    const { kind } = status.unwrap();
-    const notExist =
-        (isDirectory && kind === 'file')
-        || (isFile && kind === 'directory');
+    const stats = await stat(path);
 
-    return Ok(!notExist);
+    return stats.andThen(handle => {
+        const { kind } = handle;
+        const notExist =
+            (isDirectory && kind === 'file')
+            || (isFile && kind === 'directory');
+
+        return Ok(!notExist);
+    }).orElse((err): IOResult<boolean> => {
+        return isNotFoundError(err) ? RESULT_FALSE : stats.asErr();
+    });
 }
 
 /**
