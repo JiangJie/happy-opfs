@@ -1,4 +1,4 @@
-import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, statSync, writeFileSync, type FileSystemFileHandleLike } from '../src/mod.ts';
+import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, statSync, writeFileSync, type FileSystemFileHandleLike } from '../src/mod.ts';
 
 function run() {
     emptyDirSync('/');
@@ -11,6 +11,7 @@ function run() {
     console.assert(statRes.isErr());
 
     console.assert(readFileSync('/happy/b.txt').unwrap().byteLength === 21);
+    console.assert(readBlobFileSync('/happy/b.txt').unwrap().size === 21);
     console.assert(readTextFileSync('//happy///b.txt//').unwrap() === 'hello opfs happy opfs');
 
     console.assert(removeSync('/happy/not/exists').unwrap());

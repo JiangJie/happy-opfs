@@ -37,7 +37,7 @@ export async function serializeFile(file: File): Promise<FileLike> {
         type: file.type,
         lastModified: file.lastModified,
         size: ab.byteLength,
-        data: new Uint8Array(ab),
+        data: ab,
     };
 }
 
@@ -51,6 +51,7 @@ export function deserializeFile(file: FileLike): File {
 
     return new File([blob], file.name, {
         type: file.type,
+        lastModified: file.lastModified,
     });
 }
 

@@ -2,7 +2,7 @@ import { Err, Ok, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines.ts';
 import { deserializeError, deserializeFile, setGlobalOpTimeout } from './helpers.ts';
-import { callWorkerFromMain, SyncMessenger, WorkerAsyncOp } from './shared.ts';
+import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
 /**
  * Cache the messenger instance.
@@ -68,15 +68,13 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
         return Err(new Error('Worker not initialized. Come back later.'));
     }
 
-    const { encoder, decoder } = messenger;
-
     const request = [op, ...args];
-    const requestData = encoder.encode(request);
+    const requestData = encodeToBuffer(request);
 
     try {
         const response = callWorkerFromMain(messenger, requestData);
 
-        const decodedResponse = decoder.read(response) as [Error, T];
+        const decodedResponse = decodeFromBuffer(response) as [Error, T];
         const result: IOResult<T> = decodedResponse[0] ? Err(deserializeError(decodedResponse[0])) : Ok(decodedResponse[1]);
 
         return result;
@@ -109,9 +107,9 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
         return res.asErr();
     }
 
-    const { data } = res.unwrap();
+    const u8a = new Uint8Array(res.unwrap().data);
 
-    return Ok(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
+    return Ok(u8a.buffer.slice(u8a.byteOffset, u8a.byteOffset + u8a.byteLength));
 }
 
 /**
@@ -179,7 +177,12 @@ export function readBlobFileSync(filePath: string): IOResult<Blob> {
         return res.asErr();
     }
 
-    return Ok(deserializeFile(res.unwrap()));
+    const file = res.unwrap();
+    // actually data is number array
+    const u8a = new Uint8Array(file.data);
+    file.data = u8a.buffer.slice(u8a.byteOffset, u8a.byteOffset + u8a.byteLength);
+
+    return Ok(deserializeFile(file));
 }
 
 /**
@@ -192,5 +195,5 @@ export function readTextFileSync(filePath: string): IOResult<string> {
         return res.asErr();
     }
 
-    return Ok(new TextDecoder().decode(res.unwrap().data));
+    return res.map(x => decodeToString(new Uint8Array(x.data)));
 }

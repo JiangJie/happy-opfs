@@ -3,7 +3,7 @@ import { mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core
 import { appendFile, emptyDir, exists, readBlobFile } from '../fs/opfs_ext.ts';
 import { toFileSystemHandleLike } from '../fs/utils.ts';
 import { serializeError, serializeFile } from './helpers.ts';
-import { respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared.ts';
+import { decodeFromBuffer, encodeToBuffer, respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
 /**
  * Async I/O operations which allow to call from main thread.
@@ -66,9 +66,7 @@ async function runWorkerLoop(): Promise<void> {
     while (true) {
         try {
             await respondToMainFromWorker(messenger, async (data) => {
-                const { encoder, decoder } = messenger;
-
-                const [op, ...args] = decoder.read(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
+                const [op, ...args] = decodeFromBuffer(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
                 const handle = asyncOps[op];
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const res = await (handle as any)(...args);
@@ -77,7 +75,7 @@ async function runWorkerLoop(): Promise<void> {
 
                 if (res.isErr()) {
                     // without result success
-                    response = encoder.encode([serializeError(res.unwrapErr())]);
+                    response = encodeToBuffer([serializeError(res.unwrapErr())]);
                 } else {
                     // manually serialize response
                     let rawResponse;
@@ -85,7 +83,13 @@ async function runWorkerLoop(): Promise<void> {
                     if (op === WorkerAsyncOp.readBlobFile) {
                         const file: File = res.unwrap();
 
-                        rawResponse = await serializeFile(file);
+                        const fileLike = await serializeFile(file);
+
+                        rawResponse = {
+                            ...fileLike,
+                            // for serialize
+                            data: [...new Uint8Array(fileLike.data)],
+                        };
                     } else if (op === WorkerAsyncOp.readDir) {
                         const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
                         const entries: ReadDirEntrySync[] = [];
@@ -112,7 +116,7 @@ async function runWorkerLoop(): Promise<void> {
                     }
 
                     // without error
-                    response = encoder.encode([null, rawResponse]);
+                    response = encodeToBuffer([null, rawResponse]);
                 }
 
                 return response;

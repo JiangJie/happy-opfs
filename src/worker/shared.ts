@@ -1,5 +1,3 @@
-import { CborDecoderBase } from 'json-joy/esm/json-pack/cbor/CborDecoderBase';
-import { CborEncoder } from 'json-joy/esm/json-pack/cbor/CborEncoder';
 import { sleepUntil } from './helpers.ts';
 
 /**
@@ -58,6 +56,63 @@ const WORKER_LOCKED = MAIN_UNLOCKED;
 const WORKER_UNLOCKED = MAIN_LOCKED;
 
 /**
+ * Cache the `TextEncoder` instance.
+ */
+let encoder: TextEncoder;
+
+/**
+ * Cache the `TextDecoder` instance.
+ */
+let decoder: TextDecoder;
+
+/**
+ * Get the cached `TextEncoder` instance.
+ * @returns Instance of `TextEncoder`.
+ */
+function getEncoder(): TextEncoder {
+    encoder ??= new TextEncoder();
+    return encoder;
+}
+
+/**
+ * Get the cached `TextDecoder` instance.
+ * @returns Instance of `TextDecoder`.
+ */
+function getDecoder(): TextDecoder {
+    decoder ??= new TextDecoder();
+    return decoder;
+}
+
+/**
+ * Used to encode parameters and return values.
+ * @param data - Any data to encode.
+ * @returns Encoded binary data.
+ */
+export function encodeToBuffer<T>(data: T): Uint8Array {
+    const str = JSON.stringify(data);
+    return getEncoder().encode(str);
+}
+
+/**
+ * Used to decode parameters and return values.
+ * @param data - Binary data to decode.
+ * @returns Decoded data.
+ */
+export function decodeFromBuffer<T>(data: Uint8Array): T {
+    const str = decodeToString(data);
+    return JSON.parse(str);
+}
+
+/**
+ * Commonly decode binary data to string.
+ * @param data - Binary data to decode.
+ * @returns Decoded string.
+ */
+export function decodeToString(data: Uint8Array): string {
+    return getDecoder().decode(data);
+}
+
+/**
  * Inspired by [memfs](https://github.com/streamich/memfs/blob/master/src/fsa-to-node/worker/SyncMessenger.ts).
  *
  * Used both in main thread and worker thread.
@@ -71,11 +126,6 @@ export class SyncMessenger {
     readonly headerLength = 4 * 4;
     // maximum length of data to be sent. If data is longer than this, it will throw an error.
     readonly maxDataLength: number;
-
-    // Used to encode parameters and return values.
-    readonly encoder = new CborEncoder();
-    // Used to decode parameters and return values.
-    readonly decoder = new CborDecoderBase();
 
     constructor(sab: SharedArrayBuffer) {
         this.i32a = new Int32Array(sab);
@@ -128,7 +178,7 @@ export function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): 
  * @param transfer - Function to transfer request data.
  */
 export async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
-    const { i32a, u8a, headerLength, maxDataLength, encoder } = messenger;
+    const { i32a, u8a, headerLength, maxDataLength } = messenger;
 
     while (true) {
         if (Atomics.load(i32a, WORKER_LOCK_INDEX) === WORKER_UNLOCKED) {
@@ -155,7 +205,7 @@ export async function respondToMainFromWorker(messenger: SyncMessenger, transfer
     if (responseLength > maxDataLength) {
         const message = `Response is too large: ${ responseLength } > ${ maxDataLength }. Consider grow the size of SharedArrayBuffer.`;
 
-        response = encoder.encode([{
+        response = encodeToBuffer([{
             name: 'RangeError',
             message,
         }]);

@@ -191,10 +191,8 @@ export interface FileLike {
 
     /**
      * The binary data of the file.
-     *
-     * Can not use `ArrayBuffer` because it is not serializable.
      */
-    data: Uint8Array;
+    data: ArrayBuffer;
 }
 
 /**

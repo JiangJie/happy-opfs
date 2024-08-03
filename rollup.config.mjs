@@ -11,7 +11,6 @@ const external = [
     'happy-rusty',
     'tiny-invariant',
     '@happy-ts/fetch-t',
-    /^json-joy/,
 ];
 
 /**
