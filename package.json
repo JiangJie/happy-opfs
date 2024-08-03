@@ -3,7 +3,7 @@
   "description": "A browser-compatible fs module inspired by the Deno fs and @std/fs APIs, based on OPFS implementation.",
   "author": "jiang115jie@gmail.com",
   "license": "GPL-3.0",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "type": "module",
   "source": "src/mod.ts",
   "main": "dist/main.cjs",
