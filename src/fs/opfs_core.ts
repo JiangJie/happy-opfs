@@ -1,5 +1,5 @@
 import { basename, dirname, join } from '@std/path/posix';
-import { Err, Ok, RESULT_TRUE, type AsyncIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
@@ -11,14 +11,14 @@ import { getDirHandle, getFileHandle, isCurrentDir, isNotFoundError, isRootPath 
  * @param dirPath - The path where the new directory will be created.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully created.
  */
-export async function mkdir(dirPath: string): AsyncIOResult<boolean> {
+export async function mkdir(dirPath: string): AsyncVoidIOResult {
     assertAbsolutePath(dirPath);
 
     const dirHandle = await getDirHandle(dirPath, {
         create: true,
     });
 
-    return dirHandle.andThen(() => RESULT_TRUE);
+    return dirHandle.and(RESULT_VOID);
 }
 
 /**
@@ -124,7 +124,7 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
  * @param path - The path of the file or directory to remove.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully removed.
  */
-export async function remove(path: string): AsyncIOResult<boolean> {
+export async function remove(path: string): AsyncVoidIOResult {
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
@@ -133,7 +133,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
     const dirHandle = await getDirHandle(dirPath);
     if (dirHandle.isErr()) {
         // not found as success
-        return isNotFoundError(dirHandle.unwrapErr()) ? RESULT_TRUE : dirHandle.asErr();
+        return isNotFoundError(dirHandle.unwrapErr()) ? RESULT_VOID : dirHandle.asErr();
     }
 
     // root
@@ -149,7 +149,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
         });
     }
 
-    return RESULT_TRUE;
+    return RESULT_VOID;
 }
 
 /**
@@ -159,7 +159,7 @@ export async function remove(path: string): AsyncIOResult<boolean> {
  * @param newPath - The new path of the file or directory.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully renamed.
  */
-export async function rename(oldPath: string, newPath: string): AsyncIOResult<boolean> {
+export async function rename(oldPath: string, newPath: string): AsyncVoidIOResult {
     assertAbsolutePath(oldPath);
 
     const fileHandle = await getFileHandle(oldPath);
@@ -187,7 +187,7 @@ export async function rename(oldPath: string, newPath: string): AsyncIOResult<bo
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (fileHandle.unwrap() as any).move(newDirHandle.unwrap(), newName);
 
-    return RESULT_TRUE;
+    return RESULT_VOID;
 }
 
 /**
@@ -232,7 +232,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
  * @param options - Optional write options.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully written.
  */
-export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncIOResult<boolean> {
+export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncVoidIOResult {
     assertAbsolutePath(filePath);
 
     // create as default
@@ -262,5 +262,5 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
     await writable.write(params);
     await writable.close();
 
-    return RESULT_TRUE;
+    return RESULT_VOID;
 }

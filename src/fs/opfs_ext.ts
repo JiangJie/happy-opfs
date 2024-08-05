@@ -1,6 +1,6 @@
 import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
 import { basename, join } from '@std/path/posix';
-import { Err, Ok, RESULT_FALSE, RESULT_TRUE, type AsyncIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_FALSE, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { ABORT_ERROR } from './constants.ts';
@@ -15,7 +15,7 @@ import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.t
  * @param contents - The content to append to the file.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the content was successfully appended.
  */
-export function appendFile(filePath: string, contents: WriteFileContent): AsyncIOResult<boolean> {
+export function appendFile(filePath: string, contents: WriteFileContent): AsyncVoidIOResult {
     return writeFile(filePath, contents, {
         append: true,
     });
@@ -27,7 +27,7 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncI
  * @param dirPath - The path of the directory to empty.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully emptied.
  */
-export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
+export async function emptyDir(dirPath: string): AsyncVoidIOResult {
     const res = await readDir(dirPath);
 
     if (res.isErr()) {
@@ -35,7 +35,7 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
         return isNotFoundError(res.unwrapErr()) ? mkdir(dirPath) : res.asErr();
     }
 
-    const tasks: AsyncIOResult<boolean>[] = [];
+    const tasks: AsyncVoidIOResult[] = [];
 
     for await (const { path } of res.unwrap()) {
         tasks.push(remove(join(dirPath, path)));
@@ -43,9 +43,9 @@ export async function emptyDir(dirPath: string): AsyncIOResult<boolean> {
 
     const allRes = await Promise.all(tasks);
     // anyone failed?
-    const fail = allRes.find(x => x.isErr() || !x.unwrap());
+    const fail = allRes.find(x => x.isErr());
 
-    return fail ?? RESULT_TRUE;
+    return fail ?? RESULT_VOID;
 }
 
 /**

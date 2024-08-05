@@ -1,4 +1,4 @@
-import { Err, Ok, type IOResult } from 'happy-rusty';
+import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines.ts';
 import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
@@ -75,7 +75,8 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
         const response = callWorkerFromMain(messenger, requestData);
 
         const decodedResponse = decodeFromBuffer(response) as [Error, T];
-        const result: IOResult<T> = decodedResponse[0] ? Err(deserializeError(decodedResponse[0])) : Ok(decodedResponse[1]);
+        const err = decodedResponse[0];
+        const result: IOResult<T> = err ? Err(deserializeError(err)) : Ok((decodedResponse[1] ?? undefined) as T);
 
         return result;
     } catch (err) {
@@ -86,7 +87,7 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
 /**
  * Sync version of `mkdir`.
  */
-export function mkdirSync(dirPath: string): IOResult<boolean> {
+export function mkdirSync(dirPath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.mkdir, dirPath);
 }
 
@@ -134,14 +135,14 @@ export function readFileSync<T extends ReadFileContent>(filePath: string, option
 /**
  * Sync version of `remove`.
  */
-export function removeSync(path: string): IOResult<boolean> {
+export function removeSync(path: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.remove, path);
 }
 
 /**
  * Sync version of `rename`.
  */
-export function renameSync(oldPath: string, newPath: string): IOResult<boolean> {
+export function renameSync(oldPath: string, newPath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.rename, oldPath, newPath);
 }
 
@@ -155,21 +156,21 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
 /**
  * Sync version of `writeFile`.
  */
-export function writeFileSync(filePath: string, contents: WriteFileContent, options?: WriteOptions): IOResult<boolean> {
+export function writeFileSync(filePath: string, contents: WriteFileContent, options?: WriteOptions): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.writeFile, filePath, contents, options);
 }
 
 /**
  * Sync version of `appendFile`.
  */
-export function appendFileSync(filePath: string, contents: WriteFileContent): IOResult<boolean> {
+export function appendFileSync(filePath: string, contents: WriteFileContent): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.appendFile, filePath, contents);
 }
 
 /**
  * Sync version of `emptyDir`.
  */
-export function emptyDirSync(dirPath: string): IOResult<boolean> {
+export function emptyDirSync(dirPath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.emptyDir, dirPath);
 }
 
