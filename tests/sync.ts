@@ -14,7 +14,7 @@ function run() {
     console.assert(readBlobFileSync('/happy/b.txt').unwrap().size === 21);
     console.assert(readTextFileSync('//happy///b.txt//').unwrap() === 'hello opfs happy opfs');
 
-    console.assert(removeSync('/happy/not/exists').unwrap());
+    console.assert(removeSync('/happy/not/exists').isOk());
     removeSync('/happy/opfs');
 
     console.assert(!existsSync('/happy/opfs').unwrap());

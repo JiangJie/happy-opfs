@@ -24,7 +24,7 @@ export async function testAsync() {
     // Automatically normalize the path
     console.assert((await readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');
 
-    console.assert((await remove('/happy/not/exists')).unwrap());
+    console.assert((await remove('/happy/not/exists')).isOk());
     await remove('/happy/opfs');
 
     console.assert(!(await exists('/happy/opfs')).unwrap());
