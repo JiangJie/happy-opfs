@@ -10,7 +10,7 @@
 function writeFile(
    filePath, 
    contents, 
-options?): AsyncIOResult<boolean>
+   options?): AsyncVoidIOResult
 ```
 
 Writes content to a file at the specified path.
@@ -25,10 +25,10 @@ Writes content to a file at the specified path.
 
 ## Returns
 
-`AsyncIOResult`\<`boolean`\>
+`AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully written.
 
 ## Defined in
 
-[fs/opfs\_core.ts:235](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/opfs_core.ts#L235)
+[fs/opfs\_core.ts:235](https://github.com/JiangJie/happy-opfs/blob/6253d25d45ee43710777316ce4d92b062d8744f7/src/fs/opfs_core.ts#L235)

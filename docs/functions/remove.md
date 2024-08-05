@@ -7,7 +7,7 @@
 # Function: remove()
 
 ```ts
-function remove(path): AsyncIOResult<boolean>
+function remove(path): AsyncVoidIOResult
 ```
 
 Removes a file or directory at the specified path same as `rm -rf`.
@@ -20,10 +20,10 @@ Removes a file or directory at the specified path same as `rm -rf`.
 
 ## Returns
 
-`AsyncIOResult`\<`boolean`\>
+`AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully removed.
 
 ## Defined in
 
-[fs/opfs\_core.ts:127](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/opfs_core.ts#L127)
+[fs/opfs\_core.ts:127](https://github.com/JiangJie/happy-opfs/blob/6253d25d45ee43710777316ce4d92b062d8744f7/src/fs/opfs_core.ts#L127)

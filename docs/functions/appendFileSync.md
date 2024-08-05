@@ -7,7 +7,7 @@
 # Function: appendFileSync()
 
 ```ts
-function appendFileSync(filePath, contents): IOResult<boolean>
+function appendFileSync(filePath, contents): VoidIOResult
 ```
 
 Sync version of `appendFile`.
@@ -21,8 +21,8 @@ Sync version of `appendFile`.
 
 ## Returns
 
-`IOResult`\<`boolean`\>
+`VoidIOResult`
 
 ## Defined in
 
-[worker/opfs\_worker\_adapter.ts:165](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/worker/opfs_worker_adapter.ts#L165)
+[worker/opfs\_worker\_adapter.ts:166](https://github.com/JiangJie/happy-opfs/blob/6253d25d45ee43710777316ce4d92b062d8744f7/src/worker/opfs_worker_adapter.ts#L166)

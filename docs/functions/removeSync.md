@@ -7,7 +7,7 @@
 # Function: removeSync()
 
 ```ts
-function removeSync(path): IOResult<boolean>
+function removeSync(path): VoidIOResult
 ```
 
 Sync version of `remove`.
@@ -20,8 +20,8 @@ Sync version of `remove`.
 
 ## Returns
 
-`IOResult`\<`boolean`\>
+`VoidIOResult`
 
 ## Defined in
 
-[worker/opfs\_worker\_adapter.ts:137](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/worker/opfs_worker_adapter.ts#L137)
+[worker/opfs\_worker\_adapter.ts:138](https://github.com/JiangJie/happy-opfs/blob/6253d25d45ee43710777316ce4d92b062d8744f7/src/worker/opfs_worker_adapter.ts#L138)

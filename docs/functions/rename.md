@@ -7,7 +7,7 @@
 # Function: rename()
 
 ```ts
-function rename(oldPath, newPath): AsyncIOResult<boolean>
+function rename(oldPath, newPath): AsyncVoidIOResult
 ```
 
 Renames a file or directory from an old path to a new path.
@@ -21,10 +21,10 @@ Renames a file or directory from an old path to a new path.
 
 ## Returns
 
-`AsyncIOResult`\<`boolean`\>
+`AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully renamed.
 
 ## Defined in
 
-[fs/opfs\_core.ts:162](https://github.com/JiangJie/happy-opfs/blob/ff451a853f34b3dedd716c1414a17eb57f239434/src/fs/opfs_core.ts#L162)
+[fs/opfs\_core.ts:162](https://github.com/JiangJie/happy-opfs/blob/6253d25d45ee43710777316ce4d92b062d8744f7/src/fs/opfs_core.ts#L162)
