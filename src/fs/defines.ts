@@ -214,3 +214,14 @@ export interface SyncAgentOptions {
      */
     opTimeout?: number;
 }
+
+/**
+ * Options for `zip`.
+ */
+export interface ZipOptions {
+    /**
+     * Whether to preserve the root directory in the zip file.
+     * @defaultValue `true`
+     */
+    preserveRoot: boolean;
+}

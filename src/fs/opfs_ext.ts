@@ -6,8 +6,8 @@ import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { ABORT_ERROR } from './constants.ts';
-import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent } from './defines.ts';
-import { isNotFoundError } from './helpers.ts';
+import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent, ZipOptions } from './defines.ts';
+import { getFileDataByHandle, isFileKind, isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -231,7 +231,72 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
 }
 
 /**
+ * Zip a file or directory.
+ * Equivalent to `zip -r <zipFilePath> <targetPath>`.
+ * @param sourcePath - The path to be zipped.
+ * @param zipFilePath - The path to the zip file.
+ * @param options - Options of zip.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ */
+export async function zip(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult {
+    assertAbsolutePath(zipFilePath);
+
+    const statRes = await stat(sourcePath);
+    if (statRes.isErr()) {
+        return statRes.asErr();
+    }
+
+    const future = new Future<VoidIOResult>();
+
+    const zipped: fflate.AsyncZippable = {};
+
+    const sourceName = basename(sourcePath);
+    const handle = statRes.unwrap();
+
+    if (isFileKind(handle.kind)) {
+        // file
+        const data = await getFileDataByHandle(handle);
+        zipped[sourceName] = data;
+    } else {
+        // directory
+        const res = await readDir(sourcePath, {
+            recursive: true,
+        });
+        if (res.isErr()) {
+            return res.asErr();
+        }
+
+        // default to preserve root
+        const preserveRoot = options?.preserveRoot ?? true;
+
+        for await (const { path, handle } of res.unwrap()) {
+            // path
+            if (isFileKind(handle.kind)) {
+                const entryName = preserveRoot ? join(sourceName, path) : path;
+                const data = await getFileDataByHandle(handle);
+                zipped[entryName] = data;
+            }
+        }
+    }
+
+    fflate.zip(zipped, {
+        consume: true,
+    }, async (err, u8a) => {
+        if (err) {
+            future.resolve(Err(err));
+            return;
+        }
+
+        const res = await writeFile(zipFilePath, u8a);
+        future.resolve(res);
+    });
+
+    return await future.promise;
+}
+
+/**
  * Unzip a zip file to a directory.
+ * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
  * @param zipFilePath - Zip file path.
  * @param targetPath - The directory to unzip to.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.

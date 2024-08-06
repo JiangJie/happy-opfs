@@ -159,3 +159,24 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
 export function isNotFoundError(err: Error): boolean {
     return err.name === NOT_FOUND_ERROR;
 }
+
+/**
+ * Whether the handle is a file.
+ * @param kind - The handle kind.
+ * @returns `true` if the handle is a file, otherwise `false`.
+ */
+export function isFileKind(kind: FileSystemHandleKind): boolean {
+    return kind === 'file';
+}
+
+/**
+ * Gets the data of a file handle.
+ * @param handle - The file handle.
+ * @returns A promise that resolves to the data of the file.
+ */
+export async function getFileDataByHandle(handle: FileSystemHandle): Promise<Uint8Array> {
+    const file = await (handle as FileSystemFileHandle).getFile();
+    const ab = await file.arrayBuffer();
+    const data = new Uint8Array(ab);
+    return data;
+}
