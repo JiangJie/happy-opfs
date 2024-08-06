@@ -15,27 +15,13 @@ This is a browser-compatible fs module based on OPFS, which references the [Deno
 
 ## Installation
 
-via pnpm
-
-```
+```sh
 pnpm add happy-opfs
-```
-
-or via yarn
-
-```
+# or
 yarn add happy-opfs
-```
-
-or just from npm
-
-```
+# or
 npm install --save happy-opfs
-```
-
-via JSR
-
-```
+# or
 jsr add @happy-js/happy-opfs
 ```
 
@@ -69,7 +55,7 @@ Otherwise, an error `ReferenceError: SharedArrayBuffer is not defined` will be t
 ## Examples
 
 ```ts
-import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, uploadFile, writeFile } from 'happy-opfs';
+import { appendFile, downloadFile, emptyDir, exists, isFileKind, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, ROOT_DIR, stat, toFileSystemHandleLike, unzip, uploadFile, writeFile, zip, type FileSystemFileHandleLike } from 'happy-opfs';
 
 (async () => {
     const mockServer = 'https://16a6dafa-2258-4a83-88fa-31a409e42b17.mock.pstmn.io';
@@ -80,7 +66,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
 
     // Clear all files and folders
-    await emptyDir('/');
+    await emptyDir(ROOT_DIR);
     // Recursively create the /happy/opfs directory
     await mkdir('/happy/opfs');
     // Create and write file content
@@ -93,20 +79,20 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     // File no longer exists
     const statRes = await stat('/happy/opfs/a.txt');
     console.assert(statRes.isErr());
-    console.log(statRes.unwrapErr().message);
 
     console.assert((await readFile('/happy/b.txt')).unwrap().byteLength === 21);
     // Automatically normalize the path
     console.assert((await readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');
 
-    console.assert((await remove('/happy/not/exists')).unwrap());
+    console.assert((await remove('/happy/not/exists')).isOk());
     await remove('/happy/opfs');
 
     console.assert(!(await exists('/happy/opfs')).unwrap());
     console.assert((await exists('/happy/b.txt')).unwrap());
+    console.assert(isFileKind((await stat('/happy/b.txt')).unwrap().kind));
 
     // Download a file
-    const downloadTask = downloadFile(mockTodo1, '/todo.json', {
+    const downloadTask = downloadFile(mockSingle, '/todo.json', {
         timeout: 1000,
     });
     const downloadRes = await downloadTask.response;
@@ -125,7 +111,7 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
         await writeFile('/todo.json', JSON.stringify(postJson));
 
         // Upload a file
-        console.assert((await uploadFile('/todo.json', mockTodos).response).unwrap() instanceof Response);
+        console.assert((await uploadFile('/todo.json', mockAll).response).unwrap() instanceof Response);
     } else {
         console.assert(downloadRes.unwrapErr() instanceof Error);
     }
@@ -133,21 +119,25 @@ import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, rea
     // Will create directory
     await emptyDir('/not-exists');
 
+    // Zip/Unzip
+    console.assert((await zip('/happy', '/happy.zip')).isOk());
+    console.assert((await unzip('/happy.zip', '/happy-2')).isOk());
+
     // List all files and folders in the root directory
-    for await (const { path, handle } of (await readDir('/', {
+    for await (const { path, handle } of (await readDir(ROOT_DIR, {
         recursive: true,
     })).unwrap()) {
-        /**
-         * todo.json is a file
-         * not-exists is a directory
-         * happy is a directory
-         * happy/b.txt is a file
-         */
-        console.log(`${ path } is a ${ handle.kind }`);
+        const handleLike = await toFileSystemHandleLike(handle);
+        if (isFileKind(handleLike.kind)) {
+            const file = handleLike as FileSystemFileHandleLike;
+            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
+        } else {
+            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }`);
+        }
     }
 
     // Comment this line to view using OPFS Explorer
-    await remove('/');
+    await remove(ROOT_DIR);
 })();
 ```
 

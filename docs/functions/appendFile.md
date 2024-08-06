@@ -27,4 +27,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the content was
 
 ## Defined in
 
-[fs/opfs\_ext.ts:18](https://github.com/JiangJie/happy-opfs/blob/6253d25d45ee43710777316ce4d92b062d8744f7/src/fs/opfs_ext.ts#L18)
+[fs/opfs\_ext.ts:21](https://github.com/JiangJie/happy-opfs/blob/b6f122787c0a1042b0551ee35b286e55a132e2d7/src/fs/opfs_ext.ts#L21)

@@ -21,6 +21,7 @@
 | [SyncAgentOptions](interfaces/SyncAgentOptions.md) | Setup options of `connectSyncAgent`. |
 | [UploadRequestInit](interfaces/UploadRequestInit.md) | fetch-t request options for uploading files. |
 | [WriteOptions](interfaces/WriteOptions.md) | Options for writing files, including flags for creation and appending. |
+| [ZipOptions](interfaces/ZipOptions.md) | Options for `zip`. |
 
 ## Type Aliases
 
@@ -52,6 +53,9 @@
 | [emptyDirSync](functions/emptyDirSync.md) | Sync version of `emptyDir`. |
 | [exists](functions/exists.md) | Checks whether a file or directory exists at the specified path. |
 | [existsSync](functions/existsSync.md) | Sync version of `exists`. |
+| [getFileDataByHandle](functions/getFileDataByHandle.md) | Gets the data of a file handle. |
+| [isDirectoryKind](functions/isDirectoryKind.md) | Whether the handle is a directory. |
+| [isFileKind](functions/isFileKind.md) | Whether the handle is a file. |
 | [isOPFSSupported](functions/isOPFSSupported.md) | Checks if the Origin Private File System (OPFS) is supported in the current environment. |
 | [mkdir](functions/mkdir.md) | Creates a new directory at the specified path same as `mkdir -p`. |
 | [mkdirSync](functions/mkdirSync.md) | Sync version of `mkdir`. |
@@ -71,6 +75,10 @@
 | [stat](functions/stat.md) | Retrieves the status of a file or directory at the specified path. |
 | [statSync](functions/statSync.md) | Sync version of `stat`. |
 | [toFileSystemHandleLike](functions/toFileSystemHandleLike.md) | Serialize a `FileSystemHandle` to plain object. |
+| [unzip](functions/unzip.md) | Unzip a zip file to a directory. Equivalent to `unzip -o <zipFilePath> -d <targetPath> |
+| [unzipSync](functions/unzipSync.md) | Sync version of `unzip`. |
 | [uploadFile](functions/uploadFile.md) | Uploads a file from the specified path to a URL. |
 | [writeFile](functions/writeFile.md) | Writes content to a file at the specified path. |
 | [writeFileSync](functions/writeFileSync.md) | Sync version of `writeFile`. |
+| [zip](functions/zip.md) | Zip a file or directory. Equivalent to `zip -r <zipFilePath> <targetPath>`. |
+| [zipSync](functions/zipSync.md) | Sync version of `zip`. |
