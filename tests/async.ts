@@ -11,6 +11,7 @@ export async function testAsync() {
     await mkdir('/happy/opfs');
     // Create and write file content
     await writeFile('/happy/opfs/a.txt', 'hello opfs');
+    await writeFile('/happy/op-fs/fs.txt', 'hello opfs');
     // Move the file
     await rename('/happy/opfs/a.txt', '/happy/b.txt');
     // Append content to the file
