@@ -231,6 +231,49 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
 }
 
 /**
+ * Unzip a zip file to a directory.
+ * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
+ * @param zipFilePath - Zip file path.
+ * @param targetPath - The directory to unzip to.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ */
+export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
+    assertAbsolutePath(targetPath);
+
+    const res = await readFile(zipFilePath);
+    if (res.isErr()) {
+        return res.asErr();
+    }
+
+    const future = new Future<VoidIOResult>();
+
+    const data = new Uint8Array(res.unwrap());
+
+    fflate.unzip(data, async (err, unzipped) => {
+        if (err) {
+            future.resolve(Err(err));
+            return;
+        }
+
+        const tasks: AsyncVoidIOResult[] = [];
+        for (const path in unzipped) {
+            // ignore directory
+            if (path.at(-1) !== '/') {
+                tasks.push(writeFile(join(targetPath, path), unzipped[path]));
+            }
+        }
+
+        const allRes = await Promise.all(tasks);
+        // anyone failed?
+        const fail = allRes.find(x => x.isErr());
+
+        return future.resolve(fail ?? RESULT_VOID);
+    });
+
+    return await future.promise;
+}
+
+/**
  * Zip a file or directory.
  * Equivalent to `zip -r <zipFilePath> <targetPath>`.
  * @param sourcePath - The path to be zipped.
@@ -289,49 +332,6 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
 
         const res = await writeFile(zipFilePath, u8a);
         future.resolve(res);
-    });
-
-    return await future.promise;
-}
-
-/**
- * Unzip a zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
- * @param zipFilePath - Zip file path.
- * @param targetPath - The directory to unzip to.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
- */
-export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
-    assertAbsolutePath(targetPath);
-
-    const res = await readFile(zipFilePath);
-    if (res.isErr()) {
-        return res.asErr();
-    }
-
-    const future = new Future<VoidIOResult>();
-
-    const data = new Uint8Array(res.unwrap());
-
-    fflate.unzip(data, async (err, unzipped) => {
-        if (err) {
-            future.resolve(Err(err));
-            return;
-        }
-
-        const tasks: AsyncVoidIOResult[] = [];
-        for (const path in unzipped) {
-            // ignore directory
-            if (path.at(-1) !== '/') {
-                tasks.push(writeFile(join(targetPath, path), unzipped[path]));
-            }
-        }
-
-        const allRes = await Promise.all(tasks);
-        // anyone failed?
-        const fail = allRes.find(x => x.isErr());
-
-        return future.resolve(fail ?? RESULT_VOID);
     });
 
     return await future.promise;

@@ -1,6 +1,6 @@
 import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions } from '../fs/defines.ts';
+import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions, ZipOptions } from '../fs/defines.ts';
 import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
 import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
@@ -204,4 +204,11 @@ export function readTextFileSync(filePath: string): IOResult<string> {
  */
 export function unzipSync(zipFilePath: string, targetPath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.unzip, zipFilePath, targetPath);
+}
+
+/**
+ * Sync version of `zip`.
+ */
+export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOptions): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options);
 }

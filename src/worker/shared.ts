@@ -17,6 +17,7 @@ export const enum WorkerAsyncOp {
     exists,
     readBlobFile,
     unzip,
+    zip,
 }
 
 /**
