@@ -248,9 +248,9 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
         return res.asErr();
     }
 
-    const future = new Future<VoidIOResult>();
-
     const data = new Uint8Array(res.unwrap());
+
+    const future = new Future<VoidIOResult>();
 
     fflate.unzip(data, async (err, unzipped) => {
         if (err) {
@@ -294,8 +294,6 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
         return statRes.asErr();
     }
 
-    const future = new Future<VoidIOResult>();
-
     const zipped: fflate.AsyncZippable = {};
 
     const sourceName = basename(sourcePath);
@@ -326,6 +324,8 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
             }
         }
     }
+
+    const future = new Future<VoidIOResult>();
 
     fflate.zip(zipped, {
         consume: true,
