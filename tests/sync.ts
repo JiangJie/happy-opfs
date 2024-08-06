@@ -1,7 +1,7 @@
-import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, statSync, writeFileSync, type FileSystemFileHandleLike } from '../src/mod.ts';
+import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, ROOT_DIR, statSync, writeFileSync, type FileSystemFileHandleLike } from '../src/mod.ts';
 
 function run() {
-    emptyDirSync('/');
+    emptyDirSync(ROOT_DIR);
     mkdirSync('/happy/opfs');
     writeFileSync('/happy/opfs/a.txt', 'hello opfs');
     renameSync('/happy/opfs/a.txt', '/happy/b.txt');
@@ -23,7 +23,7 @@ function run() {
 
     emptyDirSync('/not-exists');
 
-    for (const { path, handle } of readDirSync('/', {
+    for (const { path, handle } of readDirSync(ROOT_DIR, {
         recursive: true,
     }).unwrap()) {
         if (handle.kind === 'file') {
@@ -35,7 +35,7 @@ function run() {
     }
 
     // Comment this line to view using OPFS Explorer
-    removeSync('/');
+    removeSync(ROOT_DIR);
 }
 
 export async function testSync() {

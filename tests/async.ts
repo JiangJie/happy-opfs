@@ -1,4 +1,4 @@
-import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, stat, toFileSystemHandleLike, uploadFile, writeFile, type FileSystemFileHandleLike } from '../src/mod.ts';
+import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, ROOT_DIR, stat, toFileSystemHandleLike, uploadFile, writeFile, type FileSystemFileHandleLike } from '../src/mod.ts';
 import { mockAll, mockSingle } from './constants.ts';
 
 export async function testAsync() {
@@ -6,7 +6,7 @@ export async function testAsync() {
     console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
 
     // Clear all files and folders
-    await emptyDir('/');
+    await emptyDir(ROOT_DIR);
     // Recursively create the /happy/opfs directory
     await mkdir('/happy/opfs');
     // Create and write file content
@@ -60,7 +60,7 @@ export async function testAsync() {
     await emptyDir('/not-exists');
 
     // List all files and folders in the root directory
-    for await (const { path, handle } of (await readDir('/', {
+    for await (const { path, handle } of (await readDir(ROOT_DIR, {
         recursive: true,
     })).unwrap()) {
         const handleLike = await toFileSystemHandleLike(handle);
@@ -73,5 +73,5 @@ export async function testAsync() {
     }
 
     // Comment this line to view using OPFS Explorer
-    await remove('/');
+    await remove(ROOT_DIR);
 }

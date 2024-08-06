@@ -48,7 +48,7 @@ export function isCurrentDir(dirPath: string): boolean {
 async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     const handle = await dirHandle.getDirectoryHandle(dirName, options)
         .catch((err: DOMException) => {
-            const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || '/' }'.`);
+            const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
             error.name = err.name;
 
             return error;
@@ -68,7 +68,7 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: 
 async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const handle = await dirHandle.getFileHandle(fileName, options)
         .catch((err: DOMException) => {
-            const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || '/' }'.`);
+            const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
             error.name = err.name;
 
             return error;
