@@ -198,3 +198,10 @@ export function readTextFileSync(filePath: string): IOResult<string> {
         encoding: 'utf8',
     });
 }
+
+/**
+ * Sync version of `unzip`.
+ */
+export function unzipSync(zipFilePath: string, targetPath: string): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.unzip, zipFilePath, targetPath);
+}
