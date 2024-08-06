@@ -11,6 +11,8 @@ const external = [
     'happy-rusty',
     'tiny-invariant',
     '@happy-ts/fetch-t',
+    'tiny-future',
+    'fflate/browser',
 ];
 
 /**
