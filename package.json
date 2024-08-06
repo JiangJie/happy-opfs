@@ -3,7 +3,7 @@
   "description": "A browser-compatible fs module inspired by the Deno fs and @std/fs APIs, based on OPFS implementation.",
   "author": "jiang115jie@gmail.com",
   "license": "GPL-3.0",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "type": "module",
   "source": "src/mod.ts",
   "main": "dist/main.cjs",
@@ -44,7 +44,11 @@
     "private",
     "worker",
     "sync",
-    "async"
+    "async",
+    "upload",
+    "download",
+    "zip",
+    "unzip"
   ],
   "devDependencies": {
     "@eslint/js": "^9.8.0",
