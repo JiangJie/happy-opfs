@@ -1,5 +1,5 @@
 import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
-import { basename, join } from '@std/path/posix';
+import { basename, join, SEPARATOR } from '@std/path/posix';
 import * as fflate from 'fflate/browser';
 import { Err, Ok, RESULT_FALSE, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
@@ -258,7 +258,7 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
         const tasks: AsyncVoidIOResult[] = [];
         for (const path in unzipped) {
             // ignore directory
-            if (path.at(-1) !== '/') {
+            if (path.at(-1) !== SEPARATOR) {
                 tasks.push(writeFile(join(targetPath, path), unzipped[path]));
             }
         }
