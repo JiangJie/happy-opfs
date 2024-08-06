@@ -1,4 +1,4 @@
-import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, ROOT_DIR, statSync, writeFileSync, type FileSystemFileHandleLike } from '../src/mod.ts';
+import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, ROOT_DIR, statSync, unzipSync, writeFileSync, zipSync, type FileSystemFileHandleLike } from '../src/mod.ts';
 
 function run() {
     emptyDirSync(ROOT_DIR);
@@ -22,6 +22,10 @@ function run() {
     console.assert(statSync('/happy/b.txt').unwrap().kind === 'file');
 
     emptyDirSync('/not-exists');
+
+    // Zip/Unzip
+    console.assert(zipSync('/happy', '/happy.zip').isOk());
+    console.assert(unzipSync('/happy.zip', '/happy-2').isOk());
 
     for (const { path, handle } of readDirSync(ROOT_DIR, {
         recursive: true,

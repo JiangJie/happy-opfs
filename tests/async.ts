@@ -1,4 +1,4 @@
-import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, ROOT_DIR, stat, toFileSystemHandleLike, uploadFile, writeFile, type FileSystemFileHandleLike } from '../src/mod.ts';
+import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, ROOT_DIR, stat, toFileSystemHandleLike, unzip, uploadFile, writeFile, zip, type FileSystemFileHandleLike } from '../src/mod.ts';
 import { mockAll, mockSingle } from './constants.ts';
 
 export async function testAsync() {
@@ -58,6 +58,10 @@ export async function testAsync() {
 
     // Will create directory
     await emptyDir('/not-exists');
+
+    // Zip/Unzip
+    console.assert((await zip('/happy', '/happy.zip')).isOk());
+    console.assert((await unzip('/happy.zip', '/happy-2')).isOk());
 
     // List all files and folders in the root directory
     for await (const { path, handle } of (await readDir(ROOT_DIR, {
