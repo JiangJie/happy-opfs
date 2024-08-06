@@ -1,4 +1,4 @@
-import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, ROOT_DIR, statSync, unzipSync, writeFileSync, zipSync, type FileSystemFileHandleLike } from '../src/mod.ts';
+import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, isFileKind, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, ROOT_DIR, statSync, unzipSync, writeFileSync, zipSync, type FileSystemFileHandleLike } from '../src/mod.ts';
 
 function run() {
     emptyDirSync(ROOT_DIR);
@@ -19,7 +19,7 @@ function run() {
 
     console.assert(!existsSync('/happy/opfs').unwrap());
     console.assert(existsSync('/happy/b.txt').unwrap());
-    console.assert(statSync('/happy/b.txt').unwrap().kind === 'file');
+    console.assert(isFileKind(statSync('/happy/b.txt').unwrap().kind));
 
     emptyDirSync('/not-exists');
 
@@ -30,7 +30,7 @@ function run() {
     for (const { path, handle } of readDirSync(ROOT_DIR, {
         recursive: true,
     }).unwrap()) {
-        if (handle.kind === 'file') {
+        if (isFileKind(handle.kind)) {
             const file = handle as FileSystemFileHandleLike;
             console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
         } else {

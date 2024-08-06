@@ -4,6 +4,7 @@ import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isNotFoundError, isRootPath } from './helpers.ts';
+import { isDirectoryKind } from './utils.ts';
 
 /**
  * Creates a new directory at the specified path same as `mkdir -p`.
@@ -44,7 +45,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
                 handle,
             };
 
-            if (handle.kind === 'directory' && options?.recursive) {
+            if (isDirectoryKind(handle.kind) && options?.recursive) {
                 yield* read(await dirHandle.getDirectoryHandle(name), path);
             }
         }

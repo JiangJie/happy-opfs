@@ -7,8 +7,9 @@ import invariant from 'tiny-invariant';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { ABORT_ERROR } from './constants.ts';
 import type { ExistsOptions, FsRequestInit, UploadRequestInit, WriteFileContent, ZipOptions } from './defines.ts';
-import { getFileDataByHandle, isFileKind, isNotFoundError } from './helpers.ts';
+import { isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
+import { getFileDataByHandle, isDirectoryKind, isFileKind } from './utils.ts';
 
 /**
  * Appends content to a file at the specified path.
@@ -67,8 +68,8 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
     return stats.andThen(handle => {
         const { kind } = handle;
         const notExist =
-            (isDirectory && kind === 'file')
-            || (isFile && kind === 'directory');
+            (isDirectory && isFileKind(kind))
+            || (isFile && isDirectoryKind(kind));
 
         return Ok(!notExist);
     }).orElse((err): IOResult<boolean> => {
@@ -233,6 +234,8 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
 /**
  * Unzip a zip file to a directory.
  * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
+ *
+ * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
  * @param zipFilePath - Zip file path.
  * @param targetPath - The directory to unzip to.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
@@ -276,6 +279,8 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
 /**
  * Zip a file or directory.
  * Equivalent to `zip -r <zipFilePath> <targetPath>`.
+ *
+ * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
  * @param sourcePath - The path to be zipped.
  * @param zipFilePath - The path to the zip file.
  * @param options - Options of zip.

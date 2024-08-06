@@ -1,4 +1,4 @@
-import { appendFile, downloadFile, emptyDir, exists, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, ROOT_DIR, stat, toFileSystemHandleLike, unzip, uploadFile, writeFile, zip, type FileSystemFileHandleLike } from '../src/mod.ts';
+import { appendFile, downloadFile, emptyDir, exists, isFileKind, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, ROOT_DIR, stat, toFileSystemHandleLike, unzip, uploadFile, writeFile, zip, type FileSystemFileHandleLike } from '../src/mod.ts';
 import { mockAll, mockSingle } from './constants.ts';
 
 export async function testAsync() {
@@ -29,7 +29,7 @@ export async function testAsync() {
 
     console.assert(!(await exists('/happy/opfs')).unwrap());
     console.assert((await exists('/happy/b.txt')).unwrap());
-    console.assert((await stat('/happy/b.txt')).unwrap().kind === 'file');
+    console.assert(isFileKind((await stat('/happy/b.txt')).unwrap().kind));
 
     // Download a file
     const downloadTask = downloadFile(mockSingle, '/todo.json', {
@@ -68,7 +68,7 @@ export async function testAsync() {
         recursive: true,
     })).unwrap()) {
         const handleLike = await toFileSystemHandleLike(handle);
-        if (handleLike.kind === 'file') {
+        if (isFileKind(handleLike.kind)) {
             const file = handleLike as FileSystemFileHandleLike;
             console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
         } else {
