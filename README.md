@@ -16,12 +16,13 @@ This is a browser-compatible fs module based on OPFS, which references the [Deno
 ## Installation
 
 ```sh
+# via pnpm
 pnpm add happy-opfs
-# or
+# or via yarn
 yarn add happy-opfs
-# or
+# or just from npm
 npm install --save happy-opfs
-# or
+# via JSR
 jsr add @happy-js/happy-opfs
 ```
 

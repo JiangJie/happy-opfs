@@ -9,12 +9,13 @@
 ## 安装
 
 ```sh
+# via pnpm
 pnpm add happy-opfs
-# or
+# or via yarn
 yarn add happy-opfs
-# or
+# or just from npm
 npm install --save happy-opfs
-# or
+# via JSR
 jsr add @happy-js/happy-opfs
 ```
 
