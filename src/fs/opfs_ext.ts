@@ -277,7 +277,7 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
 }
 
 /**
- * Zip a file or directory.
+ * Zip a file or directory and write to a zip file.
  * Equivalent to `zip -r <zipFilePath> <targetPath>`.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
@@ -286,8 +286,25 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
  */
-export async function zip(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult {
-    assertAbsolutePath(zipFilePath);
+export async function zip(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult;
+
+/**
+ * Zip a file or directory and return the zip file data.
+ * Equivalent to `zip -r <zipFilePath> <targetPath>`.
+ *
+ * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
+ * @param sourcePath - The path to be zipped.
+ * @param options - Options of zip.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ */
+export async function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array>;
+export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): AsyncIOResult<T> {
+    if (typeof zipFilePath === 'string') {
+        assertAbsolutePath(zipFilePath);
+    } else {
+        options = zipFilePath;
+        zipFilePath = undefined;
+    }
 
     const statRes = await stat(sourcePath);
     if (statRes.isErr()) {
@@ -325,7 +342,7 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
         }
     }
 
-    const future = new Future<VoidIOResult>();
+    const future = new Future<IOResult<T>>();
 
     fflate.zip(zipped, {
         consume: true,
@@ -335,8 +352,13 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
             return;
         }
 
-        const res = await writeFile(zipFilePath, u8a);
-        future.resolve(res);
+        // whether to write to file
+        if (zipFilePath) {
+            const res = await writeFile(zipFilePath, u8a);
+            future.resolve(res as IOResult<T>);
+        } else {
+            future.resolve(Ok(u8a as T));
+        }
     });
 
     return await future.promise;
