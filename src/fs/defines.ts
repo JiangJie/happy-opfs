@@ -1,3 +1,5 @@
+import type { FetchInit } from '@happy-ts/fetch-t';
+
 /**
  * Represents the possible content types that can be written to a file.
  */
@@ -61,12 +63,7 @@ export type FileEncoding = 'binary' | 'utf8' | 'blob';
 /**
  * fetch-t options for download and upload.
  */
-export interface FsRequestInit extends RequestInit {
-    /**
-     * Specifies the maximum time in milliseconds to wait for the fetch request to complete.
-     */
-    timeout?: number;
-}
+export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>
 
 /**
  * fetch-t request options for uploading files.
