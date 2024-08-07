@@ -1,37 +1,37 @@
-import { appendFileSync, connectSyncAgent, emptyDirSync, existsSync, isFileKind, mkdirSync, readBlobFileSync, readDirSync, readFileSync, readTextFileSync, removeSync, renameSync, ROOT_DIR, statSync, unzipSync, writeFileSync, zipSync, type FileSystemFileHandleLike } from '../src/mod.ts';
+import * as fs from '..';
 
 function run() {
-    emptyDirSync(ROOT_DIR);
-    mkdirSync('/happy/opfs');
-    writeFileSync('/happy/opfs/a.txt', 'hello opfs');
-    renameSync('/happy/opfs/a.txt', '/happy/b.txt');
-    appendFileSync('/happy/b.txt', ' happy opfs');
+    fs.emptyDirSync(fs.ROOT_DIR);
+    fs.mkdirSync('/happy/opfs');
+    fs.writeFileSync('/happy/opfs/a.txt', 'hello opfs');
+    fs.renameSync('/happy/opfs/a.txt', '/happy/b.txt');
+    fs.appendFileSync('/happy/b.txt', ' happy opfs');
 
-    const statRes = statSync('/happy/opfs/a.txt');
+    const statRes = fs.statSync('/happy/opfs/a.txt');
     console.assert(statRes.isErr());
 
-    console.assert(readFileSync('/happy/b.txt').unwrap().byteLength === 21);
-    console.assert(readBlobFileSync('/happy/b.txt').unwrap().size === 21);
-    console.assert(readTextFileSync('//happy///b.txt//').unwrap() === 'hello opfs happy opfs');
+    console.assert(fs.readFileSync('/happy/b.txt').unwrap().byteLength === 21);
+    console.assert(fs.readBlobFileSync('/happy/b.txt').unwrap().size === 21);
+    console.assert(fs.readTextFileSync('//happy///b.txt//').unwrap() === 'hello opfs happy opfs');
 
-    console.assert(removeSync('/happy/not/exists').isOk());
-    removeSync('/happy/opfs');
+    console.assert(fs.removeSync('/happy/not/exists').isOk());
+    console.assert(fs.removeSync('/happy/opfs').isOk());
 
-    console.assert(!existsSync('/happy/opfs').unwrap());
-    console.assert(existsSync('/happy/b.txt').unwrap());
-    console.assert(isFileKind(statSync('/happy/b.txt').unwrap().kind));
+    console.assert(!fs.existsSync('/happy/opfs').unwrap());
+    console.assert(fs.existsSync('/happy/b.txt').unwrap());
+    console.assert(fs.isFileKind(fs.statSync('/happy/b.txt').unwrap().kind));
 
-    emptyDirSync('/not-exists');
+    fs.emptyDirSync('/not-exists');
 
     // Zip/Unzip
-    console.assert(zipSync('/happy', '/happy.zip').isOk());
-    console.assert(unzipSync('/happy.zip', '/happy-2').isOk());
+    console.assert(fs.zipSync('/happy', '/happy.zip').isOk());
+    console.assert(fs.unzipSync('/happy.zip', '/happy-2').isOk());
 
-    for (const { path, handle } of readDirSync(ROOT_DIR, {
+    for (const { path, handle } of fs.readDirSync(fs.ROOT_DIR, {
         recursive: true,
     }).unwrap()) {
-        if (isFileKind(handle.kind)) {
-            const file = handle as FileSystemFileHandleLike;
+        if (fs.isFileKind(handle.kind)) {
+            const file = handle as fs.FileSystemFileHandleLike;
             console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
         } else {
             console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }`);
@@ -39,11 +39,11 @@ function run() {
     }
 
     // Comment this line to view using OPFS Explorer
-    removeSync(ROOT_DIR);
+    fs.removeSync(fs.ROOT_DIR);
 }
 
 export async function testSync() {
-    await connectSyncAgent({
+    await fs.connectSyncAgent({
         worker: new Worker(new URL('worker.ts', import.meta.url), {
             type: 'module'
         }),
