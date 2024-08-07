@@ -232,23 +232,14 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
 }
 
 /**
- * Unzip a zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
- *
- * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
- * @param zipFilePath - Zip file path.
- * @param targetPath - The directory to unzip to.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ * Unzip a buffer then write to the target path.
+ * @param buffer - Zipped ArrayBuffer.
+ * @param targetPath - Target directory path.
  */
-export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
+async function unzipBuffer(buffer: ArrayBuffer, targetPath: string): AsyncVoidIOResult {
     assertAbsolutePath(targetPath);
 
-    const res = await readFile(zipFilePath);
-    if (res.isErr()) {
-        return res.asErr();
-    }
-
-    const data = new Uint8Array(res.unwrap());
+    const data = new Uint8Array(buffer);
 
     const future = new Future<VoidIOResult>();
 
@@ -274,6 +265,53 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
     });
 
     return await future.promise;
+}
+
+/**
+ * Unzip a zip file to a directory.
+ * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
+ *
+ * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
+ * @param zipFilePath - Zip file path.
+ * @param targetPath - The directory to unzip to.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ */
+export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
+    assertAbsolutePath(targetPath);
+
+    const res = await readFile(zipFilePath);
+    if (res.isErr()) {
+        return res.asErr();
+    }
+
+    return await unzipBuffer(res.unwrap(), targetPath);
+}
+
+/**
+ * Unzip a remote zip file to a directory.
+ * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
+ *
+ * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
+ * @param zipFileUrl - Zip file url.
+ * @param targetPath - The directory to unzip to.
+ * @param requestInit - Optional request initialization parameters.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ */
+export async function unzipFromUrl(zipFileUrl: string, targetPath: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
+    assertFileUrl(zipFileUrl);
+    assertAbsolutePath(targetPath);
+
+    const res = await fetchT(zipFileUrl, {
+        redirect: 'follow',
+        ...requestInit,
+    });
+
+    if (res.isErr()) {
+        return res.asErr();
+    }
+
+    const buffer = await res.unwrap().arrayBuffer();
+    return await unzipBuffer(buffer, targetPath);
 }
 
 /**
