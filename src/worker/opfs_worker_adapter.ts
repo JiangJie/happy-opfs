@@ -209,6 +209,20 @@ export function unzipSync(zipFilePath: string, targetPath: string): VoidIOResult
 /**
  * Sync version of `zip`.
  */
-export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOptions): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options);
+export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOptions): VoidIOResult;
+
+/**
+ * Sync version of `zip`.
+ */
+export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint8Array>;
+
+/**
+ * Sync version of `zip`.
+ */
+export function zipSync<T>(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<T> {
+    const res = callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options) as IOResult<number[]> | VoidIOResult;
+
+    return res.map(data => {
+        return (data ? new Uint8Array(data) : data) as T;
+    });
 }

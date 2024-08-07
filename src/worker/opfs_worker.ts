@@ -110,11 +110,13 @@ async function runWorkerLoop(): Promise<void> {
                         const data = await toFileSystemHandleLike(handle);
 
                         rawResponse = data;
+                    } else if (op === WorkerAsyncOp.zip) {
+                        const data: Uint8Array | undefined = res.unwrap();
+
+                        rawResponse = data instanceof Uint8Array ? [...data] : data;
                     } else {
                         // others are all boolean
-                        const data: boolean = res.unwrap();
-
-                        rawResponse = data;
+                        rawResponse = res.unwrap();
                     }
 
                     // without error
