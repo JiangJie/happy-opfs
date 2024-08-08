@@ -1,6 +1,6 @@
 import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, WriteFileContent, WriteOptions, ZipOptions } from '../fs/defines.ts';
+import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteFileContent, WriteOptions, ZipOptions } from '../fs/defines.ts';
 import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
 import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
@@ -186,6 +186,13 @@ export function emptyDirSync(dirPath: string): VoidIOResult {
  */
 export function existsSync(path: string, options?: ExistsOptions): IOResult<boolean> {
     return callWorkerOp(WorkerAsyncOp.exists, path, options);
+}
+
+/**
+ * Sync version of `mkTemp`.
+ */
+export function mkTempSync(options?: TempOptions): IOResult<string> {
+    return callWorkerOp(WorkerAsyncOp.mkTemp, options);
 }
 
 /**
