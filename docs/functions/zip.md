@@ -6,6 +6,8 @@
 
 # Function: zip()
 
+## zip(sourcePath, zipFilePath, options)
+
 ```ts
 function zip(
    sourcePath, 
@@ -13,12 +15,12 @@ function zip(
    options?): AsyncVoidIOResult
 ```
 
-Zip a file or directory.
+Zip a file or directory and write to a zip file.
 Equivalent to `zip -r <zipFilePath> <targetPath>`.
 
 Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
 
-## Parameters
+### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -26,12 +28,40 @@ Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
 | `zipFilePath` | `string` | The path to the zip file. |
 | `options`? | [`ZipOptions`](../interfaces/ZipOptions.md) | Options of zip. |
 
-## Returns
+### Returns
 
 `AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
 
-## Defined in
+### Defined in
 
-[fs/opfs\_ext.ts:289](https://github.com/JiangJie/happy-opfs/blob/b6f122787c0a1042b0551ee35b286e55a132e2d7/src/fs/opfs_ext.ts#L289)
+[fs/opfs\_zip.ts:49](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_zip.ts#L49)
+
+## zip(sourcePath, options)
+
+```ts
+function zip(sourcePath, options?): AsyncIOResult<Uint8Array>
+```
+
+Zip a file or directory and return the zip file data.
+Equivalent to `zip -r <zipFilePath> <targetPath>`.
+
+Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
+
+### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sourcePath` | `string` | The path to be zipped. |
+| `options`? | [`ZipOptions`](../interfaces/ZipOptions.md) | Options of zip. |
+
+### Returns
+
+`AsyncIOResult`\<`Uint8Array`\>
+
+A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+
+### Defined in
+
+[fs/opfs\_zip.ts:60](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_zip.ts#L60)

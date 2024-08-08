@@ -16,7 +16,7 @@ Gets the data of a file handle.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `handle` | `FileSystemHandle` | The file handle. |
+| `handle` | `FileSystemFileHandle` | The file handle. |
 
 ## Returns
 
@@ -26,4 +26,4 @@ A promise that resolves to the data of the file.
 
 ## Defined in
 
-[fs/utils.ts:57](https://github.com/JiangJie/happy-opfs/blob/b6f122787c0a1042b0551ee35b286e55a132e2d7/src/fs/utils.ts#L57)
+[fs/utils.ts:66](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/utils.ts#L66)

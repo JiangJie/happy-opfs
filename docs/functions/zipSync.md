@@ -6,6 +6,10 @@
 
 # Function: zipSync()
 
+Sync version of `zip`.
+
+## zipSync(sourcePath, zipFilePath, options)
+
 ```ts
 function zipSync(
    sourcePath, 
@@ -15,7 +19,7 @@ function zipSync(
 
 Sync version of `zip`.
 
-## Parameters
+### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
@@ -23,10 +27,33 @@ Sync version of `zip`.
 | `zipFilePath` | `string` |
 | `options`? | [`ZipOptions`](../interfaces/ZipOptions.md) |
 
-## Returns
+### Returns
 
 `VoidIOResult`
 
-## Defined in
+### Defined in
 
-[worker/opfs\_worker\_adapter.ts:212](https://github.com/JiangJie/happy-opfs/blob/b6f122787c0a1042b0551ee35b286e55a132e2d7/src/worker/opfs_worker_adapter.ts#L212)
+[worker/opfs\_worker\_adapter.ts:260](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/worker/opfs_worker_adapter.ts#L260)
+
+## zipSync(sourcePath, options)
+
+```ts
+function zipSync(sourcePath, options?): IOResult<Uint8Array>
+```
+
+Sync version of `zip`.
+
+### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `sourcePath` | `string` |
+| `options`? | [`ZipOptions`](../interfaces/ZipOptions.md) |
+
+### Returns
+
+`IOResult`\<`Uint8Array`\>
+
+### Defined in
+
+[worker/opfs\_worker\_adapter.ts:265](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/worker/opfs_worker_adapter.ts#L265)

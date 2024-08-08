@@ -12,5 +12,5 @@ An entry returned by `readDirSync`.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `handle` | [`FileSystemHandleLike`](FileSystemHandleLike.md) | The handle of the entry. | [fs/defines.ts:118](https://github.com/JiangJie/happy-opfs/blob/b6f122787c0a1042b0551ee35b286e55a132e2d7/src/fs/defines.ts#L118) |
-| `path` | `string` | The relative path of the entry from readDir the path parameter. | [fs/defines.ts:113](https://github.com/JiangJie/happy-opfs/blob/b6f122787c0a1042b0551ee35b286e55a132e2d7/src/fs/defines.ts#L113) |
+| `handle` | [`FileSystemHandleLike`](FileSystemHandleLike.md) | The handle of the entry. | [fs/defines.ts:120](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/defines.ts#L120) |
+| `path` | `string` | The relative path of the entry from readDir the path parameter. | [fs/defines.ts:115](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/defines.ts#L115) |

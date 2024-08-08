@@ -26,4 +26,4 @@ A promise that resolves to an `AsyncIOResult` containing the file content as a F
 
 ## Defined in
 
-[fs/opfs\_ext.ts:86](https://github.com/JiangJie/happy-opfs/blob/b6f122787c0a1042b0551ee35b286e55a132e2d7/src/fs/opfs_ext.ts#L86)
+[fs/opfs\_ext.ts:180](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_ext.ts#L180)
