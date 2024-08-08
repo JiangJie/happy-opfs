@@ -6,6 +6,11 @@ import type { FetchInit } from '@happy-ts/fetch-t';
 export type WriteFileContent = BufferSource | Blob | string;
 
 /**
+ * Represents the possible content types that can be written synchronously to a file.
+ */
+export type WriteSyncFileContent = BufferSource | string;
+
+/**
  * Represents the possible content types that can be read from a file.
  */
 export type ReadFileContent = ArrayBuffer | File | string;

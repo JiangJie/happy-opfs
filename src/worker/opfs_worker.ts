@@ -1,3 +1,4 @@
+import type { IOResult } from 'happy-rusty';
 import type { ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
 import { createFile, mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, emptyDir, exists, readBlobFile, } from '../fs/opfs_ext.ts';
@@ -76,58 +77,75 @@ async function runWorkerLoop(): Promise<void> {
         try {
             await respondToMainFromWorker(messenger, async (data) => {
                 const [op, ...args] = decodeFromBuffer(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
-                const handle = asyncOps[op];
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const res = await (handle as any)(...args);
+
+                // handling unequal parameters for serialization and deserialization
+                if (op === WorkerAsyncOp.writeFile || op === WorkerAsyncOp.appendFile) {
+                    // actually is an byte array
+                    if (Array.isArray(args[1])) {
+                        args[1] = new Uint8Array(args[1]);
+                    }
+                } else if (op === WorkerAsyncOp.pruneTemp) {
+                    // actually is a Date string
+                    args[0] = new Date(args[0] as Date);
+                }
 
                 let response: Uint8Array;
 
-                if (res.isErr()) {
-                    // without result success
-                    response = encodeToBuffer([serializeError(res.unwrapErr())]);
-                } else {
-                    // manually serialize response
-                    let rawResponse;
+                const handle = asyncOps[op];
 
-                    if (op === WorkerAsyncOp.readBlobFile) {
-                        const file: File = res.unwrap();
+                try {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const res: IOResult<any> = await (handle as any)(...args);
 
-                        const fileLike = await serializeFile(file);
+                    if (res.isErr()) {
+                        // without result success
+                        response = encodeToBuffer([serializeError(res.unwrapErr())]);
+                    } else {
+                        // manually serialize response
+                        let rawResponse;
 
-                        rawResponse = {
-                            ...fileLike,
-                            // for serialize
-                            data: [...new Uint8Array(fileLike.data)],
-                        };
-                    } else if (op === WorkerAsyncOp.readDir) {
-                        const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
-                        const entries: ReadDirEntrySync[] = [];
+                        if (op === WorkerAsyncOp.readBlobFile) {
+                            const file: File = res.unwrap();
 
-                        for await (const { path, handle } of iterator) {
-                            const handleLike = await toFileSystemHandleLike(handle);
-                            entries.push({
-                                path,
-                                handle: handleLike,
-                            });
+                            const fileLike = await serializeFile(file);
+
+                            rawResponse = {
+                                ...fileLike,
+                                // for serialize
+                                data: [...new Uint8Array(fileLike.data)],
+                            };
+                        } else if (op === WorkerAsyncOp.readDir) {
+                            const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
+                            const entries: ReadDirEntrySync[] = [];
+
+                            for await (const { path, handle } of iterator) {
+                                const handleLike = await toFileSystemHandleLike(handle);
+                                entries.push({
+                                    path,
+                                    handle: handleLike,
+                                });
+                            }
+
+                            rawResponse = entries;
+                        } else if (op === WorkerAsyncOp.stat) {
+                            const handle: FileSystemHandle = res.unwrap();
+                            const data = await toFileSystemHandleLike(handle);
+
+                            rawResponse = data;
+                        } else if (op === WorkerAsyncOp.zip) {
+                            const data: Uint8Array | undefined = res.unwrap();
+
+                            rawResponse = data instanceof Uint8Array ? [...data] : data;
+                        } else {
+                            // others are all boolean
+                            rawResponse = res.unwrap();
                         }
 
-                        rawResponse = entries;
-                    } else if (op === WorkerAsyncOp.stat) {
-                        const handle: FileSystemHandle = res.unwrap();
-                        const data = await toFileSystemHandleLike(handle);
-
-                        rawResponse = data;
-                    } else if (op === WorkerAsyncOp.zip) {
-                        const data: Uint8Array | undefined = res.unwrap();
-
-                        rawResponse = data instanceof Uint8Array ? [...data] : data;
-                    } else {
-                        // others are all boolean
-                        rawResponse = res.unwrap();
+                        // without error
+                        response = encodeToBuffer([null, rawResponse]);
                     }
-
-                    // without error
-                    response = encodeToBuffer([null, rawResponse]);
+                } catch (e) {
+                    response = encodeToBuffer([serializeError(e as Error)]);
                 }
 
                 return response;

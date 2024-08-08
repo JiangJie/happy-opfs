@@ -1,6 +1,6 @@
 import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteFileContent, WriteOptions, ZipOptions } from '../fs/defines.ts';
+import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
 import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
 import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
@@ -161,17 +161,30 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
 }
 
 /**
+ * Serialize contents to an byte array or a string that can be sent to worker.
+ * @param contents
+ * @returns
+ */
+function serializeWriteContents(contents: WriteSyncFileContent): number[] | string {
+    return contents instanceof ArrayBuffer
+        ? [...new Uint8Array(contents)]
+        : ArrayBuffer.isView(contents)
+            ? [...new Uint8Array(contents.buffer)]
+            : contents;
+}
+
+/**
  * Sync version of `writeFile`.
  */
-export function writeFileSync(filePath: string, contents: WriteFileContent, options?: WriteOptions): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.writeFile, filePath, contents, options);
+export function writeFileSync(filePath: string, contents: WriteSyncFileContent, options?: WriteOptions): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.writeFile, filePath, serializeWriteContents(contents), options);
 }
 
 /**
  * Sync version of `appendFile`.
  */
-export function appendFileSync(filePath: string, contents: WriteFileContent): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.appendFile, filePath, contents);
+export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.appendFile, filePath, serializeWriteContents(contents));
 }
 
 /**
