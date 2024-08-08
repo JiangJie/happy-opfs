@@ -189,6 +189,13 @@ export function existsSync(path: string, options?: ExistsOptions): IOResult<bool
 }
 
 /**
+ * Sync version of `deleteTemp`.
+ */
+export function deleteTempSync(): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.deleteTemp);
+}
+
+/**
  * Sync version of `mkTemp`.
  */
 export function mkTempSync(options?: TempOptions): IOResult<string> {

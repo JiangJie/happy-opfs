@@ -1,8 +1,8 @@
 import { join } from '@std/path/posix';
-import { Ok, type AsyncIOResult } from 'happy-rusty';
+import { Ok, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { TMP_DIR } from './constants.ts';
 import type { TempOptions } from './defines.ts';
-import { createFile, mkdir } from './opfs_core.ts';
+import { createFile, mkdir, remove } from './opfs_core.ts';
 
 /**
  * Generate a temporary path but not create it.
@@ -39,4 +39,12 @@ export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
     const res = await (isDirectory ? mkdir : createFile)(path);
 
     return res.and(Ok(path));
+}
+
+/**
+ * Delete the temporary directory and all its contents.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the temporary directory was successfully deleted.
+ */
+export function deleteTemp(): AsyncVoidIOResult {
+    return remove(TMP_DIR);
 }

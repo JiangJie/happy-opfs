@@ -16,6 +16,7 @@ export const enum WorkerAsyncOp {
     appendFile,
     emptyDir,
     exists,
+    deleteTemp,
     mkTemp,
     readBlobFile,
     unzip,
