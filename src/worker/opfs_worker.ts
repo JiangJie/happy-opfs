@@ -1,6 +1,8 @@
 import type { ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
 import { mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
-import { appendFile, emptyDir, exists, readBlobFile, unzip, zip } from '../fs/opfs_ext.ts';
+import { appendFile, emptyDir, exists, readBlobFile, } from '../fs/opfs_ext.ts';
+import { unzip } from '../fs/opfs_unzip.ts';
+import { zip } from '../fs/opfs_zip.ts';
 import { toFileSystemHandleLike } from '../fs/utils.ts';
 import { serializeError, serializeFile } from './helpers.ts';
 import { decodeFromBuffer, encodeToBuffer, respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared.ts';
