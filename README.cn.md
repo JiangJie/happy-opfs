@@ -51,7 +51,7 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 ## 示例
 
 ```ts
-import { appendFile, downloadFile, emptyDir, exists, isFileKind, isOPFSSupported, mkdir, readDir, readFile, readTextFile, remove, rename, ROOT_DIR, stat, toFileSystemHandleLike, unzip, uploadFile, writeFile, zip, type FileSystemFileHandleLike } from 'happy-opfs';
+import * as fs from 'happy-opfs';
 
 (async () => {
     const mockServer = 'https://16a6dafa-2258-4a83-88fa-31a409e42b17.mock.pstmn.io';
@@ -62,40 +62,46 @@ import { appendFile, downloadFile, emptyDir, exists, isFileKind, isOPFSSupported
     console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
 
     // Clear all files and folders
-    await emptyDir(ROOT_DIR);
+    await fs.emptyDir(fs.ROOT_DIR);
     // Recursively create the /happy/opfs directory
-    await mkdir('/happy/opfs');
+    await fs.mkdir('/happy/opfs');
     // Create and write file content
-    await writeFile('/happy/opfs/a.txt', 'hello opfs');
+    await fs.writeFile('/happy/opfs/a.txt', 'hello opfs');
+    await fs.writeFile('/happy/op-fs/fs.txt', 'hello opfs');
     // Move the file
-    await rename('/happy/opfs/a.txt', '/happy/b.txt');
+    await fs.rename('/happy/opfs/a.txt', '/happy/b.txt');
     // Append content to the file
-    await appendFile('/happy/b.txt', ' happy opfs');
+    await fs.appendFile('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
 
     // File no longer exists
-    const statRes = await stat('/happy/opfs/a.txt');
+    const statRes = await fs.stat('/happy/opfs/a.txt');
     console.assert(statRes.isErr());
 
-    console.assert((await readFile('/happy/b.txt')).unwrap().byteLength === 21);
+    console.assert((await fs.readFile('/happy/b.txt')).unwrap().byteLength === 21);
     // Automatically normalize the path
-    console.assert((await readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');
+    console.assert((await fs.readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');
 
-    console.assert((await remove('/happy/not/exists')).isOk());
-    await remove('/happy/opfs');
+    console.assert((await fs.remove('/happy/not/exists')).isOk());
+    console.assert((await fs.remove('/happy/opfs')).isOk());
 
-    console.assert(!(await exists('/happy/opfs')).unwrap());
-    console.assert((await exists('/happy/b.txt')).unwrap());
-    console.assert(isFileKind((await stat('/happy/b.txt')).unwrap().kind));
+    console.assert(!(await fs.exists('/happy/opfs')).unwrap());
+    console.assert((await fs.exists('/happy/b.txt')).unwrap());
+    console.assert(fs.isFileHandle((await fs.stat('/happy/b.txt')).unwrap()));
 
     // Download a file
-    const downloadTask = downloadFile(mockSingle, '/todo.json', {
+    const downloadTask = fs.downloadFile(mockSingle, '/todo.json', {
         timeout: 1000,
+        onProgress(progressResult): void {
+            progressResult.inspect(progress => {
+                console.log(`Downloaded ${ progress.completedByteLength }/${ progress.totalByteLength } bytes`);
+            });
+        },
     });
     const downloadRes = await downloadTask.response;
     if (downloadRes.isOk()) {
         console.assert(downloadRes.unwrap() instanceof Response);
 
-        const postData = (await readTextFile('/todo.json')).unwrap();
+        const postData = (await fs.readTextFile('/todo.json')).unwrap();
         const postJson: {
             id: number;
             title: string;
@@ -104,36 +110,88 @@ import { appendFile, downloadFile, emptyDir, exists, isFileKind, isOPFSSupported
 
         // Modify the file
         postJson.title = 'happy-opfs';
-        await writeFile('/todo.json', JSON.stringify(postJson));
+        await fs.writeFile('/todo.json', JSON.stringify(postJson));
 
         // Upload a file
-        console.assert((await uploadFile('/todo.json', mockAll).response).unwrap() instanceof Response);
+        console.assert((await fs.uploadFile('/todo.json', mockAll).response).unwrap() instanceof Response);
     } else {
         console.assert(downloadRes.unwrapErr() instanceof Error);
     }
 
     // Will create directory
-    await emptyDir('/not-exists');
+    await fs.emptyDir('/not-exists');
 
     // Zip/Unzip
-    console.assert((await zip('/happy', '/happy.zip')).isOk());
-    console.assert((await unzip('/happy.zip', '/happy-2')).isOk());
+    console.assert((await fs.zip('/happy', '/happy.zip')).isOk());
+    console.assert((await fs.zip('/happy')).unwrap().byteLength === (await fs.readFile('/happy.zip')).unwrap().byteLength);
+    console.assert((await fs.unzip('/happy.zip', '/happy-2')).isOk());
+    console.assert((await fs.unzipFromUrl(mockZipUrl, '/happy-3', {
+        onProgress(progressResult) {
+            progressResult.inspect(progress => {
+                console.log(`Unzipped ${ progress.completedByteLength }/${ progress.totalByteLength } bytes`);
+            });
+        },
+    })).isOk());
+    console.assert((await fs.zipFromUrl(mockZipUrl, '/test-zip.zip')).isOk());
+    console.assert((await fs.zipFromUrl(mockZipUrl)).unwrap().byteLength === (await fs.readFile('/test-zip.zip')).unwrap().byteLength);
+
+    // Temp
+    console.log(`temp txt file: ${ fs.generateTempPath({
+        basename: 'opfs',
+        extname: '.txt',
+    }) }`);
+    console.log(`temp dir: ${ fs.generateTempPath({
+        isDirectory: true,
+    }) }`);
+    (await fs.mkTemp()).inspect(path => {
+        console.assert(path.startsWith('/tmp/tmp-'));
+    });
+    const expired = new Date();
+    (await fs.mkTemp({
+        basename: 'opfs',
+        extname: '.txt',
+    })).inspect(path => {
+        console.assert(path.startsWith('/tmp/opfs-'));
+        console.assert(path.endsWith('.txt'));
+    });
+    (await fs.mkTemp({
+        isDirectory: true,
+        basename: '',
+    })).inspect(path => {
+        console.assert(path.startsWith('/tmp/'));
+    });
+    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 3);
+    await fs.pruneTemp(expired);
+    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 2);
+    // await fs.deleteTemp();
+    // console.assert(!(await fs.exists(fs.TMP_DIR)).unwrap());
+
+    // Copy
+    await fs.mkdir('/happy/copy');
+    console.assert((await fs.copy('/happy/b.txt', '/happy-2')).isErr());
+    console.assert((await fs.copy('/happy', '/happy-copy')).isOk());
+    await fs.appendFile('/happy-copy/b.txt', ' copy');
+    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
+    await fs.appendFile('/happy/op-fs/fs.txt', ' copy');
+    await fs.copy('/happy', '/happy-copy', {
+        overwrite: false,
+    });
+    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
 
     // List all files and folders in the root directory
-    for await (const { path, handle } of (await readDir(ROOT_DIR, {
+    for await (const { path, handle } of (await fs.readDir(fs.ROOT_DIR, {
         recursive: true,
     })).unwrap()) {
-        const handleLike = await toFileSystemHandleLike(handle);
-        if (isFileKind(handleLike.kind)) {
-            const file = handleLike as FileSystemFileHandleLike;
-            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
+        const handleLike = await fs.toFileSystemHandleLike(handle);
+        if (fs.isFileHandleLike(handleLike)) {
+            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ handleLike.type }, size = ${ handleLike.size }, lastModified = ${ handleLike.lastModified }`);
         } else {
             console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }`);
         }
     }
 
     // Comment this line to view using OPFS Explorer
-    await remove(ROOT_DIR);
+    await fs.remove(fs.ROOT_DIR);
 })();
 ```
 
