@@ -4,7 +4,7 @@ import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isCurrentDir, isNotFoundError, isRootPath } from './helpers.ts';
-import { isDirectoryKind } from './utils.ts';
+import { isDirectoryHandle } from './utils.ts';
 
 /**
  * Creates a new file at the specified path same as `touch`.
@@ -61,7 +61,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
                 handle,
             };
 
-            if (isDirectoryKind(handle.kind) && options?.recursive) {
+            if (isDirectoryHandle(handle) && options?.recursive) {
                 yield* read(await dirHandle.getDirectoryHandle(name), path);
             }
         }

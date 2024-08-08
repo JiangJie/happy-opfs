@@ -8,8 +8,8 @@ import type { FileSystemFileHandleLike, FileSystemHandleLike } from './defines.t
 export async function toFileSystemHandleLike(handle: FileSystemHandle): Promise<FileSystemHandleLike> {
     const { name, kind } = handle;
 
-    if (isFileKind(kind)) {
-        const file = await (handle as FileSystemFileHandle).getFile();
+    if (isFileHandle(handle)) {
+        const file = await handle.getFile();
         const { size, lastModified, type } = file;
 
         const fileHandle: FileSystemFileHandleLike = {
@@ -33,20 +33,29 @@ export async function toFileSystemHandleLike(handle: FileSystemHandle): Promise<
 
 /**
  * Whether the handle is a file.
- * @param kind - The handle kind.
+ * @param handle - The handle which is a FileSystemHandle.
  * @returns `true` if the handle is a file, otherwise `false`.
  */
-export function isFileKind(kind: FileSystemHandleKind): boolean {
-    return kind === 'file';
+export function isFileHandle(handle: FileSystemHandle): handle is FileSystemFileHandle {
+    return handle.kind === 'file';
 }
 
 /**
  * Whether the handle is a directory.
- * @param kind - The handle kind.
+ * @param handle - The handle which is a FileSystemHandle.
  * @returns `true` if the handle is a directory, otherwise `false`.
  */
-export function isDirectoryKind(kind: FileSystemHandleKind): boolean {
-    return kind === 'directory';
+export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSystemDirectoryHandle {
+    return handle.kind === 'directory';
+}
+
+/**
+ * Whether the handle is a file-like.
+ * @param handle -  The handle which is a FileSystemHandleLike.
+ * @returns `true` if the handle is a file, otherwise `false`.
+ */
+export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSystemFileHandleLike {
+    return handle.kind === 'file';
 }
 
 /**
@@ -54,9 +63,8 @@ export function isDirectoryKind(kind: FileSystemHandleKind): boolean {
  * @param handle - The file handle.
  * @returns A promise that resolves to the data of the file.
  */
-export async function getFileDataByHandle(handle: FileSystemHandle): Promise<Uint8Array> {
-    const file = await (handle as FileSystemFileHandle).getFile();
+export async function getFileDataByHandle(handle: FileSystemFileHandle): Promise<Uint8Array> {
+    const file = await handle.getFile();
     const ab = await file.arrayBuffer();
-    const data = new Uint8Array(ab);
-    return data;
+    return new Uint8Array(ab);
 }

@@ -4,7 +4,7 @@ import invariant from 'tiny-invariant';
 import type { ExistsOptions, WriteFileContent } from './defines.ts';
 import { isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
-import { isDirectoryKind, isFileKind } from './utils.ts';
+import { isDirectoryHandle, isFileHandle } from './utils.ts';
 
 /**
  * Appends content to a file at the specified path.
@@ -61,10 +61,9 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
     const stats = await stat(path);
 
     return stats.andThen(handle => {
-        const { kind } = handle;
         const notExist =
-            (isDirectory && isFileKind(kind))
-            || (isFile && isDirectoryKind(kind));
+            (isDirectory && isFileHandle(handle))
+            || (isFile && isDirectoryHandle(handle));
 
         return Ok(!notExist);
     }).orElse((err): IOResult<boolean> => {

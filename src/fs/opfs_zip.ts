@@ -6,7 +6,7 @@ import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit, ZipOptions } from './defines.ts';
 import { readDir, stat, writeFile } from './opfs_core.ts';
-import { getFileDataByHandle, isFileKind } from './utils.ts';
+import { getFileDataByHandle, isFileHandle } from './utils.ts';
 
 /**
  * Zip a zippable data then write to the target path.
@@ -76,7 +76,7 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
     const sourceName = basename(sourcePath);
     const zippable: fflate.AsyncZippable = {};
 
-    if (isFileKind(handle.kind)) {
+    if (isFileHandle(handle)) {
         // file
         const data = await getFileDataByHandle(handle);
         zippable[sourceName] = data;
@@ -94,7 +94,7 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
 
         for await (const { path, handle } of res.unwrap()) {
             // path
-            if (isFileKind(handle.kind)) {
+            if (isFileHandle(handle)) {
                 const entryName = preserveRoot ? join(sourceName, path) : path;
                 const data = await getFileDataByHandle(handle);
                 zippable[entryName] = data;
