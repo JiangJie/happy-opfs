@@ -203,6 +203,13 @@ export function mkTempSync(options?: TempOptions): IOResult<string> {
 }
 
 /**
+ * Sync version of `pruneTemp`.
+ */
+export function pruneTempSync(expired: Date): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.pruneTemp, expired);
+}
+
+/**
  * Sync version of `readBlobFile`.
  */
 export function readBlobFileSync(filePath: string): IOResult<FileLike> {

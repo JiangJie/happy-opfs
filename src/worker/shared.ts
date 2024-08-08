@@ -18,6 +18,7 @@ export const enum WorkerAsyncOp {
     exists,
     deleteTemp,
     mkTemp,
+    pruneTemp,
     readBlobFile,
     unzip,
     zip,

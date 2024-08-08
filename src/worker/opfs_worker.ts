@@ -1,7 +1,7 @@
 import type { ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
 import { createFile, mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, emptyDir, exists, readBlobFile, } from '../fs/opfs_ext.ts';
-import { deleteTemp, mkTemp } from '../fs/opfs_tmp.ts';
+import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
 import { unzip } from '../fs/opfs_unzip.ts';
 import { zip } from '../fs/opfs_zip.ts';
 import { toFileSystemHandleLike } from '../fs/utils.ts';
@@ -24,6 +24,7 @@ const asyncOps = {
     [WorkerAsyncOp.exists]: exists,
     [WorkerAsyncOp.deleteTemp]: deleteTemp,
     [WorkerAsyncOp.mkTemp]: mkTemp,
+    [WorkerAsyncOp.pruneTemp]: pruneTemp,
     [WorkerAsyncOp.readBlobFile]: readBlobFile,
     [WorkerAsyncOp.unzip]: unzip,
     [WorkerAsyncOp.zip]: zip,
