@@ -1,6 +1,6 @@
 import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
+import type { CopyOptions, ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
 import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
 import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
@@ -185,6 +185,13 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  */
 export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.appendFile, filePath, serializeWriteContents(contents));
+}
+
+/**
+ * Sync version of `copy`.
+ */
+export function copySync(srcPath: string, destPath: string, options?: CopyOptions): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.copy, srcPath, destPath, options);
 }
 
 /**

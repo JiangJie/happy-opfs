@@ -1,7 +1,7 @@
 import type { IOResult } from 'happy-rusty';
 import type { ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
 import { createFile, mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
-import { appendFile, emptyDir, exists, readBlobFile, } from '../fs/opfs_ext.ts';
+import { appendFile, copy, emptyDir, exists, readBlobFile, } from '../fs/opfs_ext.ts';
 import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
 import { unzip } from '../fs/opfs_unzip.ts';
 import { zip } from '../fs/opfs_zip.ts';
@@ -21,6 +21,7 @@ const asyncOps = {
     [WorkerAsyncOp.stat]: stat,
     [WorkerAsyncOp.writeFile]: writeFile,
     [WorkerAsyncOp.appendFile]: appendFile,
+    [WorkerAsyncOp.copy]: copy,
     [WorkerAsyncOp.emptyDir]: emptyDir,
     [WorkerAsyncOp.exists]: exists,
     [WorkerAsyncOp.deleteTemp]: deleteTemp,

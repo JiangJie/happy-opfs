@@ -1,7 +1,8 @@
 import { join } from '@std/path/posix';
-import { Ok, RESULT_FALSE, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_FALSE, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { ExistsOptions, WriteFileContent } from './defines.ts';
+import { assertAbsolutePath } from './assertions.ts';
+import type { CopyOptions, ExistsOptions, WriteFileContent } from './defines.ts';
 import { isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 import { isDirectoryHandle, isFileHandle } from './utils.ts';
@@ -17,6 +18,105 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncV
     return writeFile(filePath, contents, {
         append: true,
     });
+}
+
+/**
+ * Copies a file or directory from one location to another same as `cp -r`.
+ *
+ * Both `srcPath` and `destPath` must both be a file or directory.
+ *
+ * @param srcPath - The source file/directory path.
+ * @param destPath - The destination file/directory path.
+ * @param options - The copy options.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the file was successfully copied.
+ */
+export async function copy(srcPath: string, destPath: string, options?: CopyOptions): AsyncVoidIOResult {
+    assertAbsolutePath(destPath);
+
+    const srcHandleRes = await stat(srcPath);
+    if (srcHandleRes.isErr()) {
+        return srcHandleRes.asErr();
+    }
+
+    const checkFail = `Both 'srcPath' and 'destPath' must both be a file or directory.`;
+
+    const {
+        overwrite = true,
+    } = options ?? {};
+
+    // if overwrite is false, we need this flag to determine whether to write file.
+    let destExists = false;
+
+    const srcHandle = srcHandleRes.unwrap();
+    if (isFileHandle(srcHandle)) {
+
+        const destHandleRes = await stat(destPath);
+        if (destHandleRes.isErr()) {
+            if (!isNotFoundError(destHandleRes.unwrapErr())) {
+                return destHandleRes.asErr();
+            }
+        } else {
+            destExists = true;
+
+            // check
+            if (isDirectoryHandle(destHandleRes.unwrap())) {
+                return Err(new Error(checkFail));
+            }
+        }
+
+        return (overwrite || !destExists) ? await writeFile(destPath, await srcHandle.getFile()) : RESULT_VOID;
+    }
+
+    const destHandleRes = await stat(destPath);
+    if (destHandleRes.isErr()) {
+        if (!isNotFoundError(destHandleRes.unwrapErr())) {
+            return destHandleRes.asErr();
+        }
+    } else {
+        destExists = true;
+
+        // check
+        if (isFileHandle(destHandleRes.unwrap())) {
+            return Err(new Error(checkFail));
+        }
+    }
+
+    const readDirRes = await readDir(srcPath, {
+        recursive: true,
+    });
+    if (readDirRes.isErr()) {
+        return readDirRes.asErr();
+    }
+
+    const tasks: AsyncVoidIOResult[] = [];
+
+    for await (const { path, handle } of readDirRes.unwrap()) {
+        const newPath = join(destPath, path);
+
+        let newPathExists = false;
+        if (destExists) {
+            // should check every file
+            const existsRes = await exists(newPath);
+            if (existsRes.isErr()) {
+                tasks.push(Promise.resolve(existsRes.asErr()));
+                continue;
+            }
+
+            newPathExists = existsRes.unwrap();
+        }
+
+        const res = isFileHandle(handle)
+            ? (overwrite || !newPathExists ? writeFile(newPath, await handle.getFile()) : Promise.resolve(RESULT_VOID))
+            : mkdir(newPath);
+
+        tasks.push(res);
+    }
+
+    const allRes = await Promise.all(tasks);
+    // anyone failed?
+    const fail = allRes.find(x => x.isErr());
+
+    return fail ?? RESULT_VOID;
 }
 
 /**

@@ -14,6 +14,7 @@ export const enum WorkerAsyncOp {
     writeFile,
     // ext
     appendFile,
+    copy,
     emptyDir,
     exists,
     deleteTemp,

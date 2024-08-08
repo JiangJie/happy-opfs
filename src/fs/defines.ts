@@ -252,3 +252,14 @@ export interface TempOptions {
      */
     extname?: string;
 }
+
+/**
+ * Options for `copy`.
+ */
+export interface CopyOptions {
+    /**
+     * Whether to overwrite the destination file if it already exists.
+     * @defaultValue `true`
+     */
+    overwrite?: boolean;
+}
