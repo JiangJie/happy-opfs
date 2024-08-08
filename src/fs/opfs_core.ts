@@ -7,6 +7,22 @@ import { getDirHandle, getFileHandle, isCurrentDir, isNotFoundError, isRootPath 
 import { isDirectoryKind } from './utils.ts';
 
 /**
+ * Creates a new file at the specified path same as `touch`.
+ *
+ * @param filePath - The path of the file to create.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully created.
+ */
+export async function createFile(filePath: string): AsyncVoidIOResult {
+    assertAbsolutePath(filePath);
+
+    const fileHandle = await getFileHandle(filePath, {
+        create: true,
+    });
+
+    return fileHandle.and(RESULT_VOID);
+}
+
+/**
  * Creates a new directory at the specified path same as `mkdir -p`.
  *
  * @param dirPath - The path where the new directory will be created.
