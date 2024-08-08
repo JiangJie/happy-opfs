@@ -222,3 +222,27 @@ export interface ZipOptions {
      */
     preserveRoot: boolean;
 }
+
+/**
+ * Options for `mkTemp`.
+ */
+export interface TempOptions {
+    /**
+     * Whether to create a directory.
+     * eg: `mktemp -d`
+     * @defaultValue `false`
+     */
+    isDirectory?: boolean;
+
+    /**
+     * The basename of the file or directory.
+     * eg: `mktemp -t basename.XXX`
+     */
+    basename?: string;
+
+    /**
+     * The extension of the file.
+     * eg: `mktemp --suffix .txt`
+     */
+    extname?: string;
+}
