@@ -153,17 +153,21 @@ export async function remove(path: string): AsyncVoidIOResult {
         return isNotFoundError(dirHandle.unwrapErr()) ? RESULT_VOID : dirHandle.asErr();
     }
 
-    // root
-    if (isRootPath(dirPath) && isRootPath(childName)) {
-        // TODO ts not support yet
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (dirHandle.unwrap() as any).remove({
-            recursive: true,
-        });
-    } else {
-        await dirHandle.unwrap().removeEntry(childName, {
-            recursive: true,
-        });
+    try {
+        // root
+        if (isRootPath(dirPath) && isRootPath(childName)) {
+            // TODO ts not support yet
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (dirHandle.unwrap() as any).remove({
+                recursive: true,
+            });
+        } else {
+            await dirHandle.unwrap().removeEntry(childName, {
+                recursive: true,
+            });
+        }
+    } catch (e) {
+        return Err(e as DOMException);
     }
 
     return RESULT_VOID;
