@@ -1,5 +1,5 @@
 import type { ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
-import { mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
+import { createFile, mkdir, readDir, remove, rename, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, emptyDir, exists, readBlobFile, } from '../fs/opfs_ext.ts';
 import { unzip } from '../fs/opfs_unzip.ts';
 import { zip } from '../fs/opfs_zip.ts';
@@ -11,6 +11,7 @@ import { decodeFromBuffer, encodeToBuffer, respondToMainFromWorker, SyncMessenge
  * Async I/O operations which allow to call from main thread.
  */
 const asyncOps = {
+    [WorkerAsyncOp.createFile]: createFile,
     [WorkerAsyncOp.mkdir]: mkdir,
     [WorkerAsyncOp.readDir]: readDir,
     [WorkerAsyncOp.remove]: remove,

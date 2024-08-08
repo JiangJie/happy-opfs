@@ -85,6 +85,13 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
 }
 
 /**
+ * Sync version of `createFile`.
+ */
+export function createFileSync(filePath: string): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.createFile, filePath);
+}
+
+/**
  * Sync version of `mkdir`.
  */
 export function mkdirSync(dirPath: string): VoidIOResult {

@@ -5,6 +5,7 @@ import { sleepUntil } from './helpers.ts';
  */
 export const enum WorkerAsyncOp {
     // core
+    createFile,
     mkdir,
     readDir,
     remove,
