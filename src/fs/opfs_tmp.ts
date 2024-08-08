@@ -1,5 +1,6 @@
 import { join } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import invariant from 'tiny-invariant';
 import { TMP_DIR } from './constants.ts';
 import type { TempOptions } from './defines.ts';
 import { createFile, mkdir, readDir, remove } from './opfs_core.ts';
@@ -56,6 +57,8 @@ export function deleteTemp(): AsyncVoidIOResult {
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the temporary directory was successfully pruned.
  */
 export async function pruneTemp(expired: Date): AsyncVoidIOResult {
+    invariant(expired instanceof Date, () => `Expired must be a Date but received ${ expired }`);
+
     const res = await readDir(TMP_DIR, {
         recursive: true,
     });
