@@ -1,9 +1,8 @@
-import * as fs from '..';
+import * as fs from '../src/mod.ts';
 import { mockAll, mockSingle, mockZipUrl } from './constants.ts';
 
 export async function testAsync() {
-    // Check if OPFS is supported
-    console.log(`OPFS is${ fs.isOPFSSupported() ? '' : ' not' } supported`);
+    console.log('start async test');
 
     // Clear all files and folders
     await fs.emptyDir(fs.ROOT_DIR);
@@ -15,7 +14,7 @@ export async function testAsync() {
     // Move the file
     await fs.rename('/happy/opfs/a.txt', '/happy/b.txt');
     // Append content to the file
-    await fs.appendFile('/happy/b.txt', ' happy opfs');
+    await fs.appendFile('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
 
     // File no longer exists
     const statRes = await fs.stat('/happy/opfs/a.txt');
@@ -30,7 +29,7 @@ export async function testAsync() {
 
     console.assert(!(await fs.exists('/happy/opfs')).unwrap());
     console.assert((await fs.exists('/happy/b.txt')).unwrap());
-    console.assert(fs.isFileKind((await fs.stat('/happy/b.txt')).unwrap().kind));
+    console.assert(fs.isFileHandle((await fs.stat('/happy/b.txt')).unwrap()));
 
     // Download a file
     const downloadTask = fs.downloadFile(mockSingle, '/todo.json', {
@@ -76,15 +75,59 @@ export async function testAsync() {
             });
         },
     })).isOk());
+    console.assert((await fs.zipFromUrl(mockZipUrl, '/test-zip.zip')).isOk());
+    console.assert((await fs.zipFromUrl(mockZipUrl)).unwrap().byteLength === (await fs.readFile('/test-zip.zip')).unwrap().byteLength);
+
+    // Temp
+    console.log(`temp txt file: ${ fs.generateTempPath({
+        basename: 'opfs',
+        extname: '.txt',
+    }) }`);
+    console.log(`temp dir: ${ fs.generateTempPath({
+        isDirectory: true,
+    }) }`);
+    (await fs.mkTemp()).inspect(path => {
+        console.assert(path.startsWith('/tmp/tmp-'));
+    });
+    const expired = new Date();
+    (await fs.mkTemp({
+        basename: 'opfs',
+        extname: '.txt',
+    })).inspect(path => {
+        console.assert(path.startsWith('/tmp/opfs-'));
+        console.assert(path.endsWith('.txt'));
+    });
+    (await fs.mkTemp({
+        isDirectory: true,
+        basename: '',
+    })).inspect(path => {
+        console.assert(path.startsWith('/tmp/'));
+    });
+    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 3);
+    await fs.pruneTemp(expired);
+    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 2);
+    // await fs.deleteTemp();
+    // console.assert(!(await fs.exists(fs.TMP_DIR)).unwrap());
+
+    // Copy
+    await fs.mkdir('/happy/copy');
+    console.assert((await fs.copy('/happy/b.txt', '/happy-2')).isErr());
+    console.assert((await fs.copy('/happy', '/happy-copy')).isOk());
+    await fs.appendFile('/happy-copy/b.txt', ' copy');
+    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
+    await fs.appendFile('/happy/op-fs/fs.txt', ' copy');
+    await fs.copy('/happy', '/happy-copy', {
+        overwrite: false,
+    });
+    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
 
     // List all files and folders in the root directory
     for await (const { path, handle } of (await fs.readDir(fs.ROOT_DIR, {
         recursive: true,
     })).unwrap()) {
         const handleLike = await fs.toFileSystemHandleLike(handle);
-        if (fs.isFileKind(handleLike.kind)) {
-            const file = handleLike as fs.FileSystemFileHandleLike;
-            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
+        if (fs.isFileHandleLike(handleLike)) {
+            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ handleLike.type }, size = ${ handleLike.size }, lastModified = ${ handleLike.lastModified }`);
         } else {
             console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }`);
         }

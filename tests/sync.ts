@@ -1,11 +1,12 @@
-import * as fs from '..';
+import * as fs from '../src/mod.ts';
 
 function run() {
     fs.emptyDirSync(fs.ROOT_DIR);
     fs.mkdirSync('/happy/opfs');
     fs.writeFileSync('/happy/opfs/a.txt', 'hello opfs');
     fs.renameSync('/happy/opfs/a.txt', '/happy/b.txt');
-    fs.appendFileSync('/happy/b.txt', ' happy opfs');
+    fs.writeFileSync('/happy/op-fs/fs.txt', 'hello opfs');
+    fs.appendFileSync('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
 
     const statRes = fs.statSync('/happy/opfs/a.txt');
     console.assert(statRes.isErr());
@@ -19,20 +20,58 @@ function run() {
 
     console.assert(!fs.existsSync('/happy/opfs').unwrap());
     console.assert(fs.existsSync('/happy/b.txt').unwrap());
-    console.assert(fs.isFileKind(fs.statSync('/happy/b.txt').unwrap().kind));
+    console.assert(fs.isFileHandleLike(fs.statSync('/happy/b.txt').unwrap()));
 
     fs.emptyDirSync('/not-exists');
 
     // Zip/Unzip
     console.assert(fs.zipSync('/happy', '/happy.zip').isOk());
+    console.assert(fs.zipSync('/happy').unwrap().byteLength === fs.readFileSync('/happy.zip').unwrap().byteLength);
     console.assert(fs.unzipSync('/happy.zip', '/happy-2').isOk());
+
+    // Temp
+    fs.mkTempSync().inspect(path => {
+        console.assert(path.startsWith('/tmp/tmp-'));
+    });
+    const expired = new Date();
+    fs.mkTempSync({
+        basename: 'opfs',
+        extname: '.txt',
+    }).inspect(path => {
+        console.assert(path.startsWith('/tmp/opfs-'));
+        console.assert(path.endsWith('.txt'));
+    });
+    fs.mkTempSync({
+        isDirectory: true,
+        basename: '',
+    }).inspect(path => {
+        console.assert(path.startsWith('/tmp/'));
+    });
+    console.assert(fs.readDirSync(fs.TMP_DIR).unwrap().length === 3);
+    fs.pruneTempSync(expired).inspectErr(err => {
+        console.error(err);
+    });
+    console.assert(fs.readDirSync(fs.TMP_DIR).unwrap().length === 2);
+    fs.deleteTempSync();
+    console.assert(!fs.existsSync(fs.TMP_DIR).unwrap());
+
+    // Copy
+    fs.mkdirSync('/happy/copy');
+    console.assert((fs.copySync('/happy/b.txt', '/happy-2')).isErr());
+    console.assert((fs.copySync('/happy', '/happy-copy')).isOk());
+    fs.appendFileSync('/happy-copy/b.txt', ' copy');
+    console.assert((fs.readFileSync('/happy-copy/b.txt')).unwrap().byteLength === 26);
+    fs.appendFileSync('/happy/op-fs/fs.txt', ' copy');
+    fs.copySync('/happy', '/happy-copy', {
+        overwrite: false,
+    });
+    console.assert((fs.readFileSync('/happy-copy/b.txt')).unwrap().byteLength === 26);
 
     for (const { path, handle } of fs.readDirSync(fs.ROOT_DIR, {
         recursive: true,
     }).unwrap()) {
-        if (fs.isFileKind(handle.kind)) {
-            const file = handle as fs.FileSystemFileHandleLike;
-            console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }, type = ${ file.type }, size = ${ file.size }, lastModified = ${ file.lastModified }`);
+        if (fs.isFileHandleLike(handle)) {
+            console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }, type = ${ handle.type }, size = ${ handle.size }, lastModified = ${ handle.lastModified }`);
         } else {
             console.log(`${ path } is a ${ handle.kind }, name = ${ handle.name }`);
         }
@@ -43,6 +82,8 @@ function run() {
 }
 
 export async function testSync() {
+    console.log('start sync test');
+
     await fs.connectSyncAgent({
         worker: new Worker(new URL('worker.ts', import.meta.url), {
             type: 'module'
@@ -53,7 +94,5 @@ export async function testSync() {
         opTimeout: 3000,
     });
 
-    for (let index = 0; index < 1; index++) {
-        run();
-    }
+    run();
 }
