@@ -237,6 +237,7 @@ export interface TempOptions {
     /**
      * The basename of the file or directory.
      * eg: `mktemp -t basename.XXX`
+     * @defaultValue `tmp`
      */
     basename?: string;
 

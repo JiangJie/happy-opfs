@@ -4,6 +4,7 @@ export * from './fs/defines.ts';
 export * from './fs/opfs_core.ts';
 export * from './fs/opfs_download.ts';
 export * from './fs/opfs_ext.ts';
+export * from './fs/opfs_tmp.ts';
 export * from './fs/opfs_unzip.ts';
 export * from './fs/opfs_upload.ts';
 export * from './fs/opfs_zip.ts';

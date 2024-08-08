@@ -17,8 +17,11 @@ export function generateTempPath(options?: TempOptions): string {
         extname = '',
     } = options ?? {};
 
+    const base = basename ? `${ basename }-` : '';
+    const ext = isDirectory ? '' : extname;
+
     // use uuid to generate a unique name
-    return join(TMP_DIR, `${ basename }-${ crypto.randomUUID() }${ isDirectory ? '' : extname }`);
+    return join(TMP_DIR, `${ base }${ crypto.randomUUID() }${ ext }`);
 }
 
 /**
