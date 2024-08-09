@@ -19,4 +19,4 @@ export const CURRENT_DIR = '.' as const;
 /**
  * A constant representing the temporary directory path.
  */
-export const TMP_DIR = '/tmp' as const;
+export const TMP_DIR = `${ ROOT_DIR }tmp` as const;
