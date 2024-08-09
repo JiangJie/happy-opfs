@@ -1,4 +1,5 @@
 import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
+import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import { ABORT_ERROR } from './constants.ts';
@@ -33,8 +34,10 @@ export function downloadFile(fileUrl: string, filePath?: string | FsRequestInit,
         assertAbsolutePath(filePath);
     } else {
         requestInit = filePath;
-        // save to a temporary file
-        filePath = generateTempPath();
+        // save to a temporary file, reserve the extension
+        filePath = generateTempPath({
+            extname: extname(fileUrl),
+        });
         saveToTemp = true;
     }
 
