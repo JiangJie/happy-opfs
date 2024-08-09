@@ -61,6 +61,19 @@ export async function testAsync() {
         console.assert(downloadRes.unwrapErr() instanceof Error);
     }
 
+    {
+        // Download a file to a temporary file
+        const downloadTask = fs.downloadFile(mockSingle);
+        const downloadRes = await downloadTask.response;
+        downloadRes.inspect(x => {
+            console.assert(fs.isTempPath(x.filePath));
+            console.assert(x.rawResponse instanceof Response);
+        });
+        if (downloadRes.isOk()) {
+            await fs.remove(downloadRes.unwrap().filePath);
+        }
+    }
+
     // Will create directory
     await fs.emptyDir('/not-exists');
 
