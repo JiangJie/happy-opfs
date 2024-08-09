@@ -1,4 +1,35 @@
-import type { FileSystemFileHandleLike, FileSystemHandleLike } from './defines.ts';
+import { join, SEPARATOR } from '@std/path/posix';
+import { TMP_DIR } from './constants.ts';
+import type { FileSystemFileHandleLike, FileSystemHandleLike, TempOptions } from './defines.ts';
+
+/**
+ * Generate a temporary path but not create it.
+ *
+ * @param options - Options and flags.
+ * @returns The temporary path.
+ */
+export function generateTempPath(options?: TempOptions): string {
+    const {
+        isDirectory = false,
+        basename = 'tmp',
+        extname = '',
+    } = options ?? {};
+
+    const base = basename ? `${ basename }-` : '';
+    const ext = isDirectory ? '' : extname;
+
+    // use uuid to generate a unique name
+    return join(TMP_DIR, `${ base }${ crypto.randomUUID() }${ ext }`);
+}
+
+/**
+ * Check whether the path is a temporary path.
+ * @param path - The path to check.
+ * @returns `true` if the path is a temporary path otherwise `false`.
+ */
+export function isTempPath(path: string): boolean {
+    return path.startsWith(`${ TMP_DIR }${ SEPARATOR }`);
+}
 
 /**
  * Serialize a `FileSystemHandle` to plain object.

@@ -1,30 +1,9 @@
-import { join } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { TMP_DIR } from './constants.ts';
 import type { TempOptions } from './defines.ts';
 import { createFile, mkdir, readDir, remove } from './opfs_core.ts';
-import { isFileHandle } from './utils.ts';
-
-/**
- * Generate a temporary path but not create it.
- *
- * @param options - Options and flags.
- * @returns The temporary path.
- */
-export function generateTempPath(options?: TempOptions): string {
-    const {
-        isDirectory = false,
-        basename = 'tmp',
-        extname = '',
-    } = options ?? {};
-
-    const base = basename ? `${ basename }-` : '';
-    const ext = isDirectory ? '' : extname;
-
-    // use uuid to generate a unique name
-    return join(TMP_DIR, `${ base }${ crypto.randomUUID() }${ ext }`);
-}
+import { generateTempPath, isFileHandle } from './utils.ts';
 
 /**
  * Create a temporary file or directory.
