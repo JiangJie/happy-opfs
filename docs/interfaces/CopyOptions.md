@@ -12,4 +12,4 @@ Options for `copy`.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| `overwrite?` | `boolean` | `true` | Whether to overwrite the destination file if it already exists. | [fs/defines.ts:264](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/defines.ts#L264) |
+| `overwrite?` | `boolean` | `true` | Whether to overwrite the destination file if it already exists. | [fs/defines.ts:264](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/defines.ts#L264) |

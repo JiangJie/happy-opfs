@@ -12,5 +12,5 @@ Options for writing files, including flags for creation and appending.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| `append?` | `boolean` | `false` | Whether to append to the file if it already exists. | [fs/defines.ts:43](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/defines.ts#L43) |
-| `create?` | `boolean` | `true` | Whether to create the file if it does not exist. | [fs/defines.ts:37](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/defines.ts#L37) |
+| `append?` | `boolean` | `false` | Whether to append to the file if it already exists. | [fs/defines.ts:43](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/defines.ts#L43) |
+| `create?` | `boolean` | `true` | Whether to create the file if it does not exist. | [fs/defines.ts:37](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/defines.ts#L37) |

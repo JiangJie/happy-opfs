@@ -26,4 +26,4 @@ Serializable version of FileSystemHandle that is FileSystemHandleLike.
 
 ## Defined in
 
-[fs/utils.ts:39](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/utils.ts#L39)
+[fs/utils.ts:39](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/utils.ts#L39)

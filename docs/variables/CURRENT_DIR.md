@@ -14,4 +14,4 @@ A constant representing the current directory path.
 
 ## Defined in
 
-[fs/constants.ts:17](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/constants.ts#L17)
+[fs/constants.ts:17](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/constants.ts#L17)

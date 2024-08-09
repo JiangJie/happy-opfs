@@ -26,4 +26,4 @@ A promise that resolves the result of the temporary file or directory path.
 
 ## Defined in
 
-[fs/opfs\_tmp.ts:14](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_tmp.ts#L14)
+[fs/opfs\_tmp.ts:14](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/opfs_tmp.ts#L14)

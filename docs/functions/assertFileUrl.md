@@ -28,4 +28,4 @@ Will throw an error if the URL is not a valid file URL.
 
 ## Defined in
 
-[fs/assertions.ts:21](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/assertions.ts#L21)
+[fs/assertions.ts:21](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/assertions.ts#L21)

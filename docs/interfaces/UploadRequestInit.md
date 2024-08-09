@@ -16,4 +16,4 @@ fetch-t request options for uploading files.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `filename?` | `string` | The filename to use when uploading the file. | [fs/defines.ts:80](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/defines.ts#L80) |
+| `filename?` | `string` | The filename to use when uploading the file. | [fs/defines.ts:80](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/defines.ts#L80) |

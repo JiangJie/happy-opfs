@@ -14,4 +14,4 @@ Represents the possible content types that can be written to a file.
 
 ## Defined in
 
-[fs/defines.ts:6](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/defines.ts#L6)
+[fs/defines.ts:6](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/defines.ts#L6)

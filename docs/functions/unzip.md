@@ -31,4 +31,4 @@ Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
 
 ## Defined in
 
-[fs/opfs\_unzip.ts:53](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_unzip.ts#L53)
+[fs/opfs\_unzip.ts:53](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/opfs_unzip.ts#L53)
