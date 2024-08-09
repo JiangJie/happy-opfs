@@ -14,4 +14,4 @@ Represents the possible content types that can be written synchronously to a fil
 
 ## Defined in
 
-[fs/defines.ts:11](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/defines.ts#L11)
+[fs/defines.ts:11](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/defines.ts#L11)

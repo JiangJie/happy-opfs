@@ -6,6 +6,34 @@
 
 # Function: downloadFile()
 
+## downloadFile(fileUrl, requestInit)
+
+```ts
+function downloadFile(fileUrl, requestInit?): FetchTask<DownloadFileTempResponse>
+```
+
+Downloads a file from a URL and saves it to a temporary file.
+The returned response will contain the temporary file path.
+
+### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `fileUrl` | `string` | The URL of the file to download. |
+| `requestInit`? | [`FsRequestInit`](../type-aliases/FsRequestInit.md) | Optional request initialization parameters. |
+
+### Returns
+
+`FetchTask`\<[`DownloadFileTempResponse`](../interfaces/DownloadFileTempResponse.md)\>
+
+A task that can be aborted and contains the result of the download.
+
+### Defined in
+
+[fs/opfs\_download.ts:17](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_download.ts#L17)
+
+## downloadFile(fileUrl, filePath, requestInit)
+
 ```ts
 function downloadFile(
    fileUrl, 
@@ -15,7 +43,7 @@ requestInit?): FetchTask<Response>
 
 Downloads a file from a URL and saves it to the specified path.
 
-## Parameters
+### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -23,12 +51,12 @@ Downloads a file from a URL and saves it to the specified path.
 | `filePath` | `string` | The path where the downloaded file will be saved. |
 | `requestInit`? | [`FsRequestInit`](../type-aliases/FsRequestInit.md) | Optional request initialization parameters. |
 
-## Returns
+### Returns
 
 `FetchTask`\<`Response`\>
 
-A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully downloaded and saved.
+A task that can be aborted and contains the result of the download.
 
-## Defined in
+### Defined in
 
-[fs/opfs\_download.ts:16](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_download.ts#L16)
+[fs/opfs\_download.ts:26](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_download.ts#L26)

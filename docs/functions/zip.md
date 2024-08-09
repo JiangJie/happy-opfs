@@ -36,7 +36,7 @@ A promise that resolves to an `AsyncIOResult` indicating whether the source was 
 
 ### Defined in
 
-[fs/opfs\_zip.ts:49](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_zip.ts#L49)
+[fs/opfs\_zip.ts:49](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_zip.ts#L49)
 
 ## zip(sourcePath, options)
 
@@ -64,4 +64,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the source was 
 
 ### Defined in
 
-[fs/opfs\_zip.ts:60](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_zip.ts#L60)
+[fs/opfs\_zip.ts:60](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_zip.ts#L60)

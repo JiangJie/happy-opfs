@@ -9,6 +9,7 @@
 | Interface | Description |
 | ------ | ------ |
 | [CopyOptions](interfaces/CopyOptions.md) | Options for `copy`. |
+| [DownloadFileTempResponse](interfaces/DownloadFileTempResponse.md) | Result of `downloadFile` when the file is saved to a temporary path. |
 | [ErrorLike](interfaces/ErrorLike.md) | Serializable version of Error. |
 | [ExistsOptions](interfaces/ExistsOptions.md) | Options to determine the existence of a file or directory. |
 | [FileLike](interfaces/FileLike.md) | Serializable version of File. |
@@ -58,7 +59,7 @@
 | [createFileSync](functions/createFileSync.md) | Sync version of `createFile`. |
 | [deleteTemp](functions/deleteTemp.md) | Delete the temporary directory and all its contents. |
 | [deleteTempSync](functions/deleteTempSync.md) | Sync version of `deleteTemp`. |
-| [downloadFile](functions/downloadFile.md) | Downloads a file from a URL and saves it to the specified path. |
+| [downloadFile](functions/downloadFile.md) | Downloads a file from a URL and saves it to a temporary file. The returned response will contain the temporary file path. |
 | [emptyDir](functions/emptyDir.md) | Empties the contents of a directory at the specified path. |
 | [emptyDirSync](functions/emptyDirSync.md) | Sync version of `emptyDir`. |
 | [exists](functions/exists.md) | Checks whether a file or directory exists at the specified path. |
@@ -69,6 +70,7 @@
 | [isFileHandle](functions/isFileHandle.md) | Whether the handle is a file. |
 | [isFileHandleLike](functions/isFileHandleLike.md) | Whether the handle is a file-like. |
 | [isOPFSSupported](functions/isOPFSSupported.md) | Checks if the Origin Private File System (OPFS) is supported in the current environment. |
+| [isTempPath](functions/isTempPath.md) | Check whether the path is a temporary path. |
 | [mkTemp](functions/mkTemp.md) | Create a temporary file or directory. |
 | [mkTempSync](functions/mkTempSync.md) | Sync version of `mkTemp`. |
 | [mkdir](functions/mkdir.md) | Creates a new directory at the specified path same as `mkdir -p`. |

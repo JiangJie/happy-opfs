@@ -27,4 +27,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the file or dir
 
 ## Defined in
 
-[fs/opfs\_ext.ts:156](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_ext.ts#L156)
+[fs/opfs\_ext.ts:156](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_ext.ts#L156)

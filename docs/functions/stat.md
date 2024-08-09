@@ -26,4 +26,4 @@ A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
 
 ## Defined in
 
-[fs/opfs\_core.ts:220](https://github.com/JiangJie/happy-opfs/blob/6e8cfb02baa55aecdbfe9b09b83e8895a321cf4e/src/fs/opfs_core.ts#L220)
+[fs/opfs\_core.ts:220](https://github.com/JiangJie/happy-opfs/blob/a6314c4612c605f77895adcb9d6d91abcaafaa7d/src/fs/opfs_core.ts#L220)
