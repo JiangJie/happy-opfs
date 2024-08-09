@@ -263,3 +263,18 @@ export interface CopyOptions {
      */
     overwrite?: boolean;
 }
+
+/**
+ * Result of `downloadFile` when the file is saved to a temporary path.
+ */
+export interface DownloadFileTempResponse {
+    /**
+     * The temporary path of the downloaded file to be saved.
+     */
+    filePath: string;
+
+    /**
+     * The raw response.
+     */
+    rawResponse: Response;
+}
