@@ -271,7 +271,7 @@ export interface DownloadFileTempResponse {
     /**
      * The temporary path of the downloaded file to be saved.
      */
-    filePath: string;
+    tempFilePath: string;
 
     /**
      * The raw response.

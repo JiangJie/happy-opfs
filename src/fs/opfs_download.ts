@@ -87,7 +87,7 @@ export function downloadFile(fileUrl: string, filePath?: string | FsRequestInit,
                 return response.then(res => {
                     return res.map<DownloadFileTempResponse>(rawResponse => {
                         return {
-                            filePath,
+                            tempFilePath: filePath,
                             rawResponse,
                         };
                     });

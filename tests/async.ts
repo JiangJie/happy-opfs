@@ -66,11 +66,11 @@ export async function testAsync() {
         const downloadTask = fs.downloadFile(mockSingle);
         const downloadRes = await downloadTask.response;
         downloadRes.inspect(x => {
-            console.assert(fs.isTempPath(x.filePath));
+            console.assert(fs.isTempPath(x.tempFilePath));
             console.assert(x.rawResponse instanceof Response);
         });
         if (downloadRes.isOk()) {
-            await fs.remove(downloadRes.unwrap().filePath);
+            await fs.remove(downloadRes.unwrap().tempFilePath);
         }
     }
 
