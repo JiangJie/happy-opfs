@@ -39,6 +39,44 @@ export async function mkdir(dirPath: string): AsyncVoidIOResult {
 }
 
 /**
+ * Move a file or directory from an old path to a new path.
+ *
+ * @param oldPath - The current path of the file or directory.
+ * @param newPath - The new path of the file or directory.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully moved.
+ */
+export async function move(oldPath: string, newPath: string): AsyncVoidIOResult {
+    assertAbsolutePath(oldPath);
+
+    const fileHandleRes = await getFileHandle(oldPath);
+
+    return fileHandleRes.andThenAsync(async (fileHandle) => {
+        const dirPath = dirname(oldPath);
+        let newDirPath = dirname(newPath);
+        // same dir
+        if (isCurrentDir(newDirPath)) {
+            newDirPath = dirPath;
+        } else {
+            // not same must be absolute
+            assertAbsolutePath(newPath);
+        }
+
+        const newDirHandleRes = await getDirHandle(newDirPath);
+        return newDirHandleRes.andThenAsync(async newDirHandle => {
+            const newName = basename(newPath);
+            try {
+                // TODO ts not support yet
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await (fileHandle as any).move(newDirHandle, newName);
+                return RESULT_VOID;
+            } catch (e) {
+                return Err(e as DOMException);
+            }
+        });
+    });
+}
+
+/**
  * Reads the contents of a directory at the specified path.
  *
  * @param dirPath - The path of the directory to read.
@@ -170,44 +208,6 @@ export async function remove(path: string): AsyncVoidIOResult {
     })).orElse<Error>(err => {
         // not found as success
         return isNotFoundError(err) ? RESULT_VOID : Err(err);
-    });
-}
-
-/**
- * Renames a file or directory from an old path to a new path.
- *
- * @param oldPath - The current path of the file or directory.
- * @param newPath - The new path of the file or directory.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully renamed.
- */
-export async function rename(oldPath: string, newPath: string): AsyncVoidIOResult {
-    assertAbsolutePath(oldPath);
-
-    const fileHandleRes = await getFileHandle(oldPath);
-
-    return fileHandleRes.andThenAsync(async (fileHandle) => {
-        const dirPath = dirname(oldPath);
-        let newDirPath = dirname(newPath);
-        // same dir
-        if (isCurrentDir(newDirPath)) {
-            newDirPath = dirPath;
-        } else {
-            // not same must be absolute
-            assertAbsolutePath(newPath);
-        }
-
-        const newDirHandleRes = await getDirHandle(newDirPath);
-        return newDirHandleRes.andThenAsync(async newDirHandle => {
-            const newName = basename(newPath);
-            try {
-                // TODO ts not support yet
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await (fileHandle as any).move(newDirHandle, newName);
-                return RESULT_VOID;
-            } catch (e) {
-                return Err(e as DOMException);
-            }
-        });
     });
 }
 

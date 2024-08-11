@@ -99,6 +99,13 @@ export function mkdirSync(dirPath: string): VoidIOResult {
 }
 
 /**
+ * Sync version of `move`.
+ */
+export function moveSync(oldPath: string, newPath: string): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.move, oldPath, newPath);
+}
+
+/**
  * Sync version of `readDir`.
  */
 export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult<ReadDirEntrySync[]> {
@@ -144,13 +151,6 @@ export function readFileSync<T extends ReadFileContent>(filePath: string, option
  */
 export function removeSync(path: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.remove, path);
-}
-
-/**
- * Sync version of `rename`.
- */
-export function renameSync(oldPath: string, newPath: string): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.rename, oldPath, newPath);
 }
 
 /**

@@ -7,9 +7,9 @@ export const enum WorkerAsyncOp {
     // core
     createFile,
     mkdir,
+    move,
     readDir,
     remove,
-    rename,
     stat,
     writeFile,
     // ext

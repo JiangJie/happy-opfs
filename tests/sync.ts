@@ -4,7 +4,7 @@ function run() {
     fs.emptyDirSync(fs.ROOT_DIR);
     fs.mkdirSync('/happy/opfs');
     fs.writeFileSync('/happy/opfs/a.txt', 'hello opfs');
-    fs.renameSync('/happy/opfs/a.txt', '/happy/b.txt');
+    fs.moveSync('/happy/opfs/a.txt', '/happy/b.txt');
     fs.writeFileSync('/happy/op-fs/fs.txt', 'hello opfs');
     fs.appendFileSync('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
 
