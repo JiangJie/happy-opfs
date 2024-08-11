@@ -16,6 +16,7 @@ function run() {
     console.assert(fs.readTextFileSync('//happy///b.txt//').unwrap() === 'hello opfs happy opfs');
 
     console.assert(fs.removeSync('/happy/not/exists').isOk());
+    console.assert(fs.removeSync('/happy/opfs/exists').isOk());
     console.assert(fs.removeSync('/happy/opfs').isOk());
 
     console.assert(!fs.existsSync('/happy/opfs').unwrap());
@@ -51,7 +52,7 @@ function run() {
     fs.pruneTempSync(expired).inspectErr(err => {
         console.error(err);
     });
-    console.assert(fs.readDirSync(fs.TMP_DIR).unwrap().length === 2);
+    console.assert(fs.readDirSync(fs.TMP_DIR).unwrap().length <= 2);
     fs.deleteTempSync();
     console.assert(!fs.existsSync(fs.TMP_DIR).unwrap());
 

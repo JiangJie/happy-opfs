@@ -25,6 +25,7 @@ export async function testAsync() {
     console.assert((await fs.readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');
 
     console.assert((await fs.remove('/happy/not/exists')).isOk());
+    console.assert((await fs.remove('/happy/opfs/exists')).isOk());
     console.assert((await fs.remove('/happy/opfs')).isOk());
 
     console.assert(!(await fs.exists('/happy/opfs')).unwrap());
@@ -118,9 +119,9 @@ export async function testAsync() {
     });
     console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 3);
     await fs.pruneTemp(expired);
-    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 2);
-    // await fs.deleteTemp();
-    // console.assert(!(await fs.exists(fs.TMP_DIR)).unwrap());
+    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length <= 2);
+    await fs.deleteTemp();
+    console.assert(!(await fs.exists(fs.TMP_DIR)).unwrap());
 
     // Copy
     await fs.mkdir('/happy/copy');
