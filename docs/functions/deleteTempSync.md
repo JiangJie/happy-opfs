@@ -18,4 +18,4 @@ Sync version of `deleteTemp`.
 
 ## Defined in
 
-[worker/opfs\_worker\_adapter.ts:214](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/worker/opfs_worker_adapter.ts#L214)
+[worker/opfs\_worker\_adapter.ts:214](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/worker/opfs_worker_adapter.ts#L214)

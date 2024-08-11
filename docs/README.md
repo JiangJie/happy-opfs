@@ -75,6 +75,8 @@
 | [mkTempSync](functions/mkTempSync.md) | Sync version of `mkTemp`. |
 | [mkdir](functions/mkdir.md) | Creates a new directory at the specified path same as `mkdir -p`. |
 | [mkdirSync](functions/mkdirSync.md) | Sync version of `mkdir`. |
+| [move](functions/move.md) | Move a file or directory from an old path to a new path. |
+| [moveSync](functions/moveSync.md) | Sync version of `move`. |
 | [pruneTemp](functions/pruneTemp.md) | Prune the temporary directory and delete all expired files. |
 | [pruneTempSync](functions/pruneTempSync.md) | Sync version of `pruneTemp`. |
 | [readBlobFile](functions/readBlobFile.md) | Reads the content of a file at the specified path as a File. |
@@ -87,8 +89,6 @@
 | [readTextFileSync](functions/readTextFileSync.md) | Sync version of `readTextFile`. |
 | [remove](functions/remove.md) | Removes a file or directory at the specified path same as `rm -rf`. |
 | [removeSync](functions/removeSync.md) | Sync version of `remove`. |
-| [rename](functions/rename.md) | Renames a file or directory from an old path to a new path. |
-| [renameSync](functions/renameSync.md) | Sync version of `rename`. |
 | [startSyncAgent](functions/startSyncAgent.md) | Start worker agent. Listens to postMessage from main thread. Start runner loop. |
 | [stat](functions/stat.md) | Retrieves the status of a file or directory at the specified path. |
 | [statSync](functions/statSync.md) | Sync version of `stat`. |

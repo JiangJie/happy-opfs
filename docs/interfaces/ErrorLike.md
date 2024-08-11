@@ -12,5 +12,5 @@ Serializable version of Error.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `message` | `string` | The message of the error. | [fs/defines.ts:167](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/defines.ts#L167) |
-| `name` | `string` | The name of the error. | [fs/defines.ts:162](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/defines.ts#L162) |
+| `message` | `string` | The message of the error. | [fs/defines.ts:167](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/defines.ts#L167) |
+| `name` | `string` | The name of the error. | [fs/defines.ts:162](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/defines.ts#L162) |

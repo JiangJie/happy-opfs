@@ -26,4 +26,4 @@ Check whether the path is a temporary path.
 
 ## Defined in
 
-[fs/utils.ts:30](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/utils.ts#L30)
+[fs/utils.ts:30](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/utils.ts#L30)

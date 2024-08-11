@@ -26,4 +26,4 @@ A promise that resolves to an `AsyncVoidIOResult` indicating whether the tempora
 
 ## Defined in
 
-[fs/opfs\_tmp.ts:38](https://github.com/JiangJie/happy-opfs/blob/a4847fb43bf2d37df760679e172324cb91fbf2ca/src/fs/opfs_tmp.ts#L38)
+[fs/opfs\_tmp.ts:38](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/opfs_tmp.ts#L38)
