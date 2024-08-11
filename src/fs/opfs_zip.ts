@@ -67,42 +67,39 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
     }
 
     const statRes = await stat(sourcePath);
-    if (statRes.isErr()) {
-        return statRes.asErr();
-    }
 
-    const handle = statRes.unwrap();
+    return statRes.andThenAsync(async handle => {
+        const sourceName = basename(sourcePath);
+        const zippable: fflate.AsyncZippable = {};
 
-    const sourceName = basename(sourcePath);
-    const zippable: fflate.AsyncZippable = {};
+        if (isFileHandle(handle)) {
+            // file
+            const data = await getFileDataByHandle(handle);
+            zippable[sourceName] = data;
+        } else {
+            // directory
+            const readDirRes = await readDir(sourcePath, {
+                recursive: true,
+            });
+            if (readDirRes.isErr()) {
+                return readDirRes.asErr();
+            }
 
-    if (isFileHandle(handle)) {
-        // file
-        const data = await getFileDataByHandle(handle);
-        zippable[sourceName] = data;
-    } else {
-        // directory
-        const res = await readDir(sourcePath, {
-            recursive: true,
-        });
-        if (res.isErr()) {
-            return res.asErr();
-        }
+            // default to preserve root
+            const preserveRoot = options?.preserveRoot ?? true;
 
-        // default to preserve root
-        const preserveRoot = options?.preserveRoot ?? true;
-
-        for await (const { path, handle } of res.unwrap()) {
-            // path
-            if (isFileHandle(handle)) {
-                const entryName = preserveRoot ? join(sourceName, path) : path;
-                const data = await getFileDataByHandle(handle);
-                zippable[entryName] = data;
+            for await (const { path, handle } of readDirRes.unwrap()) {
+                // path
+                if (isFileHandle(handle)) {
+                    const entryName = preserveRoot ? join(sourceName, path) : path;
+                    const data = await getFileDataByHandle(handle);
+                    zippable[entryName] = data;
+                }
             }
         }
-    }
 
-    return await zipTo(zippable, zipFilePath);
+        return zipTo(zippable, zipFilePath);
+    });
 }
 
 /**
@@ -135,20 +132,18 @@ export async function zipFromUrl<T>(sourceUrl: string, zipFilePath?: string | Fs
         zipFilePath = undefined;
     }
 
-    const res = await fetchT(sourceUrl, {
+    const fetchRes = await fetchT(sourceUrl, {
         redirect: 'follow',
         ...requestInit,
         responseType: 'arraybuffer',
     });
 
-    if (res.isErr()) {
-        return res.asErr();
-    }
+    return fetchRes.andThenAsync(buffer => {
+        const sourceName = basename(sourceUrl);
+        const zippable: fflate.AsyncZippable = {};
 
-    const sourceName = basename(sourceUrl);
-    const zippable: fflate.AsyncZippable = {};
+        zippable[sourceName] = new Uint8Array(buffer);
 
-    zippable[sourceName] = new Uint8Array(res.unwrap());
-
-    return await zipTo(zippable, zipFilePath);
+        return zipTo(zippable, zipFilePath);
+    });
 }

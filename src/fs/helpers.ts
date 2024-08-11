@@ -46,15 +46,17 @@ export function isCurrentDir(dirPath: string): boolean {
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle` for the child directory.
  */
 async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    const handle = await dirHandle.getDirectoryHandle(dirName, options)
-        .catch((err: DOMException) => {
-            const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
-            error.name = err.name;
+    try {
+        const handle = await dirHandle.getDirectoryHandle(dirName, options);
 
-            return error;
-        });
+        return Ok(handle);
+    } catch (e) {
+        const err = e as DOMException;
+        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
+        error.name = err.name;
 
-    return handle instanceof FileSystemDirectoryHandle ? Ok(handle) : Err(handle);
+        return Err(error);
+    }
 }
 
 /**
@@ -66,15 +68,17 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: 
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
 async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    const handle = await dirHandle.getFileHandle(fileName, options)
-        .catch((err: DOMException) => {
-            const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
-            error.name = err.name;
+    try {
+        const handle = await dirHandle.getFileHandle(fileName, options);
 
-            return error;
-        });
+        return Ok(handle);
+    } catch (e) {
+        const err = e as DOMException;
+        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
+        error.name = err.name;
 
-    return handle instanceof FileSystemFileHandle ? Ok(handle) : Err(handle);
+        return Err(error);
+    }
 }
 
 /**
@@ -113,13 +117,13 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
             }
         }
 
-        const handle = await getChildDirHandle(dirHandle, dirName, options);
-        if (handle.isErr()) {
+        const dirHandleRes = await getChildDirHandle(dirHandle, dirName, options);
+        if (dirHandleRes.isErr()) {
             // stop
-            return handle;
+            return dirHandleRes;
         }
 
-        dirHandle = handle.unwrap();
+        dirHandle = dirHandleRes.unwrap();
     }
 
     return Ok(dirHandle);
@@ -138,16 +142,14 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
     const dirPath = dirname(filePath);
     const fileName = basename(filePath);
 
-    const dirHandle = await getDirHandle(dirPath, {
+    const dirHandleRes = await getDirHandle(dirPath, {
         create: isCreate,
     });
 
-    if (dirHandle.isErr()) {
-        return dirHandle.asErr();
-    }
-
-    return await getChildFileHandle(dirHandle.unwrap(), fileName, {
-        create: isCreate,
+    return dirHandleRes.andThenAsync(dirHandle => {
+        return getChildFileHandle(dirHandle, fileName, {
+            create: isCreate,
+        });
     });
 }
 

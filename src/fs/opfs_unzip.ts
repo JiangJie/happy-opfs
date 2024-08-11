@@ -53,12 +53,11 @@ async function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): Asy
 export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
     assertAbsolutePath(targetPath);
 
-    const res = await readFile(zipFilePath);
-    if (res.isErr()) {
-        return res.asErr();
-    }
+    const fileRes = await readFile(zipFilePath);
 
-    return await unzipBufferToTarget(res.unwrap(), targetPath);
+    return fileRes.andThenAsync(buffer => {
+        return unzipBufferToTarget(buffer, targetPath);
+    });
 }
 
 /**
@@ -75,14 +74,13 @@ export async function unzipFromUrl(zipFileUrl: string, targetPath: string, reque
     assertFileUrl(zipFileUrl);
     assertAbsolutePath(targetPath);
 
-    const res = await fetchT(zipFileUrl, {
+    const fetchRes = await fetchT(zipFileUrl, {
         redirect: 'follow',
         ...requestInit,
         responseType: 'arraybuffer',
     });
-    if (res.isErr()) {
-        return res.asErr();
-    }
 
-    return await unzipBufferToTarget(res.unwrap(), targetPath);
+    return fetchRes.andThenAsync(buffer => {
+        return unzipBufferToTarget(buffer, targetPath);
+    });
 }

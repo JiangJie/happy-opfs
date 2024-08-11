@@ -24,35 +24,34 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
     let fetchTask: FetchTask<T>;
 
     const response = (async (): FetchResponse<T> => {
-        const fileResult = await readBlobFile(filePath)
-        if (fileResult.isErr()) {
-            return fileResult.asErr();
-        }
+        const fileRes = await readBlobFile(filePath)
 
-        // maybe aborted
-        if (aborted) {
-            const error = new Error();
-            error.name = ABORT_ERROR;
-            return Err(error);
-        }
+        return fileRes.andThenAsync(async file => {
+            // maybe aborted
+            if (aborted) {
+                const error = new Error();
+                error.name = ABORT_ERROR;
+                return Err(error);
+            }
 
-        const {
-            // default file name
-            filename = basename(filePath),
-            ...rest
-        } = requestInit ?? {};
+            const {
+                // default file name
+                filename = basename(filePath),
+                ...rest
+            } = requestInit ?? {};
 
-        const formData = new FormData();
-        formData.append(filename, fileResult.unwrap(), filename);
+            const formData = new FormData();
+            formData.append(filename, file, filename);
 
-        fetchTask = fetchT(fileUrl, {
-            method: 'POST',
-            ...rest,
-            abortable: true,
-            body: formData,
+            fetchTask = fetchT(fileUrl, {
+                method: 'POST',
+                ...rest,
+                abortable: true,
+                body: formData,
+            });
+
+            return fetchTask.response;
         });
-
-        return await fetchTask.response;
     })();
 
     return {

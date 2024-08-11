@@ -1,5 +1,5 @@
 import { basename, dirname, join } from '@std/path/posix';
-import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
@@ -15,11 +15,11 @@ import { isDirectoryHandle } from './utils.ts';
 export async function createFile(filePath: string): AsyncVoidIOResult {
     assertAbsolutePath(filePath);
 
-    const fileHandle = await getFileHandle(filePath, {
+    const fileHandleRes = await getFileHandle(filePath, {
         create: true,
     });
 
-    return fileHandle.and(RESULT_VOID);
+    return fileHandleRes.and(RESULT_VOID);
 }
 
 /**
@@ -31,11 +31,11 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
 export async function mkdir(dirPath: string): AsyncVoidIOResult {
     assertAbsolutePath(dirPath);
 
-    const dirHandle = await getDirHandle(dirPath, {
+    const dirHandleRes = await getDirHandle(dirPath, {
         create: true,
     });
 
-    return dirHandle.and(RESULT_VOID);
+    return dirHandleRes.and(RESULT_VOID);
 }
 
 /**
@@ -48,7 +48,7 @@ export async function mkdir(dirPath: string): AsyncVoidIOResult {
 export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<ReadDirEntry>> {
     assertAbsolutePath(dirPath);
 
-    const dirHandle = await getDirHandle(dirPath);
+    const dirHandleRes = await getDirHandle(dirPath);
 
     async function* read(dirHandle: FileSystemDirectoryHandle, subDirPath: string): AsyncIterableIterator<ReadDirEntry> {
         const entries = dirHandle.entries();
@@ -67,7 +67,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         }
     }
 
-    return dirHandle.andThen((x): IOResult<AsyncIterableIterator<ReadDirEntry>> => Ok(read(x, dirPath)));
+    return dirHandleRes.andThen(x => Ok(read(x, dirPath)));
 }
 
 /**
@@ -114,25 +114,24 @@ export function readFile(filePath: string, options?: ReadOptions & {
 export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): AsyncIOResult<T> {
     assertAbsolutePath(filePath);
 
-    const fileHandle = await getFileHandle(filePath);
-    if (fileHandle.isErr()) {
-        return fileHandle.asErr();
-    }
+    const fileHandleRes = await getFileHandle(filePath);
 
-    const file = await fileHandle.unwrap().getFile();
-    switch (options?.encoding) {
-        case 'blob': {
-            return Ok(file as unknown as T);
+    return fileHandleRes.andThenAsync(async fileHandle => {
+        const file = await fileHandle.getFile();
+        switch (options?.encoding) {
+            case 'blob': {
+                return Ok(file as unknown as T);
+            }
+            case 'utf8': {
+                const text = await file.text();
+                return Ok(text as unknown as T);
+            }
+            default: {
+                const data = await file.arrayBuffer();
+                return Ok(data as unknown as T);
+            }
         }
-        case 'utf8': {
-            const text = await file.text();
-            return Ok(text as unknown as T);
-        }
-        default: {
-            const data = await file.arrayBuffer();
-            return Ok(data as unknown as T);
-        }
-    }
+    });
 }
 
 /**
@@ -147,30 +146,31 @@ export async function remove(path: string): AsyncVoidIOResult {
     const dirPath = dirname(path);
     const childName = basename(path);
 
-    const dirHandle = await getDirHandle(dirPath);
-    if (dirHandle.isErr()) {
-        // not found as success
-        return isNotFoundError(dirHandle.unwrapErr()) ? RESULT_VOID : dirHandle.asErr();
-    }
+    const dirHandleRes = await getDirHandle(dirPath);
 
-    try {
-        // root
-        if (isRootPath(dirPath) && isRootPath(childName)) {
-            // TODO ts not support yet
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await (dirHandle.unwrap() as any).remove({
-                recursive: true,
-            });
-        } else {
-            await dirHandle.unwrap().removeEntry(childName, {
-                recursive: true,
-            });
+    return (await dirHandleRes.andThenAsync(async (dirHandle): AsyncVoidIOResult => {
+        try {
+            // root
+            if (isRootPath(dirPath) && isRootPath(childName)) {
+                // TODO ts not support yet
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await (dirHandle as any).remove({
+                    recursive: true,
+                });
+            } else {
+                await dirHandle.removeEntry(childName, {
+                    recursive: true,
+                });
+            }
+        } catch (e) {
+            return Err(e as DOMException);
         }
-    } catch (e) {
-        return Err(e as DOMException);
-    }
 
-    return RESULT_VOID;
+        return RESULT_VOID;
+    })).orElse<Error>(err => {
+        // not found as success
+        return isNotFoundError(err) ? RESULT_VOID : Err(err);
+    });
 }
 
 /**
@@ -183,32 +183,32 @@ export async function remove(path: string): AsyncVoidIOResult {
 export async function rename(oldPath: string, newPath: string): AsyncVoidIOResult {
     assertAbsolutePath(oldPath);
 
-    const fileHandle = await getFileHandle(oldPath);
-    if (fileHandle.isErr()) {
-        return fileHandle.asErr();
-    }
+    const fileHandleRes = await getFileHandle(oldPath);
 
-    const dirPath = dirname(oldPath);
-    let newDirPath = dirname(newPath);
-    // same dir
-    if (isCurrentDir(newDirPath)) {
-        newDirPath = dirPath;
-    } else {
-        // not same must be absolute
-        assertAbsolutePath(newPath);
-    }
+    return fileHandleRes.andThenAsync(async (fileHandle) => {
+        const dirPath = dirname(oldPath);
+        let newDirPath = dirname(newPath);
+        // same dir
+        if (isCurrentDir(newDirPath)) {
+            newDirPath = dirPath;
+        } else {
+            // not same must be absolute
+            assertAbsolutePath(newPath);
+        }
 
-    const newDirHandle = await getDirHandle(newDirPath);
-    if (newDirHandle.isErr()) {
-        return newDirHandle.asErr();
-    }
-
-    const newName = basename(newPath);
-    // TODO ts not support yet
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (fileHandle.unwrap() as any).move(newDirHandle.unwrap(), newName);
-
-    return RESULT_VOID;
+        const newDirHandleRes = await getDirHandle(newDirPath);
+        return newDirHandleRes.andThenAsync(async newDirHandle => {
+            const newName = basename(newPath);
+            try {
+                // TODO ts not support yet
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await (fileHandle as any).move(newDirHandle, newName);
+                return RESULT_VOID;
+            } catch (e) {
+                return Err(e as DOMException);
+            }
+        });
+    });
 }
 
 /**
@@ -221,28 +221,27 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     assertAbsolutePath(path);
 
     const dirPath = dirname(path);
-    const dirHandle = await getDirHandle(dirPath);
-    if (dirHandle.isErr()) {
-        return dirHandle;
-    }
-
     const childName = basename(path);
+
+    const dirHandleRes = await getDirHandle(dirPath);
     if (!childName) {
         // root
-        return dirHandle;
+        return dirHandleRes;
     }
 
-    // currently only rely on traversal inspection
-    for await (const [name, handle] of dirHandle.unwrap().entries()) {
-        if (name === childName) {
-            return Ok(handle);
+    return dirHandleRes.andThenAsync(async dirHandle => {
+        // currently only rely on traversal inspection
+        for await (const [name, handle] of dirHandle.entries()) {
+            if (name === childName) {
+                return Ok(handle);
+            }
         }
-    }
 
-    const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'.`);
-    err.name = NOT_FOUND_ERROR;
+        const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'.`);
+        err.name = NOT_FOUND_ERROR;
 
-    return Err(err);
+        return Err(err);
+    });
 }
 
 /**
@@ -259,29 +258,28 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
     // create as default
     const { append = false, create = true } = options ?? {};
 
-    const fileHandle = await getFileHandle(filePath, {
+    const fileHandleRes = await getFileHandle(filePath, {
         create,
     });
-    if (fileHandle.isErr()) {
-        return fileHandle.asErr();
-    }
 
-    const writable = await fileHandle.unwrap().createWritable({
-        keepExistingData: append,
+    return fileHandleRes.andThenAsync(async fileHandle => {
+        const writable = await fileHandle.createWritable({
+            keepExistingData: append,
+        });
+        const params: WriteParams = {
+            type: 'write',
+            data: contents,
+        };
+
+        // append?
+        if (append) {
+            const { size } = await fileHandle.getFile();
+            params.position = size;
+        }
+
+        await writable.write(params);
+        await writable.close();
+
+        return RESULT_VOID;
     });
-    const params: WriteParams = {
-        type: 'write',
-        data: contents,
-    };
-
-    // append?
-    if (append) {
-        const { size } = await fileHandle.unwrap().getFile();
-        params.position = size;
-    }
-
-    await writable.write(params);
-    await writable.close();
-
-    return RESULT_VOID;
 }

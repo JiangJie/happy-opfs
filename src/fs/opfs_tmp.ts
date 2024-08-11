@@ -38,25 +38,23 @@ export function deleteTemp(): AsyncVoidIOResult {
 export async function pruneTemp(expired: Date): AsyncVoidIOResult {
     invariant(expired instanceof Date, () => `Expired must be a Date but received ${ expired }`);
 
-    const res = await readDir(TMP_DIR, {
+    const readDirRes = await readDir(TMP_DIR, {
         recursive: true,
     });
 
-    if (res.isErr()) {
-        return res.asErr();
-    }
-
-    try {
-        for await (const { handle } of res.unwrap()) {
-            if (isFileHandle(handle) && (await handle.getFile()).lastModified <= expired.getTime()) {
-                // TODO ts not support yet
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await (handle as any).remove();
+    return readDirRes.andThenAsync(async entries => {
+        try {
+            for await (const { handle } of entries) {
+                if (isFileHandle(handle) && (await handle.getFile()).lastModified <= expired.getTime()) {
+                    // TODO ts not support yet
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    await (handle as any).remove();
+                }
             }
+        } catch (e) {
+            return Err(e as DOMException);
         }
-    } catch (e) {
-        return Err(e as DOMException);
-    }
 
-    return RESULT_VOID;
+        return RESULT_VOID;
+    });
 }

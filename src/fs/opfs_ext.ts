@@ -34,89 +34,73 @@ export async function copy(srcPath: string, destPath: string, options?: CopyOpti
     assertAbsolutePath(destPath);
 
     const srcHandleRes = await stat(srcPath);
-    if (srcHandleRes.isErr()) {
-        return srcHandleRes.asErr();
-    }
 
-    const checkFail = `Both 'srcPath' and 'destPath' must both be a file or directory.`;
+    return srcHandleRes.andThenAsync(async srcHandle => {
+        const checkFail = `Both 'srcPath' and 'destPath' must both be a file or directory.`;
 
-    const {
-        overwrite = true,
-    } = options ?? {};
+        const {
+            overwrite = true,
+        } = options ?? {};
 
-    // if overwrite is false, we need this flag to determine whether to write file.
-    let destExists = false;
-
-    const srcHandle = srcHandleRes.unwrap();
-    if (isFileHandle(srcHandle)) {
-
+        // if overwrite is false, we need this flag to determine whether to write file.
+        let destExists = false;
         const destHandleRes = await stat(destPath);
+
         if (destHandleRes.isErr()) {
             if (!isNotFoundError(destHandleRes.unwrapErr())) {
                 return destHandleRes.asErr();
             }
         } else {
             destExists = true;
-
             // check
-            if (isDirectoryHandle(destHandleRes.unwrap())) {
+            const destHandle = destHandleRes.unwrap();
+            if (!((isFileHandle(srcHandle) && isFileHandle(destHandle))
+                || (isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle)))) {
                 return Err(new Error(checkFail));
             }
         }
 
-        return (overwrite || !destExists) ? await writeFile(destPath, await srcHandle.getFile()) : RESULT_VOID;
-    }
-
-    const destHandleRes = await stat(destPath);
-    if (destHandleRes.isErr()) {
-        if (!isNotFoundError(destHandleRes.unwrapErr())) {
-            return destHandleRes.asErr();
+        // both are files
+        if (isFileHandle(srcHandle)) {
+            return (overwrite || !destExists) ? await writeFile(destPath, await srcHandle.getFile()) : RESULT_VOID;
         }
-    } else {
-        destExists = true;
 
-        // check
-        if (isFileHandle(destHandleRes.unwrap())) {
-            return Err(new Error(checkFail));
-        }
-    }
+        // both are directories
+        const readDirRes = await readDir(srcPath, {
+            recursive: true,
+        });
+        return readDirRes.andThenAsync(async entries => {
+            const tasks: AsyncVoidIOResult[] = [];
 
-    const readDirRes = await readDir(srcPath, {
-        recursive: true,
-    });
-    if (readDirRes.isErr()) {
-        return readDirRes.asErr();
-    }
+            for await (const { path, handle } of entries) {
+                const newPath = join(destPath, path);
 
-    const tasks: AsyncVoidIOResult[] = [];
+                let newPathExists = false;
+                if (destExists) {
+                    // should check every file
+                    const existsRes = await exists(newPath);
+                    if (existsRes.isErr()) {
+                        tasks.push(Promise.resolve(existsRes.asErr()));
+                        continue;
+                    }
 
-    for await (const { path, handle } of readDirRes.unwrap()) {
-        const newPath = join(destPath, path);
+                    newPathExists = existsRes.unwrap();
+                }
 
-        let newPathExists = false;
-        if (destExists) {
-            // should check every file
-            const existsRes = await exists(newPath);
-            if (existsRes.isErr()) {
-                tasks.push(Promise.resolve(existsRes.asErr()));
-                continue;
+                const res = isFileHandle(handle)
+                    ? (overwrite || !newPathExists ? writeFile(newPath, await handle.getFile()) : Promise.resolve(RESULT_VOID))
+                    : mkdir(newPath);
+
+                tasks.push(res);
             }
 
-            newPathExists = existsRes.unwrap();
-        }
+            const allRes = await Promise.all(tasks);
+            // anyone failed?
+            const fail = allRes.find(x => x.isErr());
 
-        const res = isFileHandle(handle)
-            ? (overwrite || !newPathExists ? writeFile(newPath, await handle.getFile()) : Promise.resolve(RESULT_VOID))
-            : mkdir(newPath);
-
-        tasks.push(res);
-    }
-
-    const allRes = await Promise.all(tasks);
-    // anyone failed?
-    const fail = allRes.find(x => x.isErr());
-
-    return fail ?? RESULT_VOID;
+            return fail ?? RESULT_VOID;
+        });
+    });
 }
 
 /**
@@ -126,16 +110,16 @@ export async function copy(srcPath: string, destPath: string, options?: CopyOpti
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully emptied.
  */
 export async function emptyDir(dirPath: string): AsyncVoidIOResult {
-    const res = await readDir(dirPath);
+    const readDirRes = await readDir(dirPath);
 
-    if (res.isErr()) {
+    if (readDirRes.isErr()) {
         // create if not exist
-        return isNotFoundError(res.unwrapErr()) ? mkdir(dirPath) : res.asErr();
+        return isNotFoundError(readDirRes.unwrapErr()) ? mkdir(dirPath) : readDirRes.asErr();
     }
 
     const tasks: AsyncVoidIOResult[] = [];
 
-    for await (const { path } of res.unwrap()) {
+    for await (const { path } of readDirRes.unwrap()) {
         tasks.push(remove(join(dirPath, path)));
     }
 
@@ -158,16 +142,16 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
 
     invariant(!(isDirectory && isFile), () => 'ExistsOptions.isDirectory and ExistsOptions.isFile must not be true together.');
 
-    const stats = await stat(path);
+    const statRes = await stat(path);
 
-    return stats.andThen(handle => {
+    return statRes.andThen(handle => {
         const notExist =
             (isDirectory && isFileHandle(handle))
             || (isFile && isDirectoryHandle(handle));
 
         return Ok(!notExist);
     }).orElse((err): IOResult<boolean> => {
-        return isNotFoundError(err) ? RESULT_FALSE : stats.asErr();
+        return isNotFoundError(err) ? RESULT_FALSE : statRes.asErr();
     });
 }
 

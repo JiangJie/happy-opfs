@@ -50,28 +50,22 @@ export function downloadFile(fileUrl: string, filePath?: string | FsRequestInit,
     });
 
     const response = (async (): FetchResponse<Response> => {
-        const result = await fetchTask.response;
-        if (result.isErr()) {
-            return result.asErr();
-        }
+        const responseRes = await fetchTask.response;
 
-        const res = result.unwrap();
+        return responseRes.andThenAsync(async response => {
+            const blob = await response.blob();
 
-        const blob = await res.blob();
+            // maybe aborted
+            if (aborted) {
+                const error = new Error();
+                error.name = ABORT_ERROR;
+                return Err(error);
+            }
 
-        // maybe aborted
-        if (aborted) {
-            const error = new Error();
-            error.name = ABORT_ERROR;
-            return Err(error);
-        }
+            const writeRes = await writeFile(filePath, blob);
 
-        const writeResult = await writeFile(filePath, blob);
-        if (writeResult.isErr()) {
-            return writeResult.asErr();
-        }
-
-        return Ok(res);
+            return writeRes.and(Ok(response));
+        });
     })();
 
     return {
@@ -86,18 +80,16 @@ export function downloadFile(fileUrl: string, filePath?: string | FsRequestInit,
         },
 
         get response(): FetchResponse<Response | DownloadFileTempResponse> {
-            if (saveToTemp) {
-                return response.then(res => {
+            return saveToTemp
+                ? response.then(res => {
                     return res.map<DownloadFileTempResponse>(rawResponse => {
                         return {
                             tempFilePath: filePath,
                             rawResponse,
                         };
                     });
-                });
-            } else {
-                return response;
-            }
+                })
+                : response;
         },
     };
 }
