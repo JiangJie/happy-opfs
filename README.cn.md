@@ -69,7 +69,7 @@ import * as fs from 'happy-opfs';
     await fs.writeFile('/happy/opfs/a.txt', 'hello opfs');
     await fs.writeFile('/happy/op-fs/fs.txt', 'hello opfs');
     // Move the file
-    await fs.rename('/happy/opfs/a.txt', '/happy/b.txt');
+    await fs.move('/happy/opfs/a.txt', '/happy/b.txt');
     // Append content to the file
     await fs.appendFile('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
 
