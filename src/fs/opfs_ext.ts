@@ -70,7 +70,10 @@ export async function copy(srcPath: string, destPath: string, options?: CopyOpti
             recursive: true,
         });
         return readDirRes.andThenAsync(async entries => {
-            const tasks: AsyncVoidIOResult[] = [];
+            const tasks: AsyncVoidIOResult[] = [
+                // make sure new dir created
+                mkdir(destPath),
+            ];
 
             for await (const { path, handle } of entries) {
                 const newEntryPath = join(destPath, path);
