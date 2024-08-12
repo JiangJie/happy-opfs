@@ -5,6 +5,10 @@ function run() {
     fs.mkdirSync('/happy/opfs');
     fs.writeFileSync('/happy/opfs/a.txt', 'hello opfs');
     fs.moveSync('/happy/opfs/a.txt', '/happy/b.txt');
+    fs.moveSync('/happy/opfs/a.txt', '/happy/b.txt');
+    fs.copySync('/happy/opfs', '/happy/opfs-1');
+    fs.moveSync('/happy/opfs', '/happy/opfs-2');
+    fs.moveSync('/happy/op-fs', '/happy/op-fs-1');
     fs.writeFileSync('/happy/op-fs/fs.txt', 'hello opfs');
     fs.appendFileSync('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
 
@@ -62,7 +66,7 @@ function run() {
     console.assert((fs.copySync('/happy', '/happy-copy')).isOk());
     fs.appendFileSync('/happy-copy/b.txt', ' copy');
     console.assert((fs.readFileSync('/happy-copy/b.txt')).unwrap().byteLength === 26);
-    fs.appendFileSync('/happy/op-fs/fs.txt', ' copy');
+    fs.appendFileSync('/happy/op-fs-1/fs.txt', ' copy');
     fs.copySync('/happy', '/happy-copy', {
         overwrite: false,
     });

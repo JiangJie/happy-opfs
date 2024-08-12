@@ -13,6 +13,9 @@ export async function testAsync() {
     await fs.writeFile('/happy/op-fs/fs.txt', 'hello opfs');
     // Move the file
     await fs.move('/happy/opfs/a.txt', '/happy/b.txt');
+    await fs.copy('/happy/opfs', '/happy/opfs-1');
+    await fs.move('/happy/opfs', '/happy/opfs-2');
+    await fs.move('/happy/op-fs', '/happy/op-fs-1');
     // Append content to the file
     await fs.appendFile('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
 
@@ -129,7 +132,7 @@ export async function testAsync() {
     console.assert((await fs.copy('/happy', '/happy-copy')).isOk());
     await fs.appendFile('/happy-copy/b.txt', ' copy');
     console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
-    await fs.appendFile('/happy/op-fs/fs.txt', ' copy');
+    await fs.appendFile('/happy/op-fs-1/fs.txt', ' copy');
     await fs.copy('/happy', '/happy-copy', {
         overwrite: false,
     });
