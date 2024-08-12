@@ -101,8 +101,8 @@ export function mkdirSync(dirPath: string): VoidIOResult {
 /**
  * Sync version of `move`.
  */
-export function moveSync(oldPath: string, newPath: string, options?: MoveOptions): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.move, oldPath, newPath, options);
+export function moveSync(srcPath: string, destPath: string, options?: MoveOptions): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.move, srcPath, destPath, options);
 }
 
 /**
