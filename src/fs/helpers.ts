@@ -1,5 +1,5 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
-import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { CURRENT_DIR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
@@ -160,4 +160,17 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
  */
 export function isNotFoundError(err: Error): boolean {
     return err.name === NOT_FOUND_ERROR;
+}
+
+/**
+ * Gets the final result from a list of AsyncVoidIOResult tasks.
+ * @param tasks - The list of tasks to get the final result from.
+ * @returns The final result from the list of tasks.
+ */
+export async function getFinalResult(tasks: AsyncVoidIOResult[]): AsyncVoidIOResult {
+    const allRes = await Promise.all(tasks);
+    // anyone failed?
+    const fail = allRes.find(x => x.isErr());
+
+    return fail ?? RESULT_VOID;
 }

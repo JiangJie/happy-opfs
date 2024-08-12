@@ -1,10 +1,11 @@
 import { fetchT } from '@happy-ts/fetch-t';
 import { join, SEPARATOR } from '@std/path/posix';
 import * as fflate from 'fflate/browser';
-import { Err, RESULT_VOID, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
+import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit } from './defines.ts';
+import { getFinalResult } from './helpers.ts';
 import { readFile, writeFile } from './opfs_core.ts';
 
 /**
@@ -24,6 +25,7 @@ async function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): Asy
         }
 
         const tasks: AsyncVoidIOResult[] = [];
+
         for (const path in unzipped) {
             // ignore directory
             if (path.at(-1) !== SEPARATOR) {
@@ -31,11 +33,7 @@ async function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): Asy
             }
         }
 
-        const allRes = await Promise.all(tasks);
-        // anyone failed?
-        const fail = allRes.find(x => x.isErr());
-
-        future.resolve(fail ?? RESULT_VOID);
+        future.resolve(getFinalResult(tasks));
     });
 
     return await future.promise;

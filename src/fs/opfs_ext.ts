@@ -3,7 +3,7 @@ import { Err, Ok, RESULT_FALSE, RESULT_VOID, type AsyncIOResult, type AsyncVoidI
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
-import { getDirHandle, isNotFoundError } from './helpers.ts';
+import { getDirHandle, getFinalResult, isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 import { isDirectoryHandle, isFileHandle } from './utils.ts';
 
@@ -105,11 +105,7 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: handleS
                 tasks.push(res);
             }
 
-            const allRes = await Promise.all(tasks);
-            // anyone failed?
-            const fail = allRes.find(x => x.isErr());
-
-            return fail ?? RESULT_VOID;
+            return getFinalResult(tasks);
         });
     });
 }
@@ -167,11 +163,7 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
         tasks.push(remove(join(dirPath, path)));
     }
 
-    const allRes = await Promise.all(tasks);
-    // anyone failed?
-    const fail = allRes.find(x => x.isErr());
-
-    return fail ?? RESULT_VOID;
+    return getFinalResult(tasks);
 }
 
 /**
