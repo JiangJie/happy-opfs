@@ -14,4 +14,4 @@ fetch-t options for download and upload.
 
 ## Defined in
 
-[fs/defines.ts:71](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/defines.ts#L71)
+[fs/defines.ts:71](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/defines.ts#L71)

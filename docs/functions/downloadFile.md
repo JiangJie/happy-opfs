@@ -30,7 +30,7 @@ A task that can be aborted and contains the result of the download.
 
 ### Defined in
 
-[fs/opfs\_download.ts:18](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/opfs_download.ts#L18)
+[fs/opfs\_download.ts:18](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/opfs_download.ts#L18)
 
 ## downloadFile(fileUrl, filePath, requestInit)
 
@@ -59,4 +59,4 @@ A task that can be aborted and contains the result of the download.
 
 ### Defined in
 
-[fs/opfs\_download.ts:27](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/opfs_download.ts#L27)
+[fs/opfs\_download.ts:27](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/opfs_download.ts#L27)

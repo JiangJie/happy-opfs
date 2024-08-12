@@ -33,7 +33,7 @@ Sync version of `zip`.
 
 ### Defined in
 
-[worker/opfs\_worker\_adapter.ts:260](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/worker/opfs_worker_adapter.ts#L260)
+[worker/opfs\_worker\_adapter.ts:260](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/worker/opfs_worker_adapter.ts#L260)
 
 ## zipSync(sourcePath, options)
 
@@ -56,4 +56,4 @@ Sync version of `zip`.
 
 ### Defined in
 
-[worker/opfs\_worker\_adapter.ts:265](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/worker/opfs_worker_adapter.ts#L265)
+[worker/opfs\_worker\_adapter.ts:265](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/worker/opfs_worker_adapter.ts#L265)

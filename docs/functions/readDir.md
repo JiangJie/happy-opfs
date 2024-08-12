@@ -27,4 +27,4 @@ A promise that resolves to an `AsyncIOResult` containing an async iterable itera
 
 ## Defined in
 
-[fs/opfs\_core.ts:86](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/opfs_core.ts#L86)
+[fs/opfs\_core.ts:48](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/opfs_core.ts#L48)

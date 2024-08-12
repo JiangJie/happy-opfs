@@ -26,4 +26,4 @@ The temporary path.
 
 ## Defined in
 
-[fs/utils.ts:11](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/utils.ts#L11)
+[fs/utils.ts:11](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/utils.ts#L11)

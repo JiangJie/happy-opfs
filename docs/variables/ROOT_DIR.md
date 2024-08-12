@@ -14,4 +14,4 @@ A constant representing the root directory path.
 
 ## Defined in
 
-[fs/constants.ts:12](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/constants.ts#L12)
+[fs/constants.ts:12](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/constants.ts#L12)

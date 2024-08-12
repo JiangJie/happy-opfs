@@ -26,4 +26,4 @@ A promise that resolves to the data of the file.
 
 ## Defined in
 
-[fs/utils.ts:97](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/utils.ts#L97)
+[fs/utils.ts:97](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/utils.ts#L97)

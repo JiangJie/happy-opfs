@@ -7,7 +7,10 @@
 # Function: move()
 
 ```ts
-function move(oldPath, newPath): AsyncVoidIOResult
+function move(
+   srcPath, 
+   destPath, 
+   options?): AsyncVoidIOResult
 ```
 
 Move a file or directory from an old path to a new path.
@@ -16,8 +19,9 @@ Move a file or directory from an old path to a new path.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `oldPath` | `string` | The current path of the file or directory. |
-| `newPath` | `string` | The new path of the file or directory. |
+| `srcPath` | `string` | The current path of the file or directory. |
+| `destPath` | `string` | The new path of the file or directory. |
+| `options`? | [`MoveOptions`](../interfaces/MoveOptions.md) | Options of move. |
 
 ## Returns
 
@@ -27,4 +31,4 @@ A promise that resolves to an `AsyncIOResult` indicating whether the file or dir
 
 ## Defined in
 
-[fs/opfs\_core.ts:48](https://github.com/JiangJie/happy-opfs/blob/7bfec3b71684ddcf0fe3092672c66c9664776bcc/src/fs/opfs_core.ts#L48)
+[fs/opfs\_ext.ts:202](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/fs/opfs_ext.ts#L202)

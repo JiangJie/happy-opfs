@@ -15,6 +15,7 @@
 | [FileLike](interfaces/FileLike.md) | Serializable version of File. |
 | [FileSystemFileHandleLike](interfaces/FileSystemFileHandleLike.md) | A handle to a file or directory returned by `statSync`. |
 | [FileSystemHandleLike](interfaces/FileSystemHandleLike.md) | A handle to a file or directory returned by `statSync`. |
+| [MoveOptions](interfaces/MoveOptions.md) | Options for `move`. |
 | [ReadDirEntry](interfaces/ReadDirEntry.md) | An entry returned by `readDir`. |
 | [ReadDirEntrySync](interfaces/ReadDirEntrySync.md) | An entry returned by `readDirSync`. |
 | [ReadDirOptions](interfaces/ReadDirOptions.md) | Options for reading directories. |
