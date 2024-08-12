@@ -278,3 +278,14 @@ export interface DownloadFileTempResponse {
      */
     rawResponse: Response;
 }
+
+/**
+ * Options for `move`.
+ */
+export interface MoveOptions {
+    /**
+     * Whether to overwrite the destination file if it already exists.
+     * @defaultValue `true`
+     */
+    overwrite?: boolean;
+}

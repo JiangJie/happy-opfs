@@ -1,9 +1,9 @@
-import { join } from '@std/path/posix';
+import { basename, dirname, join } from '@std/path/posix';
 import { Err, Ok, RESULT_FALSE, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
-import type { CopyOptions, ExistsOptions, WriteFileContent } from './defines.ts';
-import { isNotFoundError } from './helpers.ts';
+import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
+import { getDirHandle, isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 import { isDirectoryHandle, isFileHandle } from './utils.ts';
 
@@ -73,12 +73,12 @@ export async function copy(srcPath: string, destPath: string, options?: CopyOpti
             const tasks: AsyncVoidIOResult[] = [];
 
             for await (const { path, handle } of entries) {
-                const newPath = join(destPath, path);
+                const newEntryPath = join(destPath, path);
 
                 let newPathExists = false;
                 if (destExists) {
                     // should check every file
-                    const existsRes = await exists(newPath);
+                    const existsRes = await exists(newEntryPath);
                     if (existsRes.isErr()) {
                         tasks.push(Promise.resolve(existsRes.asErr()));
                         continue;
@@ -88,8 +88,8 @@ export async function copy(srcPath: string, destPath: string, options?: CopyOpti
                 }
 
                 const res = isFileHandle(handle)
-                    ? (overwrite || !newPathExists ? writeFile(newPath, await handle.getFile()) : Promise.resolve(RESULT_VOID))
-                    : mkdir(newPath);
+                    ? (overwrite || !newPathExists ? writeFile(newEntryPath, await handle.getFile()) : Promise.resolve(RESULT_VOID))
+                    : mkdir(newEntryPath);
 
                 tasks.push(res);
             }
@@ -152,6 +152,117 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
         return Ok(!notExist);
     }).orElse((err): IOResult<boolean> => {
         return isNotFoundError(err) ? RESULT_FALSE : statRes.asErr();
+    });
+}
+
+/**
+ * Moves a file handle to a new path.
+ *
+ * @param fileHandle - The file handle to move.
+ * @param newPath - The new path of the file handle.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the file handle was successfully moved.
+ */
+async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
+    const newDirPath = dirname(newPath);
+
+    return (await getDirHandle(newDirPath, {
+        create: true,
+    })).andThenAsync(async newDirHandle => {
+        const newName = basename(newPath);
+
+        try {
+            // TODO ts not support yet
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (fileHandle as any).move(newDirHandle, newName);
+            return RESULT_VOID;
+        } catch (e) {
+            return Err(e as DOMException);
+        }
+    });
+}
+
+/**
+ * Move a file or directory from an old path to a new path.
+ *
+ * @param oldPath - The current path of the file or directory.
+ * @param newPath - The new path of the file or directory.
+ * @param options - Options of move.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully moved.
+ */
+export async function move(oldPath: string, newPath: string, options?: MoveOptions): AsyncVoidIOResult {
+    assertAbsolutePath(newPath);
+
+    const srcHandleRes = await stat(oldPath);
+
+    return srcHandleRes.andThenAsync(async srcHandle => {
+        const checkFail = `Both 'oldPath' and 'newPath' must both be a file or directory.`;
+
+        const {
+            overwrite = true,
+        } = options ?? {};
+
+        // if overwrite is false, we need this flag to determine whether to write file.
+        let destExists = false;
+        const destHandleRes = await stat(newPath);
+
+        if (destHandleRes.isErr()) {
+            if (!isNotFoundError(destHandleRes.unwrapErr())) {
+                return destHandleRes.asErr();
+            }
+        } else {
+            destExists = true;
+            // check
+            const destHandle = destHandleRes.unwrap();
+            if (!((isFileHandle(srcHandle) && isFileHandle(destHandle))
+                || (isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle)))) {
+                return Err(new Error(checkFail));
+            }
+        }
+
+        // both are files
+        if (isFileHandle(srcHandle)) {
+            return moveHandle(srcHandle, newPath);
+        }
+
+        // both are directories
+        const readDirRes = await readDir(oldPath, {
+            recursive: true,
+        });
+        return readDirRes.andThenAsync(async entries => {
+            const tasks: AsyncVoidIOResult[] = [
+                // make sure new dir created
+                mkdir(newPath),
+            ];
+
+            for await (const { path, handle } of entries) {
+                const newEntryPath = join(newPath, path);
+
+                let newPathExists = false;
+                if (destExists) {
+                    // should check every file
+                    const existsRes = await exists(newEntryPath);
+                    if (existsRes.isErr()) {
+                        tasks.push(Promise.resolve(existsRes.asErr()));
+                        continue;
+                    }
+
+                    newPathExists = existsRes.unwrap();
+                }
+
+                const res: AsyncVoidIOResult = isFileHandle(handle)
+                    ? (overwrite || !newPathExists ? moveHandle(handle, newEntryPath) : Promise.resolve(RESULT_VOID))
+                    : mkdir(newEntryPath);
+
+                tasks.push(res);
+            }
+
+            const allRes = await Promise.all(tasks);
+            // anyone failed?
+            const fail = allRes.find(x => x.isErr());
+
+            // remove old dir
+            return fail ?? await remove(oldPath);
+        });
     });
 }
 

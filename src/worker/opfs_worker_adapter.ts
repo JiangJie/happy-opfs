@@ -1,6 +1,6 @@
 import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import type { CopyOptions, ExistsOptions, FileLike, FileSystemHandleLike, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
+import type { CopyOptions, ExistsOptions, FileLike, FileSystemHandleLike, MoveOptions, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
 import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
 import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
@@ -101,8 +101,8 @@ export function mkdirSync(dirPath: string): VoidIOResult {
 /**
  * Sync version of `move`.
  */
-export function moveSync(oldPath: string, newPath: string): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.move, oldPath, newPath);
+export function moveSync(oldPath: string, newPath: string, options?: MoveOptions): VoidIOResult {
+    return callWorkerOp(WorkerAsyncOp.move, oldPath, newPath, options);
 }
 
 /**
