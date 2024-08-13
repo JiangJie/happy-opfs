@@ -34,6 +34,7 @@ export async function testAsync() {
     console.assert(!(await fs.exists('/happy/opfs')).unwrap());
     console.assert((await fs.exists('/happy/b.txt')).unwrap());
     console.assert(fs.isFileHandle((await fs.stat('/happy/b.txt')).unwrap()));
+    console.assert((await fs.readJsonFile<string>('/happy/b.txt')).isErr());
 
     // Download a file
     const downloadTask = fs.downloadFile(mockSingle, '/todo.json', {
@@ -58,6 +59,11 @@ export async function testAsync() {
         // Modify the file
         postJson.title = 'happy-opfs';
         await fs.writeFile('/todo.json', JSON.stringify(postJson));
+
+        console.assert((await fs.readJsonFile<{
+            id: number;
+            title: string;
+        }>('/todo.json')).unwrap().title === 'happy-opfs');
 
         // Upload a file
         console.assert((await fs.uploadFile('/todo.json', mockAll).response).unwrap() instanceof Response);

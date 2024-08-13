@@ -223,6 +223,22 @@ export function readBlobFile(filePath: string): AsyncIOResult<File> {
 }
 
 /**
+ * Reads the content of a file at the specified path as a string and returns it as a JSON object.
+ *
+ * @param filePath - The path of the file to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a JSON object.
+ */
+export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
+    return (await readTextFile(filePath)).andThenAsync(async contents => {
+        try {
+            return Ok(JSON.parse(contents));
+        } catch (e) {
+            return Err(e as Error);
+        }
+    });
+}
+
+/**
  * Reads the content of a file at the specified path as a string.
  *
  * @param filePath - The path of the file to read.

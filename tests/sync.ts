@@ -26,6 +26,7 @@ function run() {
     console.assert(!fs.existsSync('/happy/opfs').unwrap());
     console.assert(fs.existsSync('/happy/b.txt').unwrap());
     console.assert(fs.isFileHandleLike(fs.statSync('/happy/b.txt').unwrap()));
+    console.assert(fs.readJsonFileSync<string>('/happy/b.txt').isErr());
 
     fs.emptyDirSync('/not-exists');
 
@@ -71,6 +72,11 @@ function run() {
         overwrite: false,
     });
     console.assert((fs.readFileSync('/happy-copy/b.txt')).unwrap().byteLength === 26);
+
+    fs.writeFileSync('/todo.json', JSON.stringify({ title: 'happy-opfs' }));
+    console.assert(fs.readJsonFileSync<{
+        title: string;
+    }>('/todo.json').unwrap().title === 'happy-opfs');
 
     for (const { path, handle } of fs.readDirSync(fs.ROOT_DIR, {
         recursive: true,
