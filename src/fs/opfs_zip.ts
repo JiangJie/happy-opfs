@@ -136,6 +136,7 @@ export async function zipFromUrl<T>(sourceUrl: string, zipFilePath?: string | Fs
         redirect: 'follow',
         ...requestInit,
         responseType: 'arraybuffer',
+        abortable: false,
     });
 
     return fetchRes.andThenAsync(buffer => {

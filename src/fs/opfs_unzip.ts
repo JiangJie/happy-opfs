@@ -76,6 +76,7 @@ export async function unzipFromUrl(zipFileUrl: string, targetPath: string, reque
         redirect: 'follow',
         ...requestInit,
         responseType: 'arraybuffer',
+        abortable: false,
     });
 
     return fetchRes.andThenAsync(buffer => {
