@@ -1,6 +1,6 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { CURRENT_DIR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
+import { ABORT_ERROR, CURRENT_DIR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
  * The root directory handle of the file system.
@@ -173,4 +173,15 @@ export async function getFinalResult(tasks: AsyncVoidIOResult[]): AsyncVoidIORes
     const fail = allRes.find(x => x.isErr());
 
     return fail ?? RESULT_VOID;
+}
+
+/**
+ * Creates an `AbortError` Error.
+ * @returns An `AbortError` Error.
+ */
+export function createAbortError(): Error {
+    const error = new Error();
+    error.name = ABORT_ERROR;
+
+    return error;
 }

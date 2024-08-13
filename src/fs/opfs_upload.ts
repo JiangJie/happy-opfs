@@ -2,8 +2,8 @@ import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
 import { basename } from '@std/path/posix';
 import { Err } from 'happy-rusty';
 import { assertFileUrl } from './assertions.ts';
-import { ABORT_ERROR } from './constants.ts';
 import type { UploadRequestInit } from './defines.ts';
+import { createAbortError } from './helpers.ts';
 import { readBlobFile } from './opfs_ext.ts';
 
 /**
@@ -29,9 +29,7 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
         return fileRes.andThenAsync(async file => {
             // maybe aborted
             if (aborted) {
-                const error = new Error();
-                error.name = ABORT_ERROR;
-                return Err(error);
+                return Err(createAbortError());
             }
 
             const {

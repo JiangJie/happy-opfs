@@ -2,8 +2,8 @@ import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
 import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
-import { ABORT_ERROR } from './constants.ts';
 import type { DownloadFileTempResponse, FsRequestInit } from './defines.ts';
+import { createAbortError } from './helpers.ts';
 import { writeFile } from './opfs_core.ts';
 import { generateTempPath } from './utils.ts';
 
@@ -57,9 +57,7 @@ export function downloadFile(fileUrl: string, filePath?: string | FsRequestInit,
 
             // maybe aborted
             if (aborted) {
-                const error = new Error();
-                error.name = ABORT_ERROR;
-                return Err(error);
+                return Err(createAbortError());
             }
 
             const writeRes = await writeFile(filePath, blob);
