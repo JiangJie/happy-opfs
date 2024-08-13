@@ -86,6 +86,8 @@
 | [readDirSync](functions/readDirSync.md) | Sync version of `readDir`. |
 | [readFile](functions/readFile.md) | Reads the content of a file at the specified path as a File. |
 | [readFileSync](functions/readFileSync.md) | Sync version of `readFile`. |
+| [readJsonFile](functions/readJsonFile.md) | Reads the content of a file at the specified path as a string and returns it as a JSON object. |
+| [readJsonFileSync](functions/readJsonFileSync.md) | Sync version of `readJsonFile`. |
 | [readTextFile](functions/readTextFile.md) | Reads the content of a file at the specified path as a string. |
 | [readTextFileSync](functions/readTextFileSync.md) | Sync version of `readTextFile`. |
 | [remove](functions/remove.md) | Removes a file or directory at the specified path same as `rm -rf`. |

@@ -27,7 +27,7 @@ Sync version of `readFile`.
 
 ### Defined in
 
-[worker/opfs\_worker\_adapter.ts:118](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/worker/opfs_worker_adapter.ts#L118)
+[worker/opfs\_worker\_adapter.ts:118](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L118)
 
 ## readFileSync(filePath, options)
 
@@ -48,7 +48,7 @@ function readFileSync(filePath, options): IOResult<string>
 
 ### Defined in
 
-[worker/opfs\_worker\_adapter.ts:121](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/worker/opfs_worker_adapter.ts#L121)
+[worker/opfs\_worker\_adapter.ts:121](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L121)
 
 ## readFileSync(filePath, options)
 
@@ -69,4 +69,4 @@ function readFileSync(filePath, options?): IOResult<ArrayBuffer>
 
 ### Defined in
 
-[worker/opfs\_worker\_adapter.ts:124](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/worker/opfs_worker_adapter.ts#L124)
+[worker/opfs\_worker\_adapter.ts:124](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L124)

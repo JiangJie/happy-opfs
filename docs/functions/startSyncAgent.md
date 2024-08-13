@@ -20,4 +20,4 @@ Start runner loop.
 
 ## Defined in
 
-[worker/opfs\_worker.ts:45](https://github.com/JiangJie/happy-opfs/blob/1fc39add615fcd3c1ee38b13edeb0d38cd3481c4/src/worker/opfs_worker.ts#L45)
+[worker/opfs\_worker.ts:45](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker.ts#L45)
