@@ -7,6 +7,11 @@ export { ABORT_ERROR, TIMEOUT_ERROR } from '@happy-ts/fetch-t';
 export const NOT_FOUND_ERROR = 'NotFoundError' as const;
 
 /**
+ * No strategy for the requested operation is viable.
+ */
+export const NO_STRATEGY_ERROR = "NoStrategyError" as const;
+
+/**
  * A constant representing the root directory path.
  */
 export const ROOT_DIR = '/' as const;
