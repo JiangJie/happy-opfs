@@ -1,7 +1,7 @@
 import { basename, dirname, join } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
-import { NOT_FOUND_ERROR } from './constants.ts';
+import {NO_STRATEGY_ERROR, NOT_FOUND_ERROR} from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './helpers.ts';
 import { isDirectoryHandle } from './utils.ts';
@@ -225,23 +225,53 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
     });
 
     return fileHandleRes.andThenAsync(async fileHandle => {
-        const writable = await fileHandle.createWritable({
-            keepExistingData: append,
-        });
-        const params: WriteParams = {
-            type: 'write',
-            data: contents,
-        };
+        if (typeof fileHandle.createWritable !== "undefined") {
+            const writable = await fileHandle.createWritable({
+                keepExistingData: append,
+            });
+            const params: WriteParams = {
+                type: 'write',
+                data: contents,
+            };
 
-        // append?
-        if (append) {
-            const { size } = await fileHandle.getFile();
-            params.position = size;
+            if (append) {
+                const { size } = await fileHandle.getFile();
+                params.position = size;
+            }
+
+            await writable.write(params);
+            await writable.close();
+
+            return RESULT_VOID;
+        } else if (typeof fileHandle.createSyncAccessHandle !== "undefined") {
+            const accessHandle = await fileHandle.createSyncAccessHandle()
+
+            let encoded = contents;
+            if (typeof encoded === "string") encoded = new TextEncoder().encode(encoded);
+            if (encoded instanceof Blob) encoded = await encoded.arrayBuffer()
+
+            if (!append) accessHandle.truncate(0)
+
+            let remaining: BufferSource | null = encoded
+            while (remaining) {
+                const written = accessHandle.write(encoded, {
+                    at: append ? accessHandle.getSize() : undefined
+                })
+
+                if (written !== encoded.byteLength) {
+                    const buffer = ArrayBuffer.isView(encoded) ? encoded.buffer : encoded
+                    remaining = buffer.slice(written)
+                    console.warn(`Write to OPFS was partial. Wrote ${written} of ${encoded.byteLength} bytes. Trying to write missing ${remaining.byteLength} bytes.`)
+                } else remaining = null
+            }
+
+            accessHandle.close()
+
+            return RESULT_VOID
+        } else {
+            const error = new Error("No file write strategy available.")
+            error.name = NO_STRATEGY_ERROR
+            return Err(error)
         }
-
-        await writable.write(params);
-        await writable.close();
-
-        return RESULT_VOID;
     });
 }
