@@ -72,7 +72,7 @@ export function getSyncMessenger(): SyncMessenger {
  * @param syncMessenger - SyncMessenger instance.
  */
 export function setSyncMessenger(syncMessenger: SyncMessenger): void {
-    invariant(syncMessenger instanceof SyncMessenger, () => 'syncMessenger must be instance of SyncMessenger');
+    invariant(syncMessenger != null, () => 'syncMessenger is null or undefined');
     messenger = syncMessenger;
 }
 
