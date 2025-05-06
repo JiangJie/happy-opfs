@@ -12,3 +12,4 @@ export * from './fs/support.ts';
 export * from './fs/utils.ts';
 export * from './worker/opfs_worker.ts';
 export * from './worker/opfs_worker_adapter.ts';
+export type { SyncMessenger } from './worker/shared.ts';

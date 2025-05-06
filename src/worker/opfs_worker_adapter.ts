@@ -56,6 +56,27 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
 }
 
 /**
+ * Get messenger instance.
+ * Use `setSyncMessenger` to pass the messenger to other environments for sharing.
+ *
+ * @returns SyncMessenger instance.
+ */
+export function getSyncMessenger(): SyncMessenger {
+    return messenger;
+}
+
+/**
+ * Set messenger instance.
+ * Use this method to share messenger with other environments.
+ *
+ * @param syncMessenger - SyncMessenger instance.
+ */
+export function setSyncMessenger(syncMessenger: SyncMessenger): void {
+    invariant(syncMessenger instanceof SyncMessenger, () => 'syncMessenger must be instance of SyncMessenger');
+    messenger = syncMessenger;
+}
+
+/**
  * Call worker I/O operation.
  * @param op - I/O operation enum.
  * @param args - I/O operation arguments.
