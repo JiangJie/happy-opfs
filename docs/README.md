@@ -1,8 +1,14 @@
-**happy-opfs** • **Docs**
+**happy-opfs**
 
 ***
 
 # happy-opfs
+
+## Classes
+
+| Class | Description |
+| ------ | ------ |
+| [SyncMessenger](classes/SyncMessenger.md) | Inspired by [memfs](https://github.com/streamich/memfs/blob/master/src/fsa-to-node/worker/SyncMessenger.ts). |
 
 ## Interfaces
 
@@ -67,15 +73,16 @@
 | [existsSync](functions/existsSync.md) | Sync version of `exists`. |
 | [generateTempPath](functions/generateTempPath.md) | Generate a temporary path but not create it. |
 | [getFileDataByHandle](functions/getFileDataByHandle.md) | Gets the data of a file handle. |
+| [getSyncMessenger](functions/getSyncMessenger.md) | Get messenger instance. Use `setSyncMessenger` to pass the messenger to other environments for sharing. |
 | [isDirectoryHandle](functions/isDirectoryHandle.md) | Whether the handle is a directory. |
 | [isFileHandle](functions/isFileHandle.md) | Whether the handle is a file. |
 | [isFileHandleLike](functions/isFileHandleLike.md) | Whether the handle is a file-like. |
 | [isOPFSSupported](functions/isOPFSSupported.md) | Checks if the Origin Private File System (OPFS) is supported in the current environment. |
 | [isTempPath](functions/isTempPath.md) | Check whether the path is a temporary path. |
-| [mkTemp](functions/mkTemp.md) | Create a temporary file or directory. |
-| [mkTempSync](functions/mkTempSync.md) | Sync version of `mkTemp`. |
 | [mkdir](functions/mkdir.md) | Creates a new directory at the specified path same as `mkdir -p`. |
 | [mkdirSync](functions/mkdirSync.md) | Sync version of `mkdir`. |
+| [mkTemp](functions/mkTemp.md) | Create a temporary file or directory. |
+| [mkTempSync](functions/mkTempSync.md) | Sync version of `mkTemp`. |
 | [move](functions/move.md) | Move a file or directory from an old path to a new path. |
 | [moveSync](functions/moveSync.md) | Sync version of `move`. |
 | [pruneTemp](functions/pruneTemp.md) | Prune the temporary directory and delete all expired files. |
@@ -84,7 +91,7 @@
 | [readBlobFileSync](functions/readBlobFileSync.md) | Sync version of `readBlobFile`. |
 | [readDir](functions/readDir.md) | Reads the contents of a directory at the specified path. |
 | [readDirSync](functions/readDirSync.md) | Sync version of `readDir`. |
-| [readFile](functions/readFile.md) | Reads the content of a file at the specified path as a File. |
+| [readFile](functions/readFile.md) | Reads the content of a file at the specified path with the specified options. |
 | [readFileSync](functions/readFileSync.md) | Sync version of `readFile`. |
 | [readJsonFile](functions/readJsonFile.md) | Reads the content of a file at the specified path as a string and returns it as a JSON object. |
 | [readJsonFileSync](functions/readJsonFileSync.md) | Sync version of `readJsonFile`. |
@@ -92,6 +99,7 @@
 | [readTextFileSync](functions/readTextFileSync.md) | Sync version of `readTextFile`. |
 | [remove](functions/remove.md) | Removes a file or directory at the specified path same as `rm -rf`. |
 | [removeSync](functions/removeSync.md) | Sync version of `remove`. |
+| [setSyncMessenger](functions/setSyncMessenger.md) | Set messenger instance. Use this method to share messenger with other environments. |
 | [startSyncAgent](functions/startSyncAgent.md) | Start worker agent. Listens to postMessage from main thread. Start runner loop. |
 | [stat](functions/stat.md) | Retrieves the status of a file or directory at the specified path. |
 | [statSync](functions/statSync.md) | Sync version of `stat`. |

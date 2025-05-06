@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -12,6 +12,8 @@ function writeFile(
    contents, 
    options?): AsyncVoidIOResult
 ```
+
+Defined in: [fs/opfs\_core.ts:217](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_core.ts#L217)
 
 Writes content to a file at the specified path.
 
@@ -28,7 +30,3 @@ Writes content to a file at the specified path.
 `AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully written.
-
-## Defined in
-
-[fs/opfs\_core.ts:217](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_core.ts#L217)

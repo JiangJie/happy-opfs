@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -8,7 +8,7 @@
 
 Sync version of `zip`.
 
-## zipSync(sourcePath, zipFilePath, options)
+## Call Signature
 
 ```ts
 function zipSync(
@@ -16,6 +16,8 @@ function zipSync(
    zipFilePath, 
    options?): VoidIOResult
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:294](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/worker/opfs_worker_adapter.ts#L294)
 
 Sync version of `zip`.
 
@@ -31,15 +33,13 @@ Sync version of `zip`.
 
 `VoidIOResult`
 
-### Defined in
-
-[worker/opfs\_worker\_adapter.ts:273](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L273)
-
-## zipSync(sourcePath, options)
+## Call Signature
 
 ```ts
-function zipSync(sourcePath, options?): IOResult<Uint8Array>
+function zipSync(sourcePath, options?): IOResult<Uint8Array<ArrayBufferLike>>
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:299](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/worker/opfs_worker_adapter.ts#L299)
 
 Sync version of `zip`.
 
@@ -52,8 +52,4 @@ Sync version of `zip`.
 
 ### Returns
 
-`IOResult`\<`Uint8Array`\>
-
-### Defined in
-
-[worker/opfs\_worker\_adapter.ts:278](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L278)
+`IOResult`\<`Uint8Array`\<`ArrayBufferLike`\>\>

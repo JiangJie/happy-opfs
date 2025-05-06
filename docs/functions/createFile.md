@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function createFile(filePath): AsyncVoidIOResult
 ```
+
+Defined in: [fs/opfs\_core.ts:15](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_core.ts#L15)
 
 Creates a new file at the specified path same as `touch`.
 
@@ -23,7 +25,3 @@ Creates a new file at the specified path same as `touch`.
 `AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully created.
-
-## Defined in
-
-[fs/opfs\_core.ts:15](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_core.ts#L15)

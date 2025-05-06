@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function isDirectoryHandle(handle): handle is FileSystemDirectoryHandle
 ```
+
+Defined in: [fs/utils.ts:79](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/utils.ts#L79)
 
 Whether the handle is a directory.
 
@@ -23,7 +25,3 @@ Whether the handle is a directory.
 `handle is FileSystemDirectoryHandle`
 
 `true` if the handle is a directory, otherwise `false`.
-
-## Defined in
-
-[fs/utils.ts:79](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/utils.ts#L79)

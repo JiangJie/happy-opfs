@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -6,11 +6,13 @@
 
 # Function: downloadFile()
 
-## downloadFile(fileUrl, requestInit)
+## Call Signature
 
 ```ts
 function downloadFile(fileUrl, requestInit?): FetchTask<DownloadFileTempResponse>
 ```
+
+Defined in: [fs/opfs\_download.ts:18](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_download.ts#L18)
 
 Downloads a file from a URL and saves it to a temporary file.
 The returned response will contain the temporary file path.
@@ -28,11 +30,7 @@ The returned response will contain the temporary file path.
 
 A task that can be aborted and contains the result of the download.
 
-### Defined in
-
-[fs/opfs\_download.ts:18](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_download.ts#L18)
-
-## downloadFile(fileUrl, filePath, requestInit)
+## Call Signature
 
 ```ts
 function downloadFile(
@@ -40,6 +38,8 @@ function downloadFile(
    filePath, 
 requestInit?): FetchTask<Response>
 ```
+
+Defined in: [fs/opfs\_download.ts:27](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_download.ts#L27)
 
 Downloads a file from a URL and saves it to the specified path.
 
@@ -56,7 +56,3 @@ Downloads a file from a URL and saves it to the specified path.
 `FetchTask`\<`Response`\>
 
 A task that can be aborted and contains the result of the download.
-
-### Defined in
-
-[fs/opfs\_download.ts:27](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_download.ts#L27)

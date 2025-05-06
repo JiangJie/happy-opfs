@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function assertAbsolutePath(path): void
 ```
+
+Defined in: [fs/assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/assertions.ts#L10)
 
 Asserts that the provided path is an absolute path.
 
@@ -25,7 +27,3 @@ Asserts that the provided path is an absolute path.
 ## Throws
 
 Will throw an error if the path is not an absolute path.
-
-## Defined in
-
-[fs/assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/assertions.ts#L10)

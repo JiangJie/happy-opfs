@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -20,11 +20,13 @@ The path of the file to read.
 
 Optional read options.
 
-## readFile(filePath, options)
+## Call Signature
 
 ```ts
 function readFile(filePath, options): AsyncIOResult<File>
 ```
+
+Defined in: [fs/opfs\_core.ts:80](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_core.ts#L80)
 
 Reads the content of a file at the specified path as a File.
 
@@ -55,15 +57,13 @@ The path of the file to read.
 
 Optional read options.
 
-### Defined in
-
-[fs/opfs\_core.ts:80](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_core.ts#L80)
-
-## readFile(filePath, options)
+## Call Signature
 
 ```ts
 function readFile(filePath, options): AsyncIOResult<string>
 ```
+
+Defined in: [fs/opfs\_core.ts:91](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_core.ts#L91)
 
 Reads the content of a file at the specified path as a string.
 
@@ -94,15 +94,13 @@ The path of the file to read.
 
 Optional read options.
 
-### Defined in
-
-[fs/opfs\_core.ts:91](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_core.ts#L91)
-
-## readFile(filePath, options)
+## Call Signature
 
 ```ts
 function readFile(filePath, options?): AsyncIOResult<ArrayBuffer>
 ```
+
+Defined in: [fs/opfs\_core.ts:102](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_core.ts#L102)
 
 Reads the content of a file at the specified path as an ArrayBuffer by default.
 
@@ -132,7 +130,3 @@ The path of the file to read.
 ### Param
 
 Optional read options.
-
-### Defined in
-
-[fs/opfs\_core.ts:102](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_core.ts#L102)

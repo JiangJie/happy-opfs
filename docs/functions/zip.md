@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Function: zip()
 
-## zip(sourcePath, zipFilePath, options)
+## Call Signature
 
 ```ts
 function zip(
@@ -14,6 +14,8 @@ function zip(
    zipFilePath, 
    options?): AsyncVoidIOResult
 ```
+
+Defined in: [fs/opfs\_zip.ts:49](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_zip.ts#L49)
 
 Zip a file or directory and write to a zip file.
 Equivalent to `zip -r <zipFilePath> <targetPath>`.
@@ -34,15 +36,13 @@ Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
 
 A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
 
-### Defined in
-
-[fs/opfs\_zip.ts:49](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_zip.ts#L49)
-
-## zip(sourcePath, options)
+## Call Signature
 
 ```ts
-function zip(sourcePath, options?): AsyncIOResult<Uint8Array>
+function zip(sourcePath, options?): AsyncIOResult<Uint8Array<ArrayBufferLike>>
 ```
+
+Defined in: [fs/opfs\_zip.ts:60](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_zip.ts#L60)
 
 Zip a file or directory and return the zip file data.
 Equivalent to `zip -r <zipFilePath> <targetPath>`.
@@ -58,10 +58,6 @@ Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
 
 ### Returns
 
-`AsyncIOResult`\<`Uint8Array`\>
+`AsyncIOResult`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
-
-### Defined in
-
-[fs/opfs\_zip.ts:60](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_zip.ts#L60)
