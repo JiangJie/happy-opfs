@@ -39,7 +39,7 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 ## Why Reference Deno Instead of Node.js
 
 -   The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.
--   Deno natively supports TypeScript, while Node.js currently does not without the use of additional tools.
+-   Previously, only Deno supported TypeScript natively. Node.js since has implemented type stripping.
 
 ## Synchronous support
 
