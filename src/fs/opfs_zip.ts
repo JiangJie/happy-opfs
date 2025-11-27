@@ -26,7 +26,7 @@ async function zipTo<T>(zippable: fflate.AsyncZippable, zipFilePath?: string): A
 
         // whether to write to file
         if (zipFilePath) {
-            const res = await writeFile(zipFilePath, u8a);
+            const res = await writeFile(zipFilePath, u8a as Uint8Array<ArrayBuffer>);
             future.resolve(res as IOResult<T>);
         } else {
             future.resolve(Ok(u8a as T));
