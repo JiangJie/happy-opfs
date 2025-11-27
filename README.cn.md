@@ -19,6 +19,12 @@ npm install --save happy-opfs
 jsr add @happy-js/happy-opfs
 ```
 
+> [!NOTE]
+> 本项目依赖了从 JSR 安装的 `@std/path` 包。为确保正确安装依赖，需要在 `package.json` 同级目录下创建 `.npmrc` 文件，并添加以下配置：
+> ```
+> @jsr:registry=https://npm.jsr.io
+> ```
+
 ## 什么是 OPFS
 
 OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) 的简称，旨在为浏览器环境提供一套文件系统 API 来操作本地文件。
@@ -39,7 +45,7 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 **支持**
 
 > [!NOTE]
-但更推荐使用异步接口，因为主线程并未提供同步接口，为了强制实现同步语法，需要将 I/O 操作移到 `Worker` 进行，同时主线程需要处于阻塞状态，直到 `Worker` 完成 I/O 操作，这显然会带来性能上的损失。
+> 但更推荐使用异步接口，因为主线程并未提供同步接口，为了强制实现同步语法，需要将 I/O 操作移到 `Worker` 进行，同时主线程需要处于阻塞状态，直到 `Worker` 完成 I/O 操作，这显然会带来性能上的损失。
 
 并且由于需要启动 `Worker，同步接口需要在` `Worker` 启动后才能使用，在此之前任何读写都会失败。
 
