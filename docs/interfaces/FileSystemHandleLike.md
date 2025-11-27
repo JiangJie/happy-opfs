@@ -6,7 +6,7 @@
 
 # Interface: FileSystemHandleLike
 
-Defined in: [fs/defines.ts:126](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/defines.ts#L126)
+Defined in: [fs/defines.ts:126](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L126)
 
 A handle to a file or directory returned by `statSync`.
 
@@ -18,5 +18,5 @@ A handle to a file or directory returned by `statSync`.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="kind"></a> `kind` | `FileSystemHandleKind` | The kind of the entry. | [fs/defines.ts:135](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/defines.ts#L135) |
-| <a id="name"></a> `name` | `string` | The name of the entry. | [fs/defines.ts:130](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/defines.ts#L130) |
+| <a id="kind"></a> `kind` | `FileSystemHandleKind` | The kind of the entry. | [fs/defines.ts:135](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L135) |
+| <a id="name"></a> `name` | `string` | The name of the entry. | [fs/defines.ts:130](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L130) |

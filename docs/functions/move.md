@@ -13,7 +13,7 @@ function move(
    options?): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_ext.ts:202](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_ext.ts#L202)
+Defined in: [fs/opfs\_ext.ts:202](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_ext.ts#L202)
 
 Move a file or directory from an old path to a new path.
 

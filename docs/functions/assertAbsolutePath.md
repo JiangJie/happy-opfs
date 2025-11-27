@@ -10,7 +10,7 @@
 function assertAbsolutePath(path): void
 ```
 
-Defined in: [fs/assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/assertions.ts#L10)
+Defined in: [fs/assertions.ts:10](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/assertions.ts#L10)
 
 Asserts that the provided path is an absolute path.
 

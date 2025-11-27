@@ -10,6 +10,6 @@
 type ReadFileContent = ArrayBuffer | File | string;
 ```
 
-Defined in: [fs/defines.ts:16](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/defines.ts#L16)
+Defined in: [fs/defines.ts:16](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L16)
 
 Represents the possible content types that can be read from a file.

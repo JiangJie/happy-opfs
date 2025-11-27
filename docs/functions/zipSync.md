@@ -17,7 +17,7 @@ function zipSync(
    options?): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:294](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/worker/opfs_worker_adapter.ts#L294)
+Defined in: [worker/opfs\_worker\_adapter.ts:294](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L294)
 
 Sync version of `zip`.
 
@@ -39,7 +39,7 @@ Sync version of `zip`.
 function zipSync(sourcePath, options?): IOResult<Uint8Array<ArrayBufferLike>>
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:299](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/worker/opfs_worker_adapter.ts#L299)
+Defined in: [worker/opfs\_worker\_adapter.ts:299](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L299)
 
 Sync version of `zip`.
 

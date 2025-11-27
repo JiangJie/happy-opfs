@@ -10,7 +10,7 @@
 function readBlobFile(filePath): AsyncIOResult<File>
 ```
 
-Defined in: [fs/opfs\_ext.ts:219](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_ext.ts#L219)
+Defined in: [fs/opfs\_ext.ts:219](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_ext.ts#L219)
 
 Reads the content of a file at the specified path as a File.
 

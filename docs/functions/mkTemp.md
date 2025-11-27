@@ -10,7 +10,7 @@
 function mkTemp(options?): AsyncIOResult<string>
 ```
 
-Defined in: [fs/opfs\_tmp.ts:14](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_tmp.ts#L14)
+Defined in: [fs/opfs\_tmp.ts:14](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_tmp.ts#L14)
 
 Create a temporary file or directory.
 

@@ -13,7 +13,7 @@ function uploadFile(
 requestInit?): FetchTask<Response>
 ```
 
-Defined in: [fs/opfs\_upload.ts:17](https://github.com/JiangJie/happy-opfs/blob/7d6f4902eef2f34868c7991f5501261a1d1ff67a/src/fs/opfs_upload.ts#L17)
+Defined in: [fs/opfs\_upload.ts:17](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_upload.ts#L17)
 
 Uploads a file from the specified path to a URL.
 
