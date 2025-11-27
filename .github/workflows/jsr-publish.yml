@@ -1,4 +1,4 @@
-# Publish to JSR.
+# This workflow will run tests using deno and then publish a package to JSR.
 
 name: JSR Package
 on:
@@ -16,12 +16,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@main
 
       - name: Publish JSR
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: latest
-      - run: npm install pnpm -g
-      - run: pnpm install
       - run: npx jsr publish --config jsr.json
