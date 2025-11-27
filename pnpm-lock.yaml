@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@happy-ts/fetch-t':
-        specifier: ^1.3.2
-        version: 1.3.2
+        specifier: ^1.3.3
+        version: 1.3.3
       '@std/path':
         specifier: npm:@jsr/std__path@^1.1.3
         version: '@jsr/std__path@1.1.3'
@@ -247,8 +247,8 @@ packages:
   '@gerrit0/mini-shiki@1.27.2':
     resolution: {integrity: sha512-GeWyHz8ao2gBiUW4OJnQDxXQnFgZQwwQk05t/CVVgNBN7/rK8XZ7xY6YhLVv9tH3VppWWmr9DCl3MwemB/i+Og==}
 
-  '@happy-ts/fetch-t@1.3.2':
-    resolution: {integrity: sha512-rtwpwv+v5e4V9L3HkJmq10vrWdNnDXWEQ26sI9z2/KBPliuCNJ1pGUioKkcSqE8355hLuKhwIlDoB4ggQ99nag==}
+  '@happy-ts/fetch-t@1.3.3':
+    resolution: {integrity: sha512-TXx6NfvhZFZiVgNplBJ3UWh7GcweU/R+6BympU4kKiz/OYjd+RGrf+YO/oKbgXhzNaq932zDO+uK435BjYLVYw==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -1787,7 +1787,7 @@ snapshots:
       '@shikijs/types': 1.29.2
       '@shikijs/vscode-textmate': 10.0.2
 
-  '@happy-ts/fetch-t@1.3.2':
+  '@happy-ts/fetch-t@1.3.3':
     dependencies:
       happy-rusty: 1.5.0
       tiny-invariant: 1.3.3

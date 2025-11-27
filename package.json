@@ -63,7 +63,7 @@
     "typescript-eslint": "^8.48.0"
   },
   "dependencies": {
-    "@happy-ts/fetch-t": "^1.3.2",
+    "@happy-ts/fetch-t": "^1.3.3",
     "@std/path": "npm:@jsr/std__path@^1.1.3",
     "fflate": "^0.8.2",
     "happy-rusty": "^1.5.0",
