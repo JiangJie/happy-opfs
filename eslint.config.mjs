@@ -1,13 +1,15 @@
 import eslint from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
-    eslint.configs.recommended,
-    ...tseslint.configs.strict,
-    ...tseslint.configs.stylistic,
+export default defineConfig([
+    globalIgnores(['dist']),
     {
-        ignores: [
-            'dist',
+        files: ['**/*.ts'],
+        extends: [
+            eslint.configs.recommended,
+            tseslint.configs.strict,
+            tseslint.configs.stylistic,
         ],
     },
-);
+]);
