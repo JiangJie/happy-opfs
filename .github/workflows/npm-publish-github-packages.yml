@@ -27,5 +27,3 @@ jobs:
       - run: npm install pnpm -g
       - run: pnpm install
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
