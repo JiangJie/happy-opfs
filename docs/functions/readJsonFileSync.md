@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function readJsonFileSync<T>(filePath): IOResult<T>
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:265](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L265)
 
 Sync version of `readJsonFile`.
 
@@ -27,7 +29,3 @@ Sync version of `readJsonFile`.
 ## Returns
 
 `IOResult`\<`T`\>
-
-## Defined in
-
-[worker/opfs\_worker\_adapter.ts:244](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L244)

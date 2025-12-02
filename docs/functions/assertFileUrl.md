@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function assertFileUrl(fileUrl): void
 ```
+
+Defined in: [fs/assertions.ts:21](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/assertions.ts#L21)
 
 Asserts that the provided URL is a valid file URL.
 
@@ -25,7 +27,3 @@ Asserts that the provided URL is a valid file URL.
 ## Throws
 
 Will throw an error if the URL is not a valid file URL.
-
-## Defined in
-
-[fs/assertions.ts:21](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/assertions.ts#L21)

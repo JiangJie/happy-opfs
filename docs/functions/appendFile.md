@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function appendFile(filePath, contents): AsyncVoidIOResult
 ```
+
+Defined in: [fs/opfs\_ext.ts:120](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_ext.ts#L120)
 
 Appends content to a file at the specified path.
 
@@ -24,7 +26,3 @@ Appends content to a file at the specified path.
 `AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the content was successfully appended.
-
-## Defined in
-
-[fs/opfs\_ext.ts:120](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_ext.ts#L120)

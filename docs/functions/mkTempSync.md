@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function mkTempSync(options?): IOResult<string>
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:242](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L242)
 
 Sync version of `mkTemp`.
 
@@ -21,7 +23,3 @@ Sync version of `mkTemp`.
 ## Returns
 
 `IOResult`\<`string`\>
-
-## Defined in
-
-[worker/opfs\_worker\_adapter.ts:221](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L221)

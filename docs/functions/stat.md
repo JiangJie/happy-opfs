@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function stat(path): AsyncIOResult<FileSystemHandle>
 ```
+
+Defined in: [fs/opfs\_core.ts:182](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_core.ts#L182)
 
 Retrieves the status of a file or directory at the specified path.
 
@@ -23,7 +25,3 @@ Retrieves the status of a file or directory at the specified path.
 `AsyncIOResult`\<`FileSystemHandle`\>
 
 A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
-
-## Defined in
-
-[fs/opfs\_core.ts:182](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_core.ts#L182)

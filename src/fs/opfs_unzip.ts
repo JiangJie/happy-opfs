@@ -29,7 +29,7 @@ async function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): Asy
         for (const path in unzipped) {
             // ignore directory
             if (path.at(-1) !== SEPARATOR) {
-                tasks.push(writeFile(join(targetPath, path), unzipped[path]));
+                tasks.push(writeFile(join(targetPath, path), unzipped[path] as Uint8Array<ArrayBuffer>));
             }
         }
 

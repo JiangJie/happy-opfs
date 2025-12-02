@@ -1,10 +1,12 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
 [happy-opfs](../README.md) / UploadRequestInit
 
 # Interface: UploadRequestInit
+
+Defined in: [fs/defines.ts:76](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L76)
 
 fetch-t request options for uploading files.
 
@@ -16,4 +18,4 @@ fetch-t request options for uploading files.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| `filename?` | `string` | The filename to use when uploading the file. | [fs/defines.ts:80](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/defines.ts#L80) |
+| <a id="filename"></a> `filename?` | `string` | The filename to use when uploading the file. | [fs/defines.ts:80](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L80) |

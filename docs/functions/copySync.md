@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -13,6 +13,8 @@ function copySync(
    options?): VoidIOResult
 ```
 
+Defined in: [worker/opfs\_worker\_adapter.ts:214](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L214)
+
 Sync version of `copy`.
 
 ## Parameters
@@ -26,7 +28,3 @@ Sync version of `copy`.
 ## Returns
 
 `VoidIOResult`
-
-## Defined in
-
-[worker/opfs\_worker\_adapter.ts:193](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L193)

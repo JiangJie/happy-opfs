@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -10,6 +10,8 @@
 function isOPFSSupported(): boolean
 ```
 
+Defined in: [fs/support.ts:6](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/support.ts#L6)
+
 Checks if the Origin Private File System (OPFS) is supported in the current environment.
 
 ## Returns
@@ -17,7 +19,3 @@ Checks if the Origin Private File System (OPFS) is supported in the current envi
 `boolean`
 
 A boolean indicating whether OPFS is supported.
-
-## Defined in
-
-[fs/support.ts:6](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/support.ts#L6)

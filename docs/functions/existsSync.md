@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function existsSync(path, options?): IOResult<boolean>
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:228](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L228)
 
 Sync version of `exists`.
 
@@ -22,7 +24,3 @@ Sync version of `exists`.
 ## Returns
 
 `IOResult`\<`boolean`\>
-
-## Defined in
-
-[worker/opfs\_worker\_adapter.ts:207](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L207)

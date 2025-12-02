@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -7,8 +7,10 @@
 # Function: getFileDataByHandle()
 
 ```ts
-function getFileDataByHandle(handle): Promise<Uint8Array>
+function getFileDataByHandle(handle): Promise<Uint8Array<ArrayBufferLike>>
 ```
+
+Defined in: [fs/utils.ts:97](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/utils.ts#L97)
 
 Gets the data of a file handle.
 
@@ -20,10 +22,6 @@ Gets the data of a file handle.
 
 ## Returns
 
-`Promise`\<`Uint8Array`\>
+`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 A promise that resolves to the data of the file.
-
-## Defined in
-
-[fs/utils.ts:97](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/utils.ts#L97)

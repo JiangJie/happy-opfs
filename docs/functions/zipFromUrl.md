@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Function: zipFromUrl()
 
-## zipFromUrl(sourceUrl, zipFilePath, requestInit)
+## Call Signature
 
 ```ts
 function zipFromUrl(
@@ -14,6 +14,8 @@ function zipFromUrl(
    zipFilePath, 
    requestInit?): AsyncVoidIOResult
 ```
+
+Defined in: [fs/opfs\_zip.ts:114](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_zip.ts#L114)
 
 Zip a remote file and write to a zip file.
 
@@ -33,15 +35,13 @@ Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
 
 A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
 
-### Defined in
-
-[fs/opfs\_zip.ts:114](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_zip.ts#L114)
-
-## zipFromUrl(sourceUrl, requestInit)
+## Call Signature
 
 ```ts
-function zipFromUrl(sourceUrl, requestInit?): AsyncIOResult<Uint8Array>
+function zipFromUrl(sourceUrl, requestInit?): AsyncIOResult<Uint8Array<ArrayBufferLike>>
 ```
+
+Defined in: [fs/opfs\_zip.ts:124](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_zip.ts#L124)
 
 Zip a remote file and return the zip file data.
 
@@ -56,10 +56,6 @@ Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
 
 ### Returns
 
-`AsyncIOResult`\<`Uint8Array`\>
+`AsyncIOResult`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
 A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
-
-### Defined in
-
-[fs/opfs\_zip.ts:124](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_zip.ts#L124)

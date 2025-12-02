@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -10,6 +10,8 @@
 function startSyncAgent(): void
 ```
 
+Defined in: [worker/opfs\_worker.ts:45](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker.ts#L45)
+
 Start worker agent.
 Listens to postMessage from main thread.
 Start runner loop.
@@ -17,7 +19,3 @@ Start runner loop.
 ## Returns
 
 `void`
-
-## Defined in
-
-[worker/opfs\_worker.ts:45](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker.ts#L45)

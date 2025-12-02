@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -6,11 +6,13 @@
 
 # Function: readFileSync()
 
-## readFileSync(filePath, options)
+## Call Signature
 
 ```ts
 function readFileSync(filePath, options): IOResult<FileLike>
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:139](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L139)
 
 Sync version of `readFile`.
 
@@ -25,15 +27,15 @@ Sync version of `readFile`.
 
 `IOResult`\<[`FileLike`](../interfaces/FileLike.md)\>
 
-### Defined in
-
-[worker/opfs\_worker\_adapter.ts:118](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L118)
-
-## readFileSync(filePath, options)
+## Call Signature
 
 ```ts
 function readFileSync(filePath, options): IOResult<string>
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:142](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L142)
+
+Sync version of `readFile`.
 
 ### Parameters
 
@@ -46,15 +48,15 @@ function readFileSync(filePath, options): IOResult<string>
 
 `IOResult`\<`string`\>
 
-### Defined in
-
-[worker/opfs\_worker\_adapter.ts:121](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L121)
-
-## readFileSync(filePath, options)
+## Call Signature
 
 ```ts
 function readFileSync(filePath, options?): IOResult<ArrayBuffer>
 ```
+
+Defined in: [worker/opfs\_worker\_adapter.ts:145](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L145)
+
+Sync version of `readFile`.
 
 ### Parameters
 
@@ -66,7 +68,3 @@ function readFileSync(filePath, options?): IOResult<ArrayBuffer>
 ### Returns
 
 `IOResult`\<`ArrayBuffer`\>
-
-### Defined in
-
-[worker/opfs\_worker\_adapter.ts:124](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/worker/opfs_worker_adapter.ts#L124)

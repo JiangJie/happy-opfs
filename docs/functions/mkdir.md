@@ -1,4 +1,4 @@
-[**happy-opfs**](../README.md) • **Docs**
+[**happy-opfs**](../README.md)
 
 ***
 
@@ -9,6 +9,8 @@
 ```ts
 function mkdir(dirPath): AsyncVoidIOResult
 ```
+
+Defined in: [fs/opfs\_core.ts:31](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_core.ts#L31)
 
 Creates a new directory at the specified path same as `mkdir -p`.
 
@@ -23,7 +25,3 @@ Creates a new directory at the specified path same as `mkdir -p`.
 `AsyncVoidIOResult`
 
 A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully created.
-
-## Defined in
-
-[fs/opfs\_core.ts:31](https://github.com/JiangJie/happy-opfs/blob/41bfb9280ee562c4a8708809308f96d116edb112/src/fs/opfs_core.ts#L31)

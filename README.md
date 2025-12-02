@@ -26,6 +26,12 @@ npm install --save happy-opfs
 jsr add @happy-js/happy-opfs
 ```
 
+> [!NOTE]
+> This package depends on `@std/path` from JSR. To ensure proper installation, make sure you have a `.npmrc` file in the same directory as your `package.json` with the following line:
+> ```
+> @jsr:registry=https://npm.jsr.io
+> ```
+
 ## What is OPFS
 
 OPFS stands for [Origin private file system](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system), which aims to provide a file system API for manipulating local files in the browser environment.
@@ -39,12 +45,12 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 ## Why Reference Deno Instead of Node.js
 
 -   The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.
--   Deno natively supports TypeScript, while Node.js currently does not without the use of additional tools.
+-   Previously, only Deno supported TypeScript natively. Node.js since has implemented type stripping.
 
 ## Synchronous support
 
 > [!NOTE]
-However, it is more recommended to use the asynchronous interface because the main thread does not provide a synchronous interface. In order to force the implementation of synchronous syntax, the I/O operation needs to be moved to the `Worker`, and the main thread needs to be blocked until the `Worker` completes the I/O operation, which obviously causes performance loss.
+> However, it is more recommended to use the asynchronous interface because the main thread does not provide a synchronous interface. In order to force the implementation of synchronous syntax, the I/O operation needs to be moved to the `Worker`, and the main thread needs to be blocked until the `Worker` completes the I/O operation, which obviously causes performance loss.
 
 And because the `Worker` needs to be started, the synchronous interface can only be used after the `Worker` is started, and any reading and writing before that will fail.
 

@@ -3,7 +3,7 @@
   "description": "A browser-compatible fs module inspired by the Deno fs and @std/fs APIs, based on OPFS implementation.",
   "author": "jiang115jie@gmail.com",
   "license": "GPL-3.0",
-  "version": "1.8.4",
+  "version": "1.9.0",
   "type": "module",
   "source": "src/mod.ts",
   "main": "dist/main.cjs",
@@ -51,28 +51,26 @@
     "unzip"
   ],
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
-    "@types/eslint__js": "^8.42.3",
-    "eslint": "^9.9.0",
-    "parcel": "^2.12.0",
-    "rollup": "^4.20.0",
-    "rollup-plugin-dts": "^6.1.1",
-    "rollup-plugin-esbuild": "^6.1.1",
-    "typedoc": "^0.26.5",
-    "typedoc-plugin-markdown": "^4.2.3",
-    "typescript": "^5.5.4",
-    "typescript-eslint": "^8.1.0"
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "parcel": "^2.16.1",
+    "rollup": "^4.53.3",
+    "rollup-plugin-dts": "^6.3.0",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "typedoc": "^0.27.9",
+    "typedoc-plugin-markdown": "4.4.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.0"
   },
   "dependencies": {
-    "@happy-ts/fetch-t": "^1.3.2",
-    "@std/path": "npm:@jsr/std__path@1.0.2",
+    "@happy-ts/fetch-t": "^1.3.3",
+    "@std/path": "npm:@jsr/std__path@^1.1.3",
     "fflate": "^0.8.2",
     "happy-rusty": "^1.5.0",
-    "tiny-future": "^1.0.0",
+    "tiny-future": "^1.1.0",
     "tiny-invariant": "^1.3.3"
   },
   "@parcel/resolver-default": {
     "packageExports": true
-  },
-  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
+  }
 }
