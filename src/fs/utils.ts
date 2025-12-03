@@ -3,10 +3,18 @@ import { TMP_DIR } from './constants.ts';
 import type { FileSystemFileHandleLike, FileSystemHandleLike, TempOptions } from './defines.ts';
 
 /**
- * Generate a temporary path but not create it.
+ * Generates a unique temporary file or directory path without creating it.
+ * Uses `crypto.randomUUID()` to ensure uniqueness.
  *
- * @param options - Options and flags.
- * @returns The temporary path.
+ * @param options - Options for generating the temporary path.
+ * @returns The generated temporary path string.
+ * @example
+ * ```typescript
+ * generateTempPath();                           // '/tmp/tmp-550e8400-e29b-41d4-a716-446655440000'
+ * generateTempPath({ basename: 'cache' });      // '/tmp/cache-550e8400-e29b-41d4-a716-446655440000'
+ * generateTempPath({ extname: '.txt' });        // '/tmp/tmp-550e8400-e29b-41d4-a716-446655440000.txt'
+ * generateTempPath({ isDirectory: true });      // '/tmp/tmp-550e8400-e29b-41d4-a716-446655440000'
+ * ```
  */
 export function generateTempPath(options?: TempOptions): string {
     const {
@@ -23,9 +31,15 @@ export function generateTempPath(options?: TempOptions): string {
 }
 
 /**
- * Check whether the path is a temporary path.
+ * Checks whether the path is a temporary path (under `/tmp`).
+ *
  * @param path - The path to check.
- * @returns `true` if the path is a temporary path otherwise `false`.
+ * @returns `true` if the path starts with `/tmp/`, otherwise `false`.
+ * @example
+ * ```typescript
+ * isTempPath('/tmp/file.txt');  // true
+ * isTempPath('/data/file.txt'); // false
+ * ```
  */
 export function isTempPath(path: string): boolean {
     return path.startsWith(`${ TMP_DIR }${ SEPARATOR }`);
@@ -54,7 +68,7 @@ export async function toFileSystemHandleLike(handle: FileSystemHandle): Promise<
         return fileHandle;
     }
 
-    const handleLike: FileSystemHandleLike= {
+    const handleLike: FileSystemHandleLike = {
         name,
         kind,
     };
@@ -63,36 +77,62 @@ export async function toFileSystemHandleLike(handle: FileSystemHandle): Promise<
 }
 
 /**
- * Whether the handle is a file.
- * @param handle - The handle which is a FileSystemHandle.
- * @returns `true` if the handle is a file, otherwise `false`.
+ * Checks whether the given handle is a file handle.
+ *
+ * @param handle - The `FileSystemHandle` to check.
+ * @returns `true` if the handle is a `FileSystemFileHandle`, otherwise `false`.
+ * @example
+ * ```typescript
+ * const handle = await stat('/path/to/file');
+ * if (handle.isOk() && isFileHandle(handle.unwrap())) {
+ *     console.log('This is a file');
+ * }
+ * ```
  */
 export function isFileHandle(handle: FileSystemHandle): handle is FileSystemFileHandle {
     return handle.kind === 'file';
 }
 
 /**
- * Whether the handle is a directory.
- * @param handle - The handle which is a FileSystemHandle.
- * @returns `true` if the handle is a directory, otherwise `false`.
+ * Checks whether the given handle is a directory handle.
+ *
+ * @param handle - The `FileSystemHandle` to check.
+ * @returns `true` if the handle is a `FileSystemDirectoryHandle`, otherwise `false`.
+ * @example
+ * ```typescript
+ * const handle = await stat('/path/to/dir');
+ * if (handle.isOk() && isDirectoryHandle(handle.unwrap())) {
+ *     console.log('This is a directory');
+ * }
+ * ```
  */
 export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSystemDirectoryHandle {
     return handle.kind === 'directory';
 }
 
 /**
- * Whether the handle is a file-like.
- * @param handle -  The handle which is a FileSystemHandleLike.
- * @returns `true` if the handle is a file, otherwise `false`.
+ * Checks whether the given handle-like object represents a file.
+ *
+ * @param handle - The `FileSystemHandleLike` object to check.
+ * @returns `true` if the handle-like object represents a file, otherwise `false`.
+ * @example
+ * ```typescript
+ * const handleLike = await statSync('/path/to/file').unwrap();
+ * if (isFileHandleLike(handleLike)) {
+ *     console.log(`File size: ${handleLike.size}`);
+ * }
+ * ```
  */
 export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSystemFileHandleLike {
     return handle.kind === 'file';
 }
 
 /**
- * Gets the data of a file handle.
- * @param handle - The file handle.
- * @returns A promise that resolves to the data of the file.
+ * Reads the binary data from a file handle.
+ *
+ * @param handle - The `FileSystemFileHandle` to read from.
+ * @returns A promise that resolves to the file content as a `Uint8Array`.
+ * @internal
  */
 export async function getFileDataByHandle(handle: FileSystemFileHandle): Promise<Uint8Array> {
     const file = await handle.getFile();

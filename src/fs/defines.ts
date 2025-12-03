@@ -1,17 +1,23 @@
 import type { FetchInit } from '@happy-ts/fetch-t';
 
 /**
- * Represents the possible content types that can be written to a file.
+ * Represents the possible content types that can be written to a file asynchronously.
+ * Includes `BufferSource` (ArrayBuffer or TypedArray), `Blob`, or `string`.
  */
 export type WriteFileContent = BufferSource | Blob | string;
 
 /**
- * Represents the possible content types that can be written synchronously to a file.
+ * Represents the possible content types that can be written to a file synchronously.
+ * Excludes `Blob` since it requires async operations to read.
  */
 export type WriteSyncFileContent = BufferSource | string;
 
 /**
  * Represents the possible content types that can be read from a file.
+ * The actual type depends on the `encoding` option:
+ * - `'binary'`: `ArrayBuffer`
+ * - `'utf8'`: `string`
+ * - `'blob'`: `File`
  */
 export type ReadFileContent = ArrayBuffer | File | string;
 
@@ -61,7 +67,10 @@ export interface ExistsOptions {
 }
 
 /**
- * Supported file encodings for reading and writing files.
+ * Supported file encodings for reading files.
+ * - `'binary'`: Returns raw `ArrayBuffer`
+ * - `'utf8'`: Returns decoded `string`
+ * - `'blob'`: Returns `File` object with metadata
  */
 export type FileEncoding = 'binary' | 'utf8' | 'blob';
 
@@ -85,9 +94,10 @@ export interface UploadRequestInit extends FsRequestInit {
  */
 export interface ReadDirOptions {
     /**
-     * Whether to recursively read the contents of directories.
+     * Whether to recursively read the contents of subdirectories.
+     * @defaultValue `false`
      */
-    recursive: boolean;
+    recursive?: boolean;
 }
 
 /**
@@ -95,59 +105,69 @@ export interface ReadDirOptions {
  */
 export interface ReadDirEntry {
     /**
-     * The relative path of the entry from readDir the path parameter.
+     * The relative path of the entry from the `readDir` path parameter.
+     * For non-recursive reads, this is just the entry name.
+     * For recursive reads, this includes the subdirectory path.
      */
     path: string;
 
     /**
-     * The handle of the entry.
+     * The `FileSystemHandle` of the entry.
+     * Use `isFileHandle()` or `isDirectoryHandle()` to determine the type.
      */
     handle: FileSystemHandle;
 }
 
 /**
  * An entry returned by `readDirSync`.
+ * Similar to `ReadDirEntry` but uses serializable `FileSystemHandleLike`.
  */
 export interface ReadDirEntrySync {
     /**
-     * The relative path of the entry from readDir the path parameter.
+     * The relative path of the entry from the `readDirSync` path parameter.
      */
     path: string;
 
     /**
-     * The handle of the entry.
+     * The serializable handle-like object of the entry.
+     * Use `isFileHandleLike()` to check if it's a file.
      */
     handle: FileSystemHandleLike;
 }
 
 /**
- * A handle to a file or directory returned by `statSync`.
+ * A serializable representation of a file or directory handle.
+ * Returned by `statSync` and used in `ReadDirEntrySync`.
  */
 export interface FileSystemHandleLike {
     /**
-     * The name of the entry.
+     * The name of the file or directory.
      */
     name: string;
 
     /**
-     * The kind of the entry.
+     * The kind of the entry: `'file'` or `'directory'`.
      */
     kind: FileSystemHandleKind;
 }
 
+/**
+ * A serializable representation of a file handle with additional metadata.
+ * Extends `FileSystemHandleLike` with file-specific properties.
+ */
 export interface FileSystemFileHandleLike extends FileSystemHandleLike {
     /**
-     * The type of the file.
+     * The MIME type of the file (e.g., `'text/plain'`, `'image/png'`).
      */
     type: string;
 
     /**
-     * The size of the file.
+     * The size of the file in bytes.
      */
     size: number;
 
     /**
-     * The last modified time of the file.
+     * The last modified timestamp in milliseconds since Unix epoch.
      */
     lastModified: number;
 }
@@ -198,21 +218,27 @@ export interface FileLike {
 }
 
 /**
- * Setup options of `connectSyncAgent`.
+ * Setup options for `connectSyncAgent`.
  */
 export interface SyncAgentOptions {
     /**
      * The worker to communicate with.
+     * Can be a `Worker` instance, a `URL`, or a URL string.
      */
     worker: Worker | URL | string;
 
     /**
-     * The length of the buffer to use for communication.
-    */
+     * The size of the `SharedArrayBuffer` in bytes.
+     * Larger buffers can handle larger file operations but consume more memory.
+     * Must be a multiple of 4 and greater than 16.
+     * @defaultValue `1048576` (1MB)
+     */
     bufferLength?: number;
 
     /**
-     * The timeout for operations.
+     * The timeout for each synchronous operation in milliseconds.
+     * If an operation takes longer than this, a `TimeoutError` is thrown.
+     * @defaultValue `1000` (1 second)
      */
     opTimeout?: number;
 }
@@ -222,10 +248,12 @@ export interface SyncAgentOptions {
  */
 export interface ZipOptions {
     /**
-     * Whether to preserve the root directory in the zip file.
+     * Whether to preserve the root directory name in the zip file structure.
+     * - `true`: `/path/to/folder` → `folder/file1.txt`, `folder/file2.txt`
+     * - `false`: `/path/to/folder` → `file1.txt`, `file2.txt`
      * @defaultValue `true`
      */
-    preserveRoot: boolean;
+    preserveRoot?: boolean;
 }
 
 /**

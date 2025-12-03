@@ -3,14 +3,17 @@ import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from
 import { ABORT_ERROR, CURRENT_DIR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
- * The root directory handle of the file system.
+ * The cached root directory handle of the file system.
+ * @internal
  */
 let fsRoot: FileSystemDirectoryHandle;
 
 /**
  * Retrieves the root directory handle of the file system.
+ * Uses a cached instance for better performance.
  *
  * @returns A promise that resolves to the `FileSystemDirectoryHandle` of the root directory.
+ * @internal
  */
 async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
     fsRoot ??= await navigator.storage.getDirectory();
@@ -21,7 +24,12 @@ async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
  * Checks if the provided path is the root directory path.
  *
  * @param path - The path to check.
- * @returns A boolean indicating whether the path is the root directory path.
+ * @returns `true` if the path equals `'/'`, otherwise `false`.
+ * @example
+ * ```typescript
+ * isRootPath('/');      // true
+ * isRootPath('/foo');   // false
+ * ```
  */
 export function isRootPath(path: string): boolean {
     return path === ROOT_DIR;
@@ -31,7 +39,12 @@ export function isRootPath(path: string): boolean {
  * Checks if the provided directory path is the current directory.
  *
  * @param dirPath - The directory path to check.
- * @returns A boolean indicating whether the directory path is the current directory.
+ * @returns `true` if the path equals `'.'`, otherwise `false`.
+ * @example
+ * ```typescript
+ * isCurrentDir('.');    // true
+ * isCurrentDir('/');    // false
+ * ```
  */
 export function isCurrentDir(dirPath: string): boolean {
     return dirPath === CURRENT_DIR;
@@ -154,33 +167,47 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
 }
 
 /**
- * Whether the error is a `NotFoundError`.
+ * Checks whether the error is a `NotFoundError`.
+ *
  * @param err - The error to check.
- * @returns `true` if the error is a `NotFoundError`, otherwise `false`.
+ * @returns `true` if the error's name is `'NotFoundError'`, otherwise `false`.
+ * @example
+ * ```typescript
+ * const result = await stat('/nonexistent');
+ * if (result.isErr() && isNotFoundError(result.unwrapErr())) {
+ *     console.log('File not found');
+ * }
+ * ```
  */
 export function isNotFoundError(err: Error): boolean {
     return err.name === NOT_FOUND_ERROR;
 }
 
 /**
- * Gets the final result from a list of AsyncVoidIOResult tasks.
- * @param tasks - The list of tasks to get the final result from.
- * @returns The final result from the list of tasks.
+ * Aggregates multiple async void I/O results into a single result.
+ * Returns the first error encountered, or a void success result if all tasks succeed.
+ *
+ * @param tasks - The list of async void I/O result promises to aggregate.
+ * @returns A promise that resolves to the first error result, or `RESULT_VOID` if all tasks succeed.
+ * @internal
  */
 export async function getFinalResult(tasks: AsyncVoidIOResult[]): AsyncVoidIOResult {
     const allRes = await Promise.all(tasks);
-    // anyone failed?
+    // Return the first error if any task failed
     const fail = allRes.find(x => x.isErr());
 
     return fail ?? RESULT_VOID;
 }
 
 /**
- * Creates an `AbortError` Error.
- * @returns An `AbortError` Error.
+ * Creates an `AbortError` instance.
+ * Used to signal that an operation was aborted.
+ *
+ * @returns An `Error` object with the name set to `'AbortError'`.
+ * @internal
  */
 export function createAbortError(): Error {
-    const error = new Error();
+    const error = new Error('Operation was aborted');
     error.name = ABORT_ERROR;
 
     return error;

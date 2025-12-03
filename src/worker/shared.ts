@@ -1,7 +1,9 @@
 import { sleepUntil } from './helpers.ts';
 
 /**
- * Async I/O operations called from main thread to worker thread.
+ * Enumeration of async I/O operations that can be called from main thread to worker thread.
+ * Each value corresponds to a specific file system operation.
+ * @internal
  */
 export const enum WorkerAsyncOp {
     // core
@@ -91,9 +93,16 @@ function getDecoder(): TextDecoder {
 }
 
 /**
- * Used to encode parameters and return values.
- * @param data - Any data to encode.
- * @returns Encoded binary data.
+ * Encodes data to a binary buffer for cross-thread communication.
+ * Uses JSON serialization internally.
+ *
+ * @template T - The type of data to encode.
+ * @param data - The data to encode.
+ * @returns A `Uint8Array` containing the encoded data.
+ * @example
+ * ```typescript
+ * const buffer = encodeToBuffer({ op: 'read', path: '/file.txt' });
+ * ```
  */
 export function encodeToBuffer<T>(data: T): Uint8Array {
     const str = JSON.stringify(data);
@@ -101,9 +110,16 @@ export function encodeToBuffer<T>(data: T): Uint8Array {
 }
 
 /**
- * Used to decode parameters and return values.
- * @param data - Binary data to decode.
- * @returns Decoded data.
+ * Decodes binary data back to its original type.
+ * Reverses the `encodeToBuffer` operation.
+ *
+ * @template T - The expected type of the decoded data.
+ * @param data - The binary data to decode.
+ * @returns The decoded data.
+ * @example
+ * ```typescript
+ * const result = decodeFromBuffer<{ op: string; path: string }>(buffer);
+ * ```
  */
 export function decodeFromBuffer<T>(data: Uint8Array): T {
     const str = decodeToString(data);
@@ -111,29 +127,48 @@ export function decodeFromBuffer<T>(data: Uint8Array): T {
 }
 
 /**
- * Commonly decode binary data to string.
- * @param data - Binary data to decode.
- * @returns Decoded string.
+ * Decodes binary data to a UTF-8 string.
+ *
+ * @param data - The binary data to decode.
+ * @returns The decoded string.
  */
 export function decodeToString(data: Uint8Array): string {
     return getDecoder().decode(data);
 }
 
 /**
+ * Messenger for synchronous communication between main thread and worker thread.
  * Inspired by [memfs](https://github.com/streamich/memfs/blob/master/src/fsa-to-node/worker/SyncMessenger.ts).
  *
- * Used both in main thread and worker thread.
+ * Uses a `SharedArrayBuffer` with lock-based synchronization via `Atomics`.
+ * The buffer layout is:
+ * - Bytes 0-3: Main thread lock (Int32)
+ * - Bytes 4-7: Worker thread lock (Int32)
+ * - Bytes 8-11: Data length (Int32)
+ * - Bytes 12-15: Reserved
+ * - Bytes 16+: Payload data
+ *
+ * @example
+ * ```typescript
+ * const sab = new SharedArrayBuffer(1024 * 1024);
+ * const messenger = new SyncMessenger(sab);
+ * ```
  */
 export class SyncMessenger {
-    // View of SharedArrayBuffer, used to communicate between main thread and worker.
+    /** Int32 view for lock operations. */
     readonly i32a: Int32Array;
-    // View of the same SharedArrayBuffer, used to read and write binary data.
+    /** Uint8 view for reading/writing binary payload. */
     readonly u8a: Uint8Array;
-    // 4 int: MAIN_LOCK_INDEX WORKER_LOCK_INDEX DATA_INDEX NOT_USE
+    /** Header size in bytes (4 Int32 values = 16 bytes). */
     readonly headerLength = 4 * 4;
-    // maximum length of data to be sent. If data is longer than this, it will throw an error.
+    /** Maximum payload size in bytes. */
     readonly maxDataLength: number;
 
+    /**
+     * Creates a new SyncMessenger.
+     *
+     * @param sab - The SharedArrayBuffer to use for communication.
+     */
     constructor(sab: SharedArrayBuffer) {
         this.i32a = new Int32Array(sab);
         this.u8a = new Uint8Array(sab);
@@ -142,11 +177,13 @@ export class SyncMessenger {
 }
 
 /**
- * Calls a function in worker thread from main tread and returns the result.
- * Used in main thread.
- * @param messenger - SyncMessenger
- * @param data - Request buffer which is encoded parameters.
- * @returns - Response buffer which is encoded return value.
+ * Sends a synchronous request from main thread to worker and waits for response.
+ * This function blocks the main thread until the worker responds.
+ *
+ * @param messenger - The `SyncMessenger` instance for communication.
+ * @param data - The request data as a `Uint8Array`.
+ * @returns The response data as a `Uint8Array`.
+ * @throws {RangeError} If the request data exceeds the buffer's maximum capacity.
  */
 export function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Array {
     const { i32a, u8a, headerLength, maxDataLength } = messenger;
@@ -179,10 +216,12 @@ export function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): 
 }
 
 /**
- * Responds to main thread from worker thread.
- * Used in worker thread.
- * @param messenger - SyncMessenger
- * @param transfer - Function to transfer request data.
+ * Handles incoming requests from main thread and sends responses.
+ * This function runs in the worker thread and processes one request.
+ *
+ * @param messenger - The `SyncMessenger` instance for communication.
+ * @param transfer - Async function that processes request data and returns response data.
+ * @throws {RangeError} If the response data exceeds the buffer's maximum capacity.
  */
 export async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
     const { i32a, u8a, headerLength, maxDataLength } = messenger;

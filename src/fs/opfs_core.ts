@@ -7,10 +7,19 @@ import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './help
 import { isDirectoryHandle } from './utils.ts';
 
 /**
- * Creates a new file at the specified path same as `touch`.
+ * Creates a new empty file at the specified path, similar to the `touch` command.
+ * If the file already exists, this operation succeeds without modifying it.
+ * Parent directories are created automatically if they don't exist.
  *
- * @param filePath - The path of the file to create.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully created.
+ * @param filePath - The absolute path of the file to create.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * const result = await createFile('/path/to/file.txt');
+ * if (result.isOk()) {
+ *     console.log('File created successfully');
+ * }
+ * ```
  */
 export async function createFile(filePath: string): AsyncVoidIOResult {
     assertAbsolutePath(filePath);
@@ -23,10 +32,18 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
 }
 
 /**
- * Creates a new directory at the specified path same as `mkdir -p`.
+ * Creates a new directory at the specified path, similar to `mkdir -p`.
+ * Creates all necessary parent directories if they don't exist.
  *
- * @param dirPath - The path where the new directory will be created.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully created.
+ * @param dirPath - The absolute path where the directory will be created.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * const result = await mkdir('/path/to/new/directory');
+ * if (result.isOk()) {
+ *     console.log('Directory created successfully');
+ * }
+ * ```
  */
 export async function mkdir(dirPath: string): AsyncVoidIOResult {
     assertAbsolutePath(dirPath);
@@ -135,10 +152,18 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 }
 
 /**
- * Removes a file or directory at the specified path same as `rm -rf`.
+ * Removes a file or directory at the specified path, similar to `rm -rf`.
+ * If the path doesn't exist, the operation succeeds silently.
  *
- * @param path - The path of the file or directory to remove.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully removed.
+ * @param path - The absolute path of the file or directory to remove.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * const result = await remove('/path/to/file-or-directory');
+ * if (result.isOk()) {
+ *     console.log('Removed successfully');
+ * }
+ * ```
  */
 export async function remove(path: string): AsyncVoidIOResult {
     assertAbsolutePath(path);
@@ -174,10 +199,19 @@ export async function remove(path: string): AsyncVoidIOResult {
 }
 
 /**
- * Retrieves the status of a file or directory at the specified path.
+ * Retrieves the `FileSystemHandle` for a file or directory at the specified path.
+ * Can be used to check the type (file or directory) and access metadata.
  *
- * @param path - The path of the file or directory to retrieve status for.
+ * @param path - The absolute path of the file or directory.
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
+ * @example
+ * ```typescript
+ * const result = await stat('/path/to/entry');
+ * if (result.isOk()) {
+ *     const handle = result.unwrap();
+ *     console.log(`Kind: ${handle.kind}, Name: ${handle.name}`);
+ * }
+ * ```
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     assertAbsolutePath(path);
@@ -192,27 +226,48 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     }
 
     return dirHandleRes.andThenAsync(async dirHandle => {
-        // currently only rely on traversal inspection
-        for await (const [name, handle] of dirHandle.entries()) {
-            if (name === childName) {
-                return Ok(handle);
-            }
+        // Try to get the handle directly instead of iterating
+        // First try as file, then as directory
+        try {
+            const fileHandle = await dirHandle.getFileHandle(childName);
+            return Ok(fileHandle);
+        } catch {
+        // Not a file, try as directory
         }
 
-        const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'.`);
-        err.name = NOT_FOUND_ERROR;
+        try {
+            const dirChildHandle = await dirHandle.getDirectoryHandle(childName);
+            return Ok(dirChildHandle);
+        } catch (e) {
+            const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'.`);
+            err.name = (e as DOMException).name;
 
-        return Err(err);
+            return Err(err);
+        }
     });
 }
 
 /**
  * Writes content to a file at the specified path.
+ * Creates the file and parent directories if they don't exist (unless `create: false`).
  *
- * @param filePath - The path of the file to write to.
- * @param contents - The content to write to the file.
+ * @param filePath - The absolute path of the file to write to.
+ * @param contents - The content to write (string, ArrayBuffer, TypedArray, or Blob).
  * @param options - Optional write options.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully written.
+ * @param options.create - Whether to create the file if it doesn't exist. Default: `true`.
+ * @param options.append - Whether to append to the file instead of overwriting. Default: `false`.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * // Write string content
+ * await writeFile('/path/to/file.txt', 'Hello, World!');
+ *
+ * // Write binary content
+ * await writeFile('/path/to/file.bin', new Uint8Array([1, 2, 3]));
+ *
+ * // Append to existing file
+ * await writeFile('/path/to/file.txt', '\nMore content', { append: true });
+ * ```
  */
 export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncVoidIOResult {
     assertAbsolutePath(filePath);
@@ -228,19 +283,23 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
         const writable = await fileHandle.createWritable({
             keepExistingData: append,
         });
-        const params: WriteParams = {
-            type: 'write',
-            data: contents,
-        };
 
-        // append?
-        if (append) {
-            const { size } = await fileHandle.getFile();
-            params.position = size;
+        try {
+            const params: WriteParams = {
+                type: 'write',
+                data: contents,
+            };
+
+            // append?
+            if (append) {
+                const { size } = await fileHandle.getFile();
+                params.position = size;
+            }
+
+            await writable.write(params);
+        } finally {
+            await writable.close();
         }
-
-        await writable.write(params);
-        await writable.close();
 
         return RESULT_VOID;
     });
