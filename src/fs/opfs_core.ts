@@ -246,26 +246,38 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
         } else if (typeof fileHandle.createSyncAccessHandle !== "undefined") {
             const accessHandle = await fileHandle.createSyncAccessHandle()
 
-            let encoded = contents;
-            if (typeof encoded === "string") encoded = new TextEncoder().encode(encoded);
-            if (encoded instanceof Blob) encoded = await encoded.arrayBuffer()
+            try {
+                let encoded = contents;
+                if (typeof encoded === "string") encoded = new TextEncoder().encode(encoded);
+                if (encoded instanceof Blob) encoded = await encoded.arrayBuffer()
 
-            if (!append) accessHandle.truncate(0)
+                if (!append) accessHandle.truncate(0)
 
-            let remaining: BufferSource | null = encoded
-            while (remaining) {
-                const written = accessHandle.write(encoded, {
-                    at: append ? accessHandle.getSize() : undefined
-                })
+                let remaining: BufferSource | null = encoded
+                while (remaining && remaining.byteLength > 0) {
+                    const written = accessHandle.write(remaining, {
+                        at: append ? accessHandle.getSize() : undefined
+                    })
 
-                if (written !== encoded.byteLength) {
-                    const buffer = ArrayBuffer.isView(encoded) ? encoded.buffer : encoded
-                    remaining = buffer.slice(written)
-                    console.warn(`Write to OPFS was partial. Wrote ${written} of ${encoded.byteLength} bytes. Trying to write missing ${remaining.byteLength} bytes.`)
-                } else remaining = null
+                    if (written < remaining.byteLength) {
+                        if (ArrayBuffer.isView(remaining)) {
+                            // Create a new view for the remaining part without copying buffer if possible,
+                            // or ensure we slice from the correct current offset.
+                            remaining = new Uint8Array(
+                                remaining.buffer,
+                                remaining.byteOffset + written,
+                                remaining.byteLength - written
+                            );
+                        } else {
+                            // It is an ArrayBuffer, slice creates a copy
+                            remaining = remaining.slice(written);
+                        }
+                        console.warn(`Write to OPFS was partial. Wrote ${written} bytes. Trying to write missing ${remaining.byteLength} bytes.`)
+                    } else remaining = null
+                }
+            } finally {
+                accessHandle.close()
             }
-
-            accessHandle.close()
 
             return RESULT_VOID
         } else {
