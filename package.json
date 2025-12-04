@@ -20,7 +20,6 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "clean": "pnpm dlx rimraf .parcel-cache dist",
     "check": "pnpm exec tsc --noEmit",
     "lint": "pnpm exec eslint .",
     "prebuild": "pnpm dlx rimraf dist && pnpm run check && pnpm run lint",
@@ -28,7 +27,13 @@
     "predocs": "pnpm dlx rimraf docs",
     "docs": "pnpm exec typedoc",
     "prepublishOnly": "pnpm run build",
-    "start": "pnpm exec parcel serve tests/index.html --dist-dir dist/dev --port 8443 --https --no-cache"
+    "start": "pnpm exec vite",
+    "test": "pnpm exec vitest run",
+    "test:watch": "pnpm exec vitest watch",
+    "test:ui": "pnpm exec vitest --ui",
+    "test:coverage": "pnpm exec vitest run --coverage",
+    "test:browser": "pnpm exec playwright test",
+    "test:report": "pnpm exec playwright show-report"
   },
   "repository": {
     "type": "git",
@@ -52,15 +57,21 @@
   ],
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.57.0",
+    "@vitest/browser-playwright": "^4.0.14",
+    "@vitest/coverage-v8": "^4.0.14",
+    "@vitest/ui": "^4.0.15",
     "eslint": "^9.39.1",
-    "parcel": "^2.16.1",
     "rollup": "^4.53.3",
     "rollup-plugin-dts": "^6.3.0",
     "rollup-plugin-esbuild": "^6.2.1",
     "typedoc": "^0.27.9",
     "typedoc-plugin-markdown": "4.4.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.0"
+    "typescript-eslint": "^8.48.0",
+    "vite": "^7.2.6",
+    "vite-plugin-mkcert": "^1.17.9",
+    "vitest": "^4.0.14"
   },
   "dependencies": {
     "@happy-ts/fetch-t": "^1.3.3",
@@ -69,8 +80,5 @@
     "happy-rusty": "^1.5.0",
     "tiny-future": "^1.1.0",
     "tiny-invariant": "^1.3.3"
-  },
-  "@parcel/resolver-default": {
-    "packageExports": true
   }
 }

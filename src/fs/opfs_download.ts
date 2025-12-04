@@ -8,6 +8,23 @@ import { writeFile } from './opfs_core.ts';
 import { generateTempPath } from './utils.ts';
 
 /**
+ * Extracts the file extension from a URL, excluding query parameters and hash.
+ *
+ * @param fileUrl - The URL to extract the extension from.
+ * @returns The file extension including the dot (e.g., '.txt'), or empty string if none.
+ * @internal
+ */
+function getExtFromUrl(fileUrl: string): string {
+    try {
+        const url = new URL(fileUrl);
+        return extname(url.pathname);
+    } catch {
+        // Fallback for invalid URLs
+        return extname(fileUrl.split('?')[0].split('#')[0]);
+    }
+}
+
+/**
  * Downloads a file from a URL and saves it to a temporary file.
  * The returned response will contain the temporary file path.
  *
@@ -34,9 +51,9 @@ export function downloadFile(fileUrl: string, filePath?: string | FsRequestInit,
         assertAbsolutePath(filePath);
     } else {
         requestInit = filePath;
-        // save to a temporary file, reserve the extension
+        // save to a temporary file, preserve the extension from URL
         filePath = generateTempPath({
-            extname: extname(fileUrl),
+            extname: getExtFromUrl(fileUrl),
         });
         saveToTemp = true;
     }

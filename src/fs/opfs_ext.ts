@@ -37,7 +37,7 @@ async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): As
  * @param srcFileHandle - The source file handle to move or copy.
  * @param destFilePath - The destination file path.
  */
-type handleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
+type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
 /**
  * Copy or move a file or directory from one path to another.
  * @param srcPath - The source file/directory path.
@@ -46,7 +46,7 @@ type handleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
  * @param overwrite - Whether to overwrite the destination file if it exists.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the file was successfully copied/moved.
  */
-async function mkDestFromSrc(srcPath: string, destPath: string, handler: handleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
+async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
     assertAbsolutePath(destPath);
 
     return (await stat(srcPath)).andThenAsync(async srcHandle => {
@@ -85,24 +85,24 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: handleS
 
             for await (const { path, handle } of entries) {
                 const newEntryPath = join(destPath, path);
+                // for parallel
+                tasks.push((async (): AsyncVoidIOResult => {
+                    let newPathExists = false;
 
-                let newPathExists = false;
-                if (destExists) {
-                    // should check every file
-                    const existsRes = await exists(newEntryPath);
-                    if (existsRes.isErr()) {
-                        tasks.push(Promise.resolve(existsRes.asErr()));
-                        continue;
+                    if (destExists) {
+                        // should check every file
+                        const existsRes = await exists(newEntryPath);
+                        if (existsRes.isErr()) {
+                            return existsRes.asErr();
+                        }
+
+                        newPathExists = existsRes.unwrap();
                     }
 
-                    newPathExists = existsRes.unwrap();
-                }
-
-                const res: AsyncVoidIOResult = isFileHandle(handle)
-                    ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : Promise.resolve(RESULT_VOID))
-                    : mkdir(newEntryPath);
-
-                tasks.push(res);
+                    return isFileHandle(handle)
+                        ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : Promise.resolve(RESULT_VOID))
+                        : mkdir(newEntryPath);
+                })());
             }
 
             return getFinalResult(tasks);
@@ -112,10 +112,15 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: handleS
 
 /**
  * Appends content to a file at the specified path.
+ * Creates the file if it doesn't exist.
  *
- * @param filePath - The path of the file to append to.
- * @param contents - The content to append to the file.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the content was successfully appended.
+ * @param filePath - The absolute path of the file to append to.
+ * @param contents - The content to append (string, ArrayBuffer, TypedArray, or Blob).
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * await appendFile('/path/to/log.txt', 'New log entry\n');
+ * ```
  */
 export function appendFile(filePath: string, contents: WriteFileContent): AsyncVoidIOResult {
     return writeFile(filePath, contents, {
@@ -124,14 +129,25 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncV
 }
 
 /**
- * Copies a file or directory from one location to another same as `cp -r`.
+ * Copies a file or directory from one location to another, similar to `cp -r`.
+ * Both source and destination must be of the same type (both files or both directories).
  *
- * Both `srcPath` and `destPath` must both be a file or directory.
+ * @param srcPath - The absolute source path.
+ * @param destPath - The absolute destination path.
+ * @param options - Optional copy options.
+ * @param options.overwrite - Whether to overwrite existing files. Default: `true`.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * // Copy a file
+ * await copy('/src/file.txt', '/dest/file.txt');
  *
- * @param srcPath - The source file/directory path.
- * @param destPath - The destination file/directory path.
- * @param options - The copy options.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the file was successfully copied.
+ * // Copy a directory
+ * await copy('/src/folder', '/dest/folder');
+ *
+ * // Copy without overwriting existing files
+ * await copy('/src', '/dest', { overwrite: false });
+ * ```
  */
 export async function copy(srcPath: string, destPath: string, options?: CopyOptions): AsyncVoidIOResult {
     const {
@@ -144,10 +160,15 @@ export async function copy(srcPath: string, destPath: string, options?: CopyOpti
 }
 
 /**
- * Empties the contents of a directory at the specified path.
+ * Empties all contents of a directory at the specified path.
+ * If the directory doesn't exist, it will be created.
  *
- * @param dirPath - The path of the directory to empty.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully emptied.
+ * @param dirPath - The absolute path of the directory to empty.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * await emptyDir('/path/to/directory');
+ * ```
  */
 export async function emptyDir(dirPath: string): AsyncVoidIOResult {
     const readDirRes = await readDir(dirPath);
@@ -169,9 +190,22 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
 /**
  * Checks whether a file or directory exists at the specified path.
  *
- * @param path - The path of the file or directory to check for existence.
+ * @param path - The absolute path to check.
  * @param options - Optional existence options.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory exists.
+ * @param options.isDirectory - If `true`, returns `true` only if the path is a directory.
+ * @param options.isFile - If `true`, returns `true` only if the path is a file.
+ * @returns A promise that resolves to an `AsyncIOResult<boolean>` indicating existence.
+ * @example
+ * ```typescript
+ * // Check if path exists (file or directory)
+ * const exists = await exists('/path/to/entry');
+ *
+ * // Check if path exists and is a file
+ * const isFile = await exists('/path/to/file', { isFile: true });
+ *
+ * // Check if path exists and is a directory
+ * const isDir = await exists('/path/to/dir', { isDirectory: true });
+ * ```
  */
 export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
     const { isDirectory = false, isFile = false } = options ?? {};
@@ -192,12 +226,22 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
 }
 
 /**
- * Move a file or directory from an old path to a new path.
+ * Moves a file or directory from one location to another.
+ * Both source and destination must be of the same type (both files or both directories).
  *
- * @param srcPath - The current path of the file or directory.
- * @param destPath - The new path of the file or directory.
- * @param options - Options of move.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully moved.
+ * @param srcPath - The absolute source path.
+ * @param destPath - The absolute destination path.
+ * @param options - Optional move options.
+ * @param options.overwrite - Whether to overwrite existing files. Default: `true`.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * // Move/rename a file
+ * await move('/old/path/file.txt', '/new/path/file.txt');
+ *
+ * // Move a directory
+ * await move('/old/folder', '/new/folder');
+ * ```
  */
 export async function move(srcPath: string, destPath: string, options?: MoveOptions): AsyncVoidIOResult {
     const {
@@ -211,10 +255,18 @@ export async function move(srcPath: string, destPath: string, options?: MoveOpti
 }
 
 /**
- * Reads the content of a file at the specified path as a File.
+ * Reads the content of a file as a `File` object (Blob with name).
  *
- * @param filePath - The path of the file to read.
- * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a File.
+ * @param filePath - The absolute path of the file to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `File` object.
+ * @example
+ * ```typescript
+ * const result = await readBlobFile('/path/to/file.txt');
+ * if (result.isOk()) {
+ *     const file = result.unwrap();
+ *     console.log(file.name, file.size, file.type);
+ * }
+ * ```
  */
 export function readBlobFile(filePath: string): AsyncIOResult<File> {
     return readFile(filePath, {
@@ -223,13 +275,25 @@ export function readBlobFile(filePath: string): AsyncIOResult<File> {
 }
 
 /**
- * Reads the content of a file at the specified path as a string and returns it as a JSON object.
+ * Reads a JSON file and parses its content.
  *
- * @param filePath - The path of the file to read.
- * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a JSON object.
+ * @template T - The expected type of the parsed JSON object.
+ * @param filePath - The path of the JSON file to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the parsed JSON object.
+ * @example
+ * ```typescript
+ * interface Config {
+ *     name: string;
+ *     version: number;
+ * }
+ * const result = await readJsonFile<Config>('/config.json');
+ * if (result.isOk()) {
+ *     console.log(result.unwrap().name);
+ * }
+ * ```
  */
 export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
-    return (await readTextFile(filePath)).andThenAsync(async contents => {
+    return (await readTextFile(filePath)).andThen(contents => {
         try {
             return Ok(JSON.parse(contents));
         } catch (e) {
@@ -239,13 +303,45 @@ export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
 }
 
 /**
- * Reads the content of a file at the specified path as a string.
+ * Reads a file as a UTF-8 string.
  *
- * @param filePath - The path of the file to read.
+ * @param filePath - The absolute path of the file to read.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a string.
+ * @example
+ * ```typescript
+ * const result = await readTextFile('/path/to/file.txt');
+ * if (result.isOk()) {
+ *     console.log(result.unwrap());
+ * }
+ * ```
  */
 export function readTextFile(filePath: string): AsyncIOResult<string> {
     return readFile(filePath, {
         encoding: 'utf8',
     });
+}
+
+/**
+ * Writes an object to a file as JSON.
+ *
+ * @template T - The type of the object to write.
+ * @param filePath - The absolute path of the file to write.
+ * @param data - The object to serialize and write.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * const config = { name: 'app', version: 1 };
+ * const result = await writeJsonFile('/config.json', config);
+ * if (result.isOk()) {
+ *     console.log('Config saved');
+ * }
+ * ```
+ */
+export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
+    try {
+        const contents = JSON.stringify(data);
+        return writeFile(filePath, contents);
+    } catch (e) {
+        return Promise.resolve(Err(e as Error));
+    }
 }

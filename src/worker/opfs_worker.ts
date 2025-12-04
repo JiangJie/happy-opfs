@@ -10,7 +10,8 @@ import { serializeError, serializeFile } from './helpers.ts';
 import { decodeFromBuffer, encodeToBuffer, respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared.ts';
 
 /**
- * Async I/O operations which allow to call from main thread.
+ * Mapping of async operation enums to their corresponding functions.
+ * @internal
  */
 const asyncOps = {
     [WorkerAsyncOp.createFile]: createFile,
@@ -38,11 +39,18 @@ const asyncOps = {
 let messenger: SyncMessenger;
 
 /**
- * Start worker agent.
- * Listens to postMessage from main thread.
- * Start runner loop.
+ * Starts the sync agent in a Web Worker.
+ * Listens for a SharedArrayBuffer from the main thread and begins processing requests.
+ *
+ * @throws {Error} If called outside a Worker context or if already started.
+ * @example
+ * ```typescript
+ * // In worker.js
+ * import { startSyncAgent } from 'happy-opfs';
+ * startSyncAgent();
+ * ```
  */
-export function startSyncAgent() {
+export function startSyncAgent(): void {
     if (typeof window !== 'undefined') {
         throw new Error('Only can use in worker');
     }
@@ -70,7 +78,9 @@ export function startSyncAgent() {
 }
 
 /**
- * Run worker loop.
+ * Main loop that continuously processes requests from the main thread.
+ * Runs indefinitely until the worker is terminated.
+ * @internal
  */
 async function runWorkerLoop(): Promise<void> {
     // loop forever
