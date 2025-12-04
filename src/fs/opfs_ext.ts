@@ -37,7 +37,7 @@ async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): As
  * @param srcFileHandle - The source file handle to move or copy.
  * @param destFilePath - The destination file path.
  */
-type handleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
+type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
 /**
  * Copy or move a file or directory from one path to another.
  * @param srcPath - The source file/directory path.
@@ -46,7 +46,7 @@ type handleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
  * @param overwrite - Whether to overwrite the destination file if it exists.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the file was successfully copied/moved.
  */
-async function mkDestFromSrc(srcPath: string, destPath: string, handler: handleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
+async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
     assertAbsolutePath(destPath);
 
     return (await stat(srcPath)).andThenAsync(async srcHandle => {
@@ -85,24 +85,24 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: handleS
 
             for await (const { path, handle } of entries) {
                 const newEntryPath = join(destPath, path);
+                // for parallel
+                tasks.push((async (): AsyncVoidIOResult => {
+                    let newPathExists = false;
 
-                let newPathExists = false;
-                if (destExists) {
-                    // should check every file
-                    const existsRes = await exists(newEntryPath);
-                    if (existsRes.isErr()) {
-                        tasks.push(Promise.resolve(existsRes.asErr()));
-                        continue;
+                    if (destExists) {
+                        // should check every file
+                        const existsRes = await exists(newEntryPath);
+                        if (existsRes.isErr()) {
+                            return existsRes.asErr();
+                        }
+
+                        newPathExists = existsRes.unwrap();
                     }
 
-                    newPathExists = existsRes.unwrap();
-                }
-
-                const res: AsyncVoidIOResult = isFileHandle(handle)
-                    ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : Promise.resolve(RESULT_VOID))
-                    : mkdir(newEntryPath);
-
-                tasks.push(res);
+                    return isFileHandle(handle)
+                        ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : Promise.resolve(RESULT_VOID))
+                        : mkdir(newEntryPath);
+                })());
             }
 
             return getFinalResult(tasks);
