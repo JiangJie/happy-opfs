@@ -1,2 +1,11 @@
 node_modules
 /dist
+
+# Test coverage
+coverage
+
+# Test results
+test-results
+playwright-report
+
+__screenshots__

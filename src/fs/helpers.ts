@@ -1,6 +1,6 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { ABORT_ERROR, CURRENT_DIR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
+import { ABORT_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
  * The cached root directory handle of the file system.
@@ -33,21 +33,6 @@ async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
  */
 export function isRootPath(path: string): boolean {
     return path === ROOT_DIR;
-}
-
-/**
- * Checks if the provided directory path is the current directory.
- *
- * @param dirPath - The directory path to check.
- * @returns `true` if the path equals `'.'`, otherwise `false`.
- * @example
- * ```typescript
- * isCurrentDir('.');    // true
- * isCurrentDir('/');    // false
- * ```
- */
-export function isCurrentDir(dirPath: string): boolean {
-    return dirPath === CURRENT_DIR;
 }
 
 /**

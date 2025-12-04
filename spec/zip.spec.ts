@@ -1,0 +1,142 @@
+/**
+ * Zip/Unzip operations tests using Vitest
+ * Tests: zip, unzip, zipFromUrl, unzipFromUrl
+ */
+import { afterEach, describe, expect, it } from 'vitest';
+import * as fs from '../src/mod.ts';
+
+const mockZipUrl = 'https://raw.githubusercontent.com/JiangJie/happy-opfs/main/tests/test.zip';
+
+describe('OPFS Zip Operations', () => {
+    afterEach(async () => {
+        await fs.remove('/zip-test');
+        await fs.remove('/test.zip');
+        await fs.remove('/zip-buffer');
+        await fs.remove('/zip-root');
+        await fs.remove('/with-root.zip');
+        await fs.remove('/without-root.zip');
+        await fs.remove('/single-file.txt');
+        await fs.remove('/single.zip');
+        await fs.remove('/unzip-src');
+        await fs.remove('/unzip-test.zip');
+        await fs.remove('/unzip-dest');
+        await fs.remove('/url-unzip');
+        await fs.remove('/url-unzip-progress');
+        await fs.remove('/url.zip');
+    });
+
+    describe('zip', () => {
+        it('should zip a directory to file', async () => {
+            await fs.mkdir('/zip-test');
+            await fs.writeFile('/zip-test/file1.txt', 'content1');
+            await fs.writeFile('/zip-test/file2.txt', 'content2');
+            await fs.mkdir('/zip-test/sub');
+            await fs.writeFile('/zip-test/sub/file3.txt', 'content3');
+
+            const result = await fs.zip('/zip-test', '/test.zip');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/test.zip')).unwrap()).toBe(true);
+        });
+
+        it('should zip a directory to ArrayBuffer', async () => {
+            await fs.mkdir('/zip-buffer');
+            await fs.writeFile('/zip-buffer/file.txt', 'buffer content');
+
+            const result = await fs.zip('/zip-buffer');
+            const buffer = result.unwrap();
+
+            expect(buffer instanceof Uint8Array).toBe(true);
+            expect(buffer.byteLength).toBeGreaterThan(0);
+        });
+
+        it('should zip with preserveRoot option', async () => {
+            await fs.mkdir('/zip-root');
+            await fs.writeFile('/zip-root/file.txt', 'root content');
+
+            // With preserveRoot (default)
+            const zipWithRoot = await fs.zip('/zip-root', '/with-root.zip');
+            expect(zipWithRoot.isOk()).toBe(true);
+
+            // Without preserveRoot
+            const zipWithoutRoot = await fs.zip('/zip-root', '/without-root.zip', { preserveRoot: false });
+            expect(zipWithoutRoot.isOk()).toBe(true);
+
+            // Sizes should be different due to different path structures
+            const sizeWith = (await fs.readFile('/with-root.zip')).unwrap().byteLength;
+            const sizeWithout = (await fs.readFile('/without-root.zip')).unwrap().byteLength;
+            expect(sizeWith).not.toBe(sizeWithout);
+        });
+
+        it('should zip a single file', async () => {
+            await fs.writeFile('/single-file.txt', 'single file content');
+
+            const result = await fs.zip('/single-file.txt', '/single.zip');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/single.zip')).unwrap()).toBe(true);
+        });
+    });
+
+    describe('unzip', () => {
+        it('should unzip to a directory', async () => {
+            // Create and zip a directory
+            await fs.mkdir('/unzip-src');
+            await fs.writeFile('/unzip-src/file1.txt', 'content1');
+            await fs.writeFile('/unzip-src/file2.txt', 'content2');
+            await fs.zip('/unzip-src', '/unzip-test.zip');
+
+            // Unzip
+            const result = await fs.unzip('/unzip-test.zip', '/unzip-dest');
+            expect(result.isOk()).toBe(true);
+
+            // Verify extracted contents
+            expect((await fs.exists('/unzip-dest/unzip-src/file1.txt')).unwrap()).toBe(true);
+            expect((await fs.exists('/unzip-dest/unzip-src/file2.txt')).unwrap()).toBe(true);
+
+            const content = await fs.readTextFile('/unzip-dest/unzip-src/file1.txt');
+            expect(content.unwrap()).toBe('content1');
+        });
+    });
+
+    describe('unzipFromUrl', () => {
+        it('should unzip from URL', async () => {
+            const result = await fs.unzipFromUrl(mockZipUrl, '/url-unzip');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/url-unzip')).unwrap()).toBe(true);
+        });
+
+        it('should unzip from URL with download progress', async () => {
+            let progressCalled = false;
+
+            const result = await fs.unzipFromUrl(mockZipUrl, '/url-unzip-progress', {
+                onProgress: (progressResult) => {
+                    progressResult.inspect(() => {
+                        progressCalled = true;
+                    });
+                },
+            });
+            expect(result.isOk()).toBe(true);
+
+            expect(progressCalled).toBe(true);
+        });
+    });
+
+    describe('zipFromUrl', () => {
+        it('should download and save zip from URL', async () => {
+            const result = await fs.zipFromUrl(mockZipUrl, '/url.zip');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/url.zip')).unwrap()).toBe(true);
+        });
+
+        it('should download zip as ArrayBuffer', async () => {
+            const result = await fs.zipFromUrl(mockZipUrl);
+            const buffer = result.unwrap();
+
+            expect(buffer instanceof Uint8Array).toBe(true);
+            expect(buffer.byteLength).toBeGreaterThan(0);
+        });
+    });
+});
