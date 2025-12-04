@@ -13,7 +13,7 @@ import { readFile, writeFile } from './opfs_core.ts';
  * @param buffer - Zipped ArrayBuffer.
  * @param targetPath - Target directory path.
  */
-async function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoidIOResult {
+function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoidIOResult {
     const data = new Uint8Array(buffer);
 
     const future = new Future<VoidIOResult>();
@@ -36,7 +36,7 @@ async function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): Asy
         future.resolve(getFinalResult(tasks));
     });
 
-    return await future.promise;
+    return future.promise;
 }
 
 /**
