@@ -76,16 +76,28 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
     });
 
     return readDirRes.andThenAsync(async entries => {
-        try {
-            for await (const { handle } of entries) {
-                if (isFileHandle(handle) && (await handle.getFile()).lastModified <= expired.getTime()) {
+        const tasks: Promise<void>[] = [];
+
+        for await (const { handle } of entries) {
+            if (!isFileHandle(handle)) {
+                continue;
+            }
+
+            tasks.push((async () => {
+                if ((await handle.getFile()).lastModified <= expired.getTime()) {
                     // TODO ts not support yet
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     await (handle as any).remove();
                 }
+            })());
+        }
+
+        if (tasks.length > 0) {
+            try {
+                await Promise.all(tasks);
+            } catch (e) {
+                return Err(e as DOMException);
             }
-        } catch (e) {
-            return Err(e as DOMException);
         }
 
         return RESULT_VOID;

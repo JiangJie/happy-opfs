@@ -87,14 +87,22 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
 
             // default to preserve root
             const preserveRoot = options?.preserveRoot ?? true;
+            const tasks: Promise<void>[] = [];
 
             for await (const { path, handle } of readDirRes.unwrap()) {
-                // path
-                if (isFileHandle(handle)) {
+                if (!isFileHandle(handle)) {
+                    continue;
+                }
+
+                tasks.push((async () => {
                     const entryName = preserveRoot ? join(sourceName, path) : path;
                     const data = await getFileDataByHandle(handle);
                     zippable[entryName] = data;
-                }
+                })());
+            }
+
+            if (tasks.length > 0) {
+                await Promise.all(tasks);
             }
         }
 
