@@ -1,4 +1,5 @@
 import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
+import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import type { CopyOptions, ExistsOptions, FileLike, FileSystemHandleLike, MoveOptions, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
 import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
@@ -34,36 +35,36 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
         throw new Error('Main messenger already started');
     }
 
-    return new Promise(resolve => {
-        const {
-            worker,
-            bufferLength = 1024 * 1024,
-            opTimeout = 1000,
-        } = options;
+    const {
+        worker,
+        bufferLength = 1024 * 1024,
+        opTimeout = 1000,
+    } = options;
 
-        // check parameters
-        invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be Worker or valid URL(string)');
-        invariant(bufferLength > 16 && bufferLength % 4 === 0, () => 'bufferLength must be a multiple of 4')
-        invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
+    // check parameters
+    invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be Worker or valid URL(string)');
+    invariant(bufferLength > 16 && bufferLength % 4 === 0, () => 'bufferLength must be a multiple of 4')
+    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
 
-        setGlobalOpTimeout(opTimeout);
+    setGlobalOpTimeout(opTimeout);
 
-        const workerAdapter = worker instanceof Worker
-            ? worker
-            : new Worker(worker);
+    const sab = new SharedArrayBuffer(bufferLength);
 
-        const sab = new SharedArrayBuffer(bufferLength);
+    const future = new Future<void>();
 
-        workerAdapter.addEventListener('message', (event: MessageEvent<boolean>) => {
-            if (event.data) {
-                messenger = new SyncMessenger(sab);
+    const workerAdapter = worker instanceof Worker
+        ? worker
+        : new Worker(worker);
+    workerAdapter.addEventListener('message', (event: MessageEvent<boolean>) => {
+        if (event.data) {
+            messenger = new SyncMessenger(sab);
 
-                resolve();
-            }
-        });
-
-        workerAdapter.postMessage(sab);
+            future.resolve();
+        }
     });
+    workerAdapter.postMessage(sab);
+
+    return future.promise;
 }
 
 /**
