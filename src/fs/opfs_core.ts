@@ -304,3 +304,81 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
         return RESULT_VOID;
     });
 }
+
+/**
+ * Opens a file and returns a readable stream for reading its contents.
+ * Useful for processing large files without loading them entirely into memory.
+ *
+ * @param filePath - The absolute path of the file to read.
+ * @returns A promise that resolves to an `AsyncIOResult` containing a `ReadableStream<Uint8Array>`.
+ * @example
+ * ```typescript
+ * const result = await readFileStream('/path/to/large-file.bin');
+ * if (result.isOk()) {
+ *     const stream = result.unwrap();
+ *     const reader = stream.getReader();
+ *     while (true) {
+ *         const { done, value } = await reader.read();
+ *         if (done) break;
+ *         // Process chunk
+ *         console.log('Received chunk:', value.length, 'bytes');
+ *     }
+ * }
+ * ```
+ */
+export async function readFileStream(filePath: string): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>> {
+    assertAbsolutePath(filePath);
+
+    const fileHandleRes = await getFileHandle(filePath);
+
+    return fileHandleRes.andThenAsync(async fileHandle => {
+        const file = await fileHandle.getFile();
+        return Ok(file.stream());
+    });
+}
+
+/**
+ * Opens a file and returns a writable stream for writing contents.
+ * Useful for writing large files without loading them entirely into memory.
+ * The caller is responsible for closing the stream when done.
+ *
+ * @param filePath - The absolute path of the file to write.
+ * @param options - Optional write options.
+ * @returns A promise that resolves to an `AsyncIOResult` containing a `FileSystemWritableFileStream`.
+ * @example
+ * ```typescript
+ * const result = await writeFileStream('/path/to/large-file.bin');
+ * if (result.isOk()) {
+ *     const stream = result.unwrap();
+ *     try {
+ *         await stream.write(new Uint8Array([1, 2, 3]));
+ *         await stream.write(new Uint8Array([4, 5, 6]));
+ *     } finally {
+ *         await stream.close();
+ *     }
+ * }
+ * ```
+ */
+export async function writeFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
+    assertAbsolutePath(filePath);
+
+    const { append = false, create = true } = options ?? {};
+
+    const fileHandleRes = await getFileHandle(filePath, {
+        create,
+    });
+
+    return fileHandleRes.andThenAsync(async fileHandle => {
+        const writable = await fileHandle.createWritable({
+            keepExistingData: append,
+        });
+
+        // If appending, seek to end
+        if (append) {
+            const { size } = await fileHandle.getFile();
+            await writable.seek(size);
+        }
+
+        return Ok(writable);
+    });
+}
