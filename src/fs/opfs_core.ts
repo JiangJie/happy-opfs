@@ -220,7 +220,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     const childName = basename(path);
 
     const dirHandleRes = await getDirHandle(dirPath);
-    if (!childName) {
+    if (!childName || isRootPath(childName)) {
         // root
         return dirHandleRes;
     }
