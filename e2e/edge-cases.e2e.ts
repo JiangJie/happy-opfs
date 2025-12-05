@@ -2,14 +2,14 @@
  * E2E tests for edge cases and boundary conditions
  * Tests various special scenarios in a real browser environment
  */
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('OPFS Edge Cases E2E', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
     });
 
-    describe('Special file names', () => {
+    test.describe('Special file names', () => {
         test('should handle file names with spaces', async ({ page }) => {
             const result = await page.evaluate(async () => {
                 const root = await navigator.storage.getDirectory();
@@ -116,14 +116,14 @@ test.describe('OPFS Edge Cases E2E', () => {
         });
     });
 
-    describe('Binary data handling', () => {
+    test.describe('Binary data handling', () => {
         test('should handle all byte values (0-255)', async ({ page }) => {
             const result = await page.evaluate(async () => {
                 const root = await navigator.storage.getDirectory();
 
                 try {
                     const fileHandle = await root.getFileHandle('binary-test.bin', { create: true });
-                    
+
                     // Create array with all byte values
                     const data = new Uint8Array(256);
                     for (let i = 0; i < 256; i++) {
@@ -184,7 +184,7 @@ test.describe('OPFS Edge Cases E2E', () => {
         });
     });
 
-    describe('Large file handling', () => {
+    test.describe('Large file handling', () => {
         test('should handle 1MB file', async ({ page }) => {
             const result = await page.evaluate(async () => {
                 const root = await navigator.storage.getDirectory();
@@ -192,7 +192,7 @@ test.describe('OPFS Edge Cases E2E', () => {
 
                 try {
                     const fileHandle = await root.getFileHandle('large.bin', { create: true });
-                    
+
                     const data = new Uint8Array(size);
                     for (let i = 0; i < size; i++) {
                         data[i] = i % 256;
@@ -217,7 +217,7 @@ test.describe('OPFS Edge Cases E2E', () => {
         });
     });
 
-    describe('Concurrent operations', () => {
+    test.describe('Concurrent operations', () => {
         test('should handle concurrent file creation', async ({ page }) => {
             const result = await page.evaluate(async () => {
                 const root = await navigator.storage.getDirectory();
@@ -238,6 +238,7 @@ test.describe('OPFS Edge Cases E2E', () => {
 
                     // Count files
                     let count = 0;
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     for await (const _ of dir.entries()) {
                         count++;
                     }
@@ -246,7 +247,9 @@ test.describe('OPFS Edge Cases E2E', () => {
 
                     return { success: true, count };
                 } catch (e) {
-                    try { await root.removeEntry('e2e-concurrent', { recursive: true }); } catch {}
+                    try { await root.removeEntry('e2e-concurrent', { recursive: true }); } catch {
+                        //
+                    }
                     return { success: false, error: String(e) };
                 }
             });
@@ -292,7 +295,7 @@ test.describe('OPFS Edge Cases E2E', () => {
         });
     });
 
-    describe('Error recovery', () => {
+    test.describe('Error recovery', () => {
         test('should recover from failed operations', async ({ page }) => {
             const result = await page.evaluate(async () => {
                 const root = await navigator.storage.getDirectory();
@@ -332,7 +335,7 @@ test.describe('OPFS Edge Cases E2E', () => {
         });
     });
 
-    describe('File metadata', () => {
+    test.describe('File metadata', () => {
         test('should preserve file metadata', async ({ page }) => {
             const result = await page.evaluate(async () => {
                 const root = await navigator.storage.getDirectory();
