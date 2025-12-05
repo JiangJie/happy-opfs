@@ -1,13 +1,8 @@
 import { playwright } from '@vitest/browser-playwright';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 export default defineConfig({
-    root: path.resolve(__dirname, 'tests'),
     plugins: [
         mkcert({
             source: 'coding',
@@ -24,22 +19,12 @@ export default defineConfig({
         },
     },
     test: {
-        // Use project root for tests
-        root: path.resolve(__dirname),
         // Use Playwright browser environment for OPFS testing
         browser: {
             enabled: true,
-            name: 'chromium',
             provider: playwright(),
             instances: [{ browser: 'chromium' }],
             headless: true,
-            providerOptions: {
-                launch: {
-                    args: [
-                        '--enable-features=SharedArrayBuffer',
-                    ],
-                },
-            },
         },
         // Coverage configuration
         coverage: {
@@ -50,11 +35,6 @@ export default defineConfig({
                 'src/mod.ts', // Just re-exports
                 'src/fs/defines.ts', // Type definitions only
             ],
-            all: true,
-            lines: 100,
-            functions: 100,
-            branches: 100,
-            statements: 100,
         },
         // Test configuration
         include: ['tests/**/*.test.ts'],
