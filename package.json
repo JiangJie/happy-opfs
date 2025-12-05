@@ -31,9 +31,7 @@
     "test": "pnpm exec vitest run",
     "test:watch": "pnpm exec vitest watch",
     "test:ui": "pnpm exec vitest --ui",
-    "test:coverage": "pnpm exec vitest run --coverage",
-    "test:browser": "pnpm exec playwright test",
-    "test:report": "pnpm exec playwright show-report"
+    "test:coverage": "pnpm exec vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -57,7 +55,6 @@
   ],
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@playwright/test": "^1.57.0",
     "@vitest/browser-playwright": "^4.0.14",
     "@vitest/coverage-v8": "^4.0.14",
     "@vitest/ui": "^4.0.15",
