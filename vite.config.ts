@@ -58,7 +58,7 @@ export default defineConfig({
             statements: 100,
         },
         // Test configuration
-        include: ['spec/**/*.spec.ts'],
+        include: ['tests/**/*.test.ts'],
         globals: true,
         testTimeout: 30000,
         hookTimeout: 30000,
