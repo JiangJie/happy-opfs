@@ -46,11 +46,10 @@ export default defineConfig({
             provider: 'v8',
             reporter: ['text', 'json', 'html', 'lcov'],
             include: ['src/**/*.ts'],
-            // exclude: [
-            //   'src/mod.ts', // Just re-exports
-            //   'src/**/*.d.ts',
-            //   'src/**/defines.ts', // Type definitions only
-            // ],
+            exclude: [
+                'src/mod.ts', // Just re-exports
+                'src/fs/defines.ts', // Type definitions only
+            ],
             all: true,
             lines: 100,
             functions: 100,

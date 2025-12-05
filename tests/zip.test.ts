@@ -76,6 +76,11 @@ describe('OPFS Zip Operations', () => {
 
             expect((await fs.exists('/single.zip')).unwrap()).toBe(true);
         });
+
+        it('should fail to zip non-existent path', async () => {
+            const result = await fs.zip('/non-existent-path', '/test.zip');
+            expect(result.isErr()).toBe(true);
+        });
     });
 
     describe('unzip', () => {

@@ -1,11 +1,14 @@
 /**
  * Helpers module tests using Vitest
  * Tests: isRootPath, isNotFoundError, getDirHandle, getFileHandle, createAbortError
+ * Also tests worker helpers: serializeError, deserializeError, sleepUntil
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import * as fs from '../src/mod.ts';
 import { isRootPath, isNotFoundError, getDirHandle, getFileHandle, createAbortError } from '../src/fs/helpers.ts';
-import { NOT_FOUND_ERROR, ABORT_ERROR } from '../src/fs/constants.ts';
+import { NOT_FOUND_ERROR, ABORT_ERROR, TIMEOUT_ERROR } from '../src/fs/constants.ts';
+import { serializeError, deserializeError, setGlobalOpTimeout, sleepUntil } from '../src/worker/helpers.ts';
+import { encodeToBuffer, decodeFromBuffer, decodeToString, SyncMessenger } from '../src/worker/shared.ts';
 
 describe('Helpers', () => {
     afterEach(async () => {
@@ -114,6 +117,114 @@ describe('Helpers', () => {
 
             const dirExists = await fs.exists('/helper-test/deep/nested', { isDirectory: true });
             expect(dirExists.unwrap()).toBe(true);
+        });
+    });
+
+    describe('Worker Helpers', () => {
+        describe('serializeError', () => {
+            it('should serialize an Error to ErrorLike', () => {
+                const error = new Error('Test error message');
+                error.name = 'CustomError';
+                const serialized = serializeError(error);
+
+                expect(serialized).not.toBeNull();
+                expect(serialized!.name).toBe('CustomError');
+                expect(serialized!.message).toBe('Test error message');
+            });
+
+            it('should return null for null input', () => {
+                const serialized = serializeError(null);
+                expect(serialized).toBeNull();
+            });
+        });
+
+        describe('deserializeError', () => {
+            it('should deserialize ErrorLike to Error', () => {
+                const errorLike = { name: 'TypeError', message: 'Invalid type' };
+                const error = deserializeError(errorLike);
+
+                expect(error instanceof Error).toBe(true);
+                expect(error.name).toBe('TypeError');
+                expect(error.message).toBe('Invalid type');
+            });
+        });
+
+        describe('sleepUntil', () => {
+            it('should return immediately when condition is true', () => {
+                setGlobalOpTimeout(1000);
+                // Should not throw
+                sleepUntil(() => true);
+            });
+
+            it('should throw TimeoutError when condition is never met', () => {
+                setGlobalOpTimeout(50); // Short timeout for test
+                expect(() => sleepUntil(() => false)).toThrow();
+                try {
+                    sleepUntil(() => false);
+                } catch (e) {
+                    expect((e as Error).name).toBe(TIMEOUT_ERROR);
+                }
+                setGlobalOpTimeout(1000); // Reset timeout
+            });
+
+            it('should wait until condition becomes true', () => {
+                setGlobalOpTimeout(1000);
+                let counter = 0;
+                sleepUntil(() => {
+                    counter++;
+                    return counter > 3;
+                });
+                expect(counter).toBeGreaterThan(3);
+            });
+        });
+    });
+
+    describe('Shared Utils', () => {
+        describe('encodeToBuffer & decodeFromBuffer', () => {
+            it('should encode and decode objects', () => {
+                const original = { name: 'test', value: 123, nested: { a: 1 } };
+                const encoded = encodeToBuffer(original);
+
+                expect(encoded instanceof Uint8Array).toBe(true);
+
+                const decoded = decodeFromBuffer(encoded);
+                expect(decoded).toEqual(original);
+            });
+
+            it('should encode and decode arrays', () => {
+                const original = [1, 2, 'three', { four: 4 }];
+                const encoded = encodeToBuffer(original);
+                const decoded = decodeFromBuffer(encoded);
+                expect(decoded).toEqual(original);
+            });
+
+            it('should encode and decode strings', () => {
+                const original = 'Hello, World!';
+                const encoded = encodeToBuffer(original);
+                const decoded = decodeFromBuffer<string>(encoded);
+                expect(decoded).toBe(original);
+            });
+        });
+
+        describe('decodeToString', () => {
+            it('should decode Uint8Array to string', () => {
+                const text = 'Test string';
+                const encoded = new TextEncoder().encode(text);
+                const decoded = decodeToString(encoded);
+                expect(decoded).toBe(text);
+            });
+        });
+
+        describe('SyncMessenger', () => {
+            it('should create messenger with correct properties', () => {
+                const sab = new SharedArrayBuffer(1024);
+                const messenger = new SyncMessenger(sab);
+
+                expect(messenger.i32a instanceof Int32Array).toBe(true);
+                expect(messenger.u8a instanceof Uint8Array).toBe(true);
+                expect(messenger.headerLength).toBe(16);
+                expect(messenger.maxDataLength).toBe(1024 - 16);
+            });
         });
     });
 });

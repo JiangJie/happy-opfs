@@ -127,6 +127,31 @@ describe('OPFS Temporary File Operations', () => {
 
             await fs.remove(path3);
         });
+
+        it('should skip directories when pruning (line 83)', async () => {
+            // Create temp files
+            const filePath = (await fs.mkTemp({ basename: 'prune-file' })).unwrap();
+            // Create temp directory - this should be skipped by pruneTemp
+            const dirPath = (await fs.mkTemp({ basename: 'prune-dir', isDirectory: true })).unwrap();
+            // Create a file inside the temp directory
+            await fs.writeFile(`${dirPath}/nested.txt`, 'nested content');
+
+            // Wait a bit then prune everything before now
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const expired = new Date();
+
+            const result = await fs.pruneTemp(expired);
+            expect(result.isOk()).toBe(true);
+
+            // File should be removed
+            expect((await fs.exists(filePath)).unwrap()).toBe(false);
+            // Directory itself should still exist (pruneTemp only removes files)
+            expect((await fs.exists(dirPath)).unwrap()).toBe(true);
+            // But nested file inside directory should be removed
+            expect((await fs.exists(`${dirPath}/nested.txt`)).unwrap()).toBe(false);
+
+            await fs.remove(dirPath);
+        });
     });
 
     describe('deleteTemp', () => {

@@ -39,6 +39,13 @@ describe('OPFS Extended Operations', () => {
         await fs.remove('/json-test.json');
         await fs.remove('/json-array.json');
         await fs.remove('/invalid.json');
+        await fs.remove('/circular.json');
+        await fs.remove('/copy-dest-error-src');
+        await fs.remove('/copy-dest-error-dest.txt');
+        await fs.remove('/copy-dir-exists-src');
+        await fs.remove('/copy-dir-exists-dest');
+        await fs.remove('/copy-exists-error-src');
+        await fs.remove('/copy-exists-error-dest');
     });
 
     describe('appendFile', () => {
@@ -223,6 +230,86 @@ describe('OPFS Extended Operations', () => {
             await fs.writeFile('/invalid.json', 'not valid json');
 
             const result = await fs.readJsonFile('/invalid.json');
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should fail to write circular reference JSON', async () => {
+            // Create circular reference that JSON.stringify cannot handle
+            const circular: Record<string, unknown> = { name: 'test' };
+            circular['self'] = circular;
+
+            const result = await fs.writeJsonFile('/circular.json', circular);
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('circular');
+        });
+    });
+
+    describe('copy/move edge cases', () => {
+        it('should fail copy when dest path parent is a file (non-NotFoundError)', async () => {
+            // Create source directory
+            await fs.mkdir('/copy-dest-error-src');
+            await fs.writeFile('/copy-dest-error-src/file.txt', 'content');
+
+            // Create a file where we expect a directory for dest path
+            await fs.writeFile('/copy-dest-error-dest.txt', 'I am a file');
+
+            // Try to copy to a path where parent is a file - this should fail with TypeMismatchError
+            // stat('/copy-dest-error-dest.txt/child') will fail because parent is a file
+            const result = await fs.copy('/copy-dest-error-src', '/copy-dest-error-dest.txt/child');
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should copy directory when destination already exists', async () => {
+            // Create source directory with files
+            await fs.mkdir('/copy-dir-exists-src/sub');
+            await fs.writeFile('/copy-dir-exists-src/file1.txt', 'source1');
+            await fs.writeFile('/copy-dir-exists-src/sub/file2.txt', 'source2');
+
+            // Create destination directory with some existing content
+            await fs.mkdir('/copy-dir-exists-dest');
+            await fs.writeFile('/copy-dir-exists-dest/existing.txt', 'existing');
+
+            // Copy to existing directory - this exercises the destExists=true branch (lines 92-100)
+            const result = await fs.copy('/copy-dir-exists-src', '/copy-dir-exists-dest');
+            expect(result.isOk()).toBe(true);
+
+            // Verify both new and existing files are present
+            expect((await fs.exists('/copy-dir-exists-dest/file1.txt')).unwrap()).toBe(true);
+            expect((await fs.exists('/copy-dir-exists-dest/sub/file2.txt')).unwrap()).toBe(true);
+            // Note: existing.txt is in dest but not in src, so it's not affected
+        });
+
+        it('should copy directory to existing dest with overwrite false', async () => {
+            // Create source directory
+            await fs.mkdir('/copy-dir-exists-src');
+            await fs.writeFile('/copy-dir-exists-src/file.txt', 'new content');
+
+            // Create destination with same file
+            await fs.mkdir('/copy-dir-exists-dest');
+            await fs.writeFile('/copy-dir-exists-dest/file.txt', 'old content');
+
+            // Copy with overwrite=false - exercises the overwrite check in lines 102-103
+            const result = await fs.copy('/copy-dir-exists-src', '/copy-dir-exists-dest', { overwrite: false });
+            expect(result.isOk()).toBe(true);
+
+            // Content should not be overwritten
+            const content = await fs.readTextFile('/copy-dir-exists-dest/file.txt');
+            expect(content.unwrap()).toBe('old content');
+        });
+
+        it('should fail copy directory when exists check fails (line 96)', async () => {
+            // Create source directory with nested structure
+            await fs.mkdir('/copy-exists-error-src/sub');
+            await fs.writeFile('/copy-exists-error-src/sub/file.txt', 'content');
+
+            // Create destination directory where 'sub' is a file instead of directory
+            // This causes exists('/copy-exists-error-dest/sub/file.txt') to fail with TypeMismatchError
+            // because 'sub' is a file, not a directory
+            await fs.mkdir('/copy-exists-error-dest');
+            await fs.writeFile('/copy-exists-error-dest/sub', 'I am a file not a directory');
+
+            // Copy directory - destExists=true, and checking exists of 'sub/file.txt' will fail
+            const result = await fs.copy('/copy-exists-error-src', '/copy-exists-error-dest');
             expect(result.isErr()).toBe(true);
         });
     });

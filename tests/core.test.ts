@@ -209,6 +209,36 @@ describe('OPFS Core Operations', () => {
             const result = await fs.remove('/definitely-not-exists');
             expect(result.isOk()).toBe(true);
         });
+
+        it('should return error when parent path is a file (TypeMismatchError)', async () => {
+            // Create a file
+            await fs.writeFile('/test-file.txt', 'content');
+
+            // Try to remove a child of the file (which is impossible)
+            // This causes getDirHandle to fail with TypeMismatchError
+            const result = await fs.remove('/test-file.txt/child');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('TypeMismatchError');
+        });
+
+        it('should remove root directory contents', async () => {
+            // Create some test files and directories
+            await fs.writeFile('/root-test-file.txt', 'test');
+            await fs.mkdir('/root-test-dir');
+            await fs.writeFile('/root-test-dir/nested.txt', 'nested');
+
+            // Verify files exist
+            expect((await fs.exists('/root-test-file.txt')).unwrap()).toBe(true);
+            expect((await fs.exists('/root-test-dir')).unwrap()).toBe(true);
+
+            // Remove root directory (clears all contents)
+            const result = await fs.remove('/');
+            expect(result.isOk()).toBe(true);
+
+            // Verify files are removed
+            expect((await fs.exists('/root-test-file.txt')).unwrap()).toBe(false);
+            expect((await fs.exists('/root-test-dir')).unwrap()).toBe(false);
+        });
     });
 
     describe('exists', () => {
