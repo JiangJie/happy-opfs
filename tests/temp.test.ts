@@ -110,6 +110,7 @@ describe('OPFS Temporary File Operations', () => {
             // Wait a bit to ensure different timestamps
             await new Promise(resolve => setTimeout(resolve, 100));
             const expired = new Date();
+            await new Promise(resolve => setTimeout(resolve, 1));
 
             // Create more temp files after the cutoff
             const path3 = (await fs.mkTemp({ basename: 'keep' })).unwrap();
@@ -139,6 +140,7 @@ describe('OPFS Temporary File Operations', () => {
             // Wait a bit then prune everything before now
             await new Promise(resolve => setTimeout(resolve, 100));
             const expired = new Date();
+            await new Promise(resolve => setTimeout(resolve, 1));
 
             const result = await fs.pruneTemp(expired);
             expect(result.isOk()).toBe(true);
