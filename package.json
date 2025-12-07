@@ -27,7 +27,6 @@
     "predocs": "pnpm dlx rimraf docs",
     "docs": "pnpm exec typedoc",
     "prepublishOnly": "pnpm run build",
-    "start": "pnpm exec vite",
     "test": "pnpm exec vitest run",
     "test:watch": "pnpm exec vitest watch",
     "test:ui": "pnpm exec vitest --ui",

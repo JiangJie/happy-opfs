@@ -1,13 +1,8 @@
 import { playwright } from '@vitest/browser-playwright';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 export default defineConfig({
-    root: path.resolve(__dirname, 'tests'),
     plugins: [
         mkcert({
             source: 'coding',

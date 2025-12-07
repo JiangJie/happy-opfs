@@ -4,11 +4,11 @@
  * Also tests worker helpers: serializeError, deserializeError, sleepUntil
  */
 import { afterEach, describe, expect, it } from 'vitest';
+import { ABORT_ERROR, NOT_FOUND_ERROR, TIMEOUT_ERROR } from '../src/fs/constants.ts';
+import { createAbortError, getDirHandle, getFileHandle, isNotFoundError, isRootPath } from '../src/fs/helpers.ts';
 import * as fs from '../src/mod.ts';
-import { isRootPath, isNotFoundError, getDirHandle, getFileHandle, createAbortError } from '../src/fs/helpers.ts';
-import { NOT_FOUND_ERROR, ABORT_ERROR, TIMEOUT_ERROR } from '../src/fs/constants.ts';
-import { serializeError, deserializeError, setGlobalOpTimeout, sleepUntil } from '../src/worker/helpers.ts';
-import { encodeToBuffer, decodeFromBuffer, decodeToString, SyncMessenger } from '../src/worker/shared.ts';
+import { deserializeError, serializeError, setGlobalOpTimeout, sleepUntil } from '../src/worker/helpers.ts';
+import { decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger } from '../src/worker/shared.ts';
 
 describe('Helpers', () => {
     afterEach(async () => {
@@ -128,8 +128,10 @@ describe('Helpers', () => {
                 const serialized = serializeError(error);
 
                 expect(serialized).not.toBeNull();
-                expect(serialized!.name).toBe('CustomError');
-                expect(serialized!.message).toBe('Test error message');
+
+                const serializedError = serialized as fs.ErrorLike;
+                expect(serializedError.name).toBe('CustomError');
+                expect(serializedError.message).toBe('Test error message');
             });
 
             it('should return null for null input', () => {
