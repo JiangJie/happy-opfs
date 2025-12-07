@@ -9,7 +9,7 @@ export const NOT_FOUND_ERROR = 'NotFoundError' as const;
 /**
  * No strategy for the requested operation is viable.
  */
-export const NO_STRATEGY_ERROR = "NoStrategyError" as const;
+export const NO_STRATEGY_ERROR = 'NoStrategyError' as const;
 
 /**
  * A constant representing the root directory path.

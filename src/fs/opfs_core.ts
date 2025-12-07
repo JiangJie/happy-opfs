@@ -280,7 +280,7 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
     });
 
     return fileHandleRes.andThenAsync(async fileHandle => {
-        if (typeof fileHandle.createWritable !== "undefined") {
+        if (typeof fileHandle.createWritable === 'function') {
             const writable = await fileHandle.createWritable({
                 keepExistingData: append,
             });
@@ -303,47 +303,45 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
             }
 
             return RESULT_VOID;
-        } else if (typeof fileHandle.createSyncAccessHandle !== "undefined") {
-            const accessHandle = await fileHandle.createSyncAccessHandle()
+        } else if (typeof fileHandle.createSyncAccessHandle === 'function') { // Worker only
+            const accessHandle = await fileHandle.createSyncAccessHandle();
 
             try {
-                let encoded = contents;
-                if (typeof encoded === "string") encoded = new TextEncoder().encode(encoded);
-                if (encoded instanceof Blob) encoded = await encoded.arrayBuffer()
+                // Always write as Uint8Array to avoid copying buffer.
+                let remaining = typeof contents === 'string'
+                    ? new TextEncoder().encode(contents)
+                    : contents instanceof Blob
+                        ? new Uint8Array(await contents.arrayBuffer())
+                        : contents instanceof ArrayBuffer
+                            ? new Uint8Array(contents)
+                            : new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
 
-                if (!append) accessHandle.truncate(0)
+                if (!append) {
+                    accessHandle.truncate(0);
+                }
 
-                let remaining: BufferSource | null = encoded
-                while (remaining && remaining.byteLength > 0) {
+                while (remaining.byteLength > 0) {
                     const written = accessHandle.write(remaining, {
-                        at: append ? accessHandle.getSize() : undefined
-                    })
+                        at: append ? accessHandle.getSize() : undefined,
+                    });
 
-                    if (written < remaining.byteLength) {
-                        if (ArrayBuffer.isView(remaining)) {
-                            // Create a new view for the remaining part without copying buffer if possible,
-                            // or ensure we slice from the correct current offset.
-                            remaining = new Uint8Array(
-                                remaining.buffer,
-                                remaining.byteOffset + written,
-                                remaining.byteLength - written
-                            );
-                        } else {
-                            // It is an ArrayBuffer, slice creates a copy
-                            remaining = remaining.slice(written);
-                        }
-                        console.warn(`Write to OPFS was partial. Wrote ${written} bytes. Trying to write missing ${remaining.byteLength} bytes.`)
-                    } else remaining = null
+                    if (written >= remaining.byteLength) {
+                        break;
+                    }
+
+                    // Create a new Uint8Array for the remaining part without copying buffer.
+                    remaining = remaining.subarray(written);
+                    console.warn(`Write to OPFS was partial. Wrote ${ written } bytes. Trying to write missing ${ remaining.byteLength } bytes.`);
                 }
             } finally {
-                accessHandle.close()
+                accessHandle.close();
             }
 
-            return RESULT_VOID
+            return RESULT_VOID;
         } else {
-            const error = new Error("No file write strategy available.")
-            error.name = NO_STRATEGY_ERROR
-            return Err(error)
+            const error = new Error('No file write strategy available.');
+            error.name = NO_STRATEGY_ERROR;
+            return Err(error);
         }
     });
 }
