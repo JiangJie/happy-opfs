@@ -1,11 +1,16 @@
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
     plugins: [
         mkcert({
             source: 'coding',
+        }),
+        dts({
+            outDir: 'dist',
+            rollupTypes: true, // combine declaration and type definition
         }),
     ],
     server: {
@@ -16,6 +21,35 @@ export default defineConfig({
         headers: {
             'Cross-Origin-Opener-Policy': 'same-origin',
             'Cross-Origin-Embedder-Policy': 'require-corp'
+        },
+    },
+    build: {
+        target: 'esnext',
+        minify: false,
+        sourcemap: true,
+        outDir: 'dist',
+        lib: {
+            entry: 'src/mod.ts',
+            fileName: format => `main.${ format === 'esm' ? 'mjs' : 'cjs' }`,
+        },
+        rollupOptions: {
+            output: [
+                {
+                    format: 'cjs',
+                },
+                {
+                    format: 'esm',
+                },
+            ],
+            external: [
+                /^@std\/path/,
+                'happy-rusty',
+                'tiny-invariant',
+                '@happy-ts/fetch-t',
+                'tiny-future',
+                'fflate/browser',
+            ],
+            treeshake: 'smallest',
         },
     },
     test: {
