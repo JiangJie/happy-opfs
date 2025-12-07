@@ -1,0 +1,223 @@
+/**
+ * Tests for opfs_worker_adapter.ts edge cases
+ * Covers: getSyncMessenger, setSyncMessenger, writeJsonFileSync error, connectSyncAgent validation
+ */
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import * as fs from '../src/mod.ts';
+
+describe('Worker Adapter Edge Cases', () => {
+    beforeAll(async () => {
+        await fs.connectSyncAgent({
+            worker: new Worker(new URL('./worker.ts', import.meta.url), {
+                type: 'module'
+            }),
+            bufferLength: 10 * 1024 * 1024,
+            opTimeout: 5000,
+        });
+    });
+
+    afterAll(() => {
+        fs.emptyDirSync(fs.ROOT_DIR);
+    });
+
+    afterEach(() => {
+        fs.removeSync('/adapter-test.txt');
+        fs.removeSync('/adapter-test.json');
+    });
+
+    describe('getSyncMessenger', () => {
+        it('should return the messenger instance after connection', () => {
+            const messenger = fs.getSyncMessenger();
+            expect(messenger).toBeDefined();
+            expect(messenger.i32a).toBeInstanceOf(Int32Array);
+            expect(messenger.u8a).toBeInstanceOf(Uint8Array);
+            expect(messenger.headerLength).toBe(16);
+            expect(messenger.maxDataLength).toBeGreaterThan(0);
+        });
+    });
+
+    describe('setSyncMessenger', () => {
+        it('should set messenger and allow operations', () => {
+            // Get current messenger
+            const currentMessenger = fs.getSyncMessenger();
+
+            // Set it again (simulates sharing messenger between contexts)
+            fs.setSyncMessenger(currentMessenger);
+
+            // Operations should still work
+            const result = fs.writeFileSync('/adapter-test.txt', 'content');
+            expect(result.isOk()).toBe(true);
+        });
+    });
+
+    describe('writeJsonFileSync error handling', () => {
+        it('should handle circular reference error', () => {
+            // Create an object with circular reference
+            const obj: Record<string, unknown> = { name: 'test' };
+            obj['self'] = obj;
+
+            const result = fs.writeJsonFileSync('/adapter-test.json', obj);
+            expect(result.isErr()).toBe(true);
+
+            const error = result.unwrapErr();
+            expect(error).toBeInstanceOf(Error);
+        });
+
+        it('should handle BigInt serialization error', () => {
+            // BigInt cannot be serialized to JSON
+            const data = { value: BigInt(9007199254740991) };
+
+            const result = fs.writeJsonFileSync('/adapter-test.json', data);
+            expect(result.isErr()).toBe(true);
+        });
+    });
+
+    describe('readFileSync encoding options', () => {
+        it('should read as blob encoding', () => {
+            fs.writeFileSync('/adapter-test.txt', 'blob test');
+
+            const result = fs.readFileSync('/adapter-test.txt', { encoding: 'blob' });
+            expect(result.isOk()).toBe(true);
+
+            const fileLike = result.unwrap();
+            expect(fileLike.name).toBe('adapter-test.txt');
+            expect(fileLike.data).toBeInstanceOf(ArrayBuffer);
+        });
+
+        it('should read as utf8 encoding', () => {
+            fs.writeFileSync('/adapter-test.txt', 'utf8 test');
+
+            const result = fs.readFileSync('/adapter-test.txt', { encoding: 'utf8' });
+            expect(result.isOk()).toBe(true);
+
+            const content = result.unwrap();
+            expect(content).toBe('utf8 test');
+        });
+
+        it('should read as binary encoding (default)', () => {
+            fs.writeFileSync('/adapter-test.txt', 'binary test');
+
+            const result = fs.readFileSync('/adapter-test.txt', { encoding: 'binary' });
+            expect(result.isOk()).toBe(true);
+
+            const buffer = result.unwrap();
+            expect(buffer).toBeInstanceOf(ArrayBuffer);
+        });
+
+        it('should read as default encoding (binary)', () => {
+            fs.writeFileSync('/adapter-test.txt', 'default test');
+
+            const result = fs.readFileSync('/adapter-test.txt');
+            expect(result.isOk()).toBe(true);
+
+            const buffer = result.unwrap();
+            expect(buffer).toBeInstanceOf(ArrayBuffer);
+        });
+    });
+
+    describe('readJsonFileSync error propagation', () => {
+        it('should propagate file read error', () => {
+            const result = fs.readJsonFileSync('/non-existent-json.json');
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should propagate JSON parse error', () => {
+            fs.writeFileSync('/adapter-test.json', 'not valid json {');
+
+            const result = fs.readJsonFileSync('/adapter-test.json');
+            expect(result.isErr()).toBe(true);
+        });
+    });
+
+    describe('zipSync overload coverage', () => {
+        beforeEach(() => {
+            fs.mkdirSync('/adapter-test');
+            fs.writeFileSync('/adapter-test/file.txt', 'content');
+        });
+
+        afterEach(() => {
+            fs.removeSync('/adapter-test');
+            fs.removeSync('/adapter-test.zip');
+        });
+
+        it('should zip to file path', () => {
+            const result = fs.zipSync('/adapter-test', '/adapter-test.zip');
+            expect(result.isOk()).toBe(true);
+            expect(fs.existsSync('/adapter-test.zip').unwrap()).toBe(true);
+        });
+
+        it('should zip to Uint8Array without file path', () => {
+            const result = fs.zipSync('/adapter-test');
+            expect(result.isOk()).toBe(true);
+            expect(result.unwrap()).toBeInstanceOf(Uint8Array);
+        });
+
+        it('should zip with options only', () => {
+            const result = fs.zipSync('/adapter-test', { preserveRoot: false });
+            expect(result.isOk()).toBe(true);
+            expect(result.unwrap()).toBeInstanceOf(Uint8Array);
+        });
+
+        it('should zip to file path with options', () => {
+            const result = fs.zipSync('/adapter-test', '/adapter-test.zip', { preserveRoot: false });
+            expect(result.isOk()).toBe(true);
+            expect(fs.existsSync('/adapter-test.zip').unwrap()).toBe(true);
+        });
+    });
+
+    describe('serializeWriteContents coverage', () => {
+        it('should handle ArrayBuffer', () => {
+            const buffer = new ArrayBuffer(4);
+            new Uint8Array(buffer).set([1, 2, 3, 4]);
+
+            const result = fs.writeFileSync('/adapter-test.txt', buffer);
+            expect(result.isOk()).toBe(true);
+
+            const read = new Uint8Array(fs.readFileSync('/adapter-test.txt').unwrap());
+            expect(read).toEqual(new Uint8Array([1, 2, 3, 4]));
+        });
+
+        it('should handle Int8Array', () => {
+            const data = new Int8Array([1, 2, 3, 4]);
+
+            const result = fs.writeFileSync('/adapter-test.txt', data);
+            expect(result.isOk()).toBe(true);
+
+            const read = new Uint8Array(fs.readFileSync('/adapter-test.txt').unwrap());
+            expect(read).toEqual(new Uint8Array([1, 2, 3, 4]));
+        });
+
+        it('should handle Uint16Array', () => {
+            const data = new Uint16Array([256, 512]);
+
+            const result = fs.writeFileSync('/adapter-test.txt', data);
+            expect(result.isOk()).toBe(true);
+
+            const read = fs.readFileSync('/adapter-test.txt').unwrap();
+            expect(read.byteLength).toBe(4); // 2 * 2 bytes
+        });
+
+        it('should handle DataView', () => {
+            const buffer = new ArrayBuffer(4);
+            const view = new DataView(buffer);
+            view.setUint8(0, 10);
+            view.setUint8(1, 20);
+            view.setUint8(2, 30);
+            view.setUint8(3, 40);
+
+            const result = fs.writeFileSync('/adapter-test.txt', view);
+            expect(result.isOk()).toBe(true);
+
+            const read = new Uint8Array(fs.readFileSync('/adapter-test.txt').unwrap());
+            expect(read).toEqual(new Uint8Array([10, 20, 30, 40]));
+        });
+
+        it('should handle string content', () => {
+            const result = fs.writeFileSync('/adapter-test.txt', 'string content');
+            expect(result.isOk()).toBe(true);
+
+            const read = fs.readTextFileSync('/adapter-test.txt').unwrap();
+            expect(read).toBe('string content');
+        });
+    });
+});

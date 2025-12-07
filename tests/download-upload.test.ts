@@ -118,10 +118,10 @@ describe('OPFS Download/Upload Operations', () => {
             // This test attempts to cover line 77 in opfs_download.ts
             // The abort check after blob() but before writeFile is hard to hit
             // because the window is very small. We try our best with timing.
-            
+
             // Use a larger dataset and abort during progress
             let progressCount = 0;
-            
+
             const task = fs.downloadFile(mockAll, {
                 timeout: 30000,
                 onProgress: () => {
@@ -149,9 +149,7 @@ describe('OPFS Download/Upload Operations', () => {
             // Create a file to upload
             await fs.writeFile('/upload-test.json', JSON.stringify({ test: true }));
 
-            const task = fs.uploadFile('/upload-test.json', mockAll, {
-                timeout: 10000,
-            });
+            const task = fs.uploadFile('/upload-test.json', mockAll);
 
             const result = await task.response;
             if (result.isOk()) {
