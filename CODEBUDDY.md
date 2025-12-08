@@ -11,6 +11,7 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 - `happy-rusty` - Provides Rust-style `Result<T, E>` types for error handling
 - `fflate` - For zip/unzip operations
 - `@happy-ts/fetch-t` - For download/upload operations
+- `tiny-future` - For Promise-based future/deferred patterns
 
 ## Development Commands
 
@@ -30,33 +31,43 @@ pnpm run check
 pnpm run lint
 # Equivalent to: pnpm exec eslint .
 
-# Build (runs prebuild: clean dist, check types, lint)
+# Build (runs prebuild: check types, lint)
 pnpm run build
-# Equivalent to: pnpm exec rollup --config rollup.config.mjs
-
-# Clean build artifacts
-pnpm run clean
-# Equivalent to: pnpm dlx rimraf .parcel-cache dist
+# Equivalent to: pnpm exec vite build
 
 # Generate documentation
 pnpm run docs
 # Equivalent to: pnpm exec typedoc
-
-# Development server (for testing)
-pnpm start
-# Runs: pnpm exec parcel serve tests/index.html --dist-dir dist/dev --port 8443 --https --no-cache
-# Access at: https://localhost:8443/
 ```
 
 ### Testing
-Tests are located in the `tests/` directory. To run tests:
-1. Start the development server: `pnpm start`
-2. Open https://localhost:8443/ in a browser
-3. Check the browser console for test output
+Tests use **Vitest** with **Playwright** browser automation.
 
-**Note:** Tests require HTTPS and specific headers for SharedArrayBuffer support:
-- `Cross-Origin-Opener-Policy: same-origin`
-- `Cross-Origin-Embedder-Policy: require-corp`
+```bash
+# Install Playwright browsers (first time setup)
+pnpm run playwright:install
+
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm run test:watch
+
+# Run tests with UI
+pnpm run test:ui
+
+# Run a specific test file
+pnpm exec vitest run tests/core.test.ts
+
+# Run tests matching a pattern
+pnpm exec vitest run -t "readFile"
+```
+
+Tests are located in `tests/` directory. The test environment:
+- Uses Playwright's Chromium browser in headless mode
+- Automatically configures HTTPS and required COOP/COEP headers
+- Runs tests sequentially to avoid OPFS conflicts
+- Coverage reports via v8 provider
 
 ## Code Architecture
 
@@ -78,6 +89,7 @@ src/
 │   ├── assertions.ts          # Path validation assertions
 │   ├── constants.ts           # Constants (ROOT_DIR, TMP_DIR, error names)
 │   ├── defines.ts             # TypeScript type definitions
+│   ├── codec.ts               # Text encoding/decoding utilities (cached TextEncoder/TextDecoder)
 │   └── support.ts             # OPFS feature detection
 └── worker/                     # Synchronous API implementation via Web Workers
     ├── opfs_worker.ts         # Worker-side: Listens for requests, executes async operations
@@ -127,8 +139,19 @@ if (result.isOk()) {
 Located in `src/worker/shared.ts`:
 - Uses SharedArrayBuffer with Int32Array for lock-based communication
 - Lock indices: MAIN_LOCK_INDEX (0), WORKER_LOCK_INDEX (1), DATA_INDEX (2)
+- Lock values: MAIN_LOCKED (1), MAIN_UNLOCKED (0), WORKER_UNLOCKED (1)
 - Atomics.wait/notify for synchronization
-- JSON serialization for data transfer (with special handling for ArrayBuffers)
+- JSON serialization via `encodeToBuffer`/`decodeFromBuffer` for data transfer
+
+**Buffer Layout:**
+```
+Offset  Size    Field           Description
+0       4       MAIN_LOCK       Main thread state (0=unlocked, 1=locked/waiting)
+4       4       WORKER_LOCK     Worker thread state
+8       4       DATA_LENGTH     Length of payload data in bytes
+12      4       RESERVED        Reserved for future use
+16+     var     PAYLOAD         Actual request/response binary data
+```
 
 ### Important Implementation Details
 
@@ -150,12 +173,26 @@ When passing Uint8Array data to writeFile operations, explicit type assertions m
 await writeFile(path, data as Uint8Array<ArrayBuffer>);
 ```
 
+#### Error Constants
+Common error constants exported from `src/fs/constants.ts`:
+- `NOT_FOUND_ERROR` - File/directory not found (DOMException name)
+- `NO_STRATEGY_ERROR` - No viable strategy for operation
+- `ROOT_DIR` - Root directory path (`/`)
+- `TMP_DIR` - Temporary directory path (`/tmp`)
+- `ABORT_ERROR`, `TIMEOUT_ERROR` - Re-exported from `@happy-ts/fetch-t`
+
 ### Build Configuration
 
-- **Rollup** (rollup.config.mjs): Builds both CJS and ESM outputs
+- **Vite** (vite.config.ts): Builds library with CJS and ESM outputs
   - Input: `src/mod.ts`
   - Outputs: `dist/main.cjs`, `dist/main.mjs`, `dist/types.d.ts`
-  - External dependencies: `@std/path`, `happy-rusty`, `tiny-invariant`, etc.
+  - Uses `vite-plugin-dts` for type declarations
+  - External dependencies: `@std/path`, `happy-rusty`, `tiny-invariant`, `@happy-ts/fetch-t`, `tiny-future`, `fflate/browser`
+
+- **Vitest** (configured in vite.config.ts): Browser-based testing
+  - Uses Playwright Chromium in headless mode
+  - Coverage via v8 provider
+  - Tests run sequentially for OPFS isolation
   
 - **TypeDoc** (typedoc.json): Generates markdown documentation
   - Plugin: `typedoc-plugin-markdown`
@@ -194,3 +231,8 @@ This project uses Conventional Commits:
 4. **Error Handling:** Never use try-catch with async operations. Always use `.isOk()` / `.isErr()` on Result types
 
 5. **Testing:** Use OPFS Explorer browser extension to visually inspect file system state during development
+
+6. **Test Coverage Limitations:**
+   - `src/worker/opfs_worker.ts` is excluded from coverage (runs in Worker thread, V8 cannot instrument)
+   - `src/fs/opfs_core.ts` has uncovered branches that run in Worker context (tested via sync API)
+   - `src/mod.ts` and `src/fs/defines.ts` are excluded (re-exports and type definitions only)
