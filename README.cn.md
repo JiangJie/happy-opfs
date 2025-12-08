@@ -24,6 +24,7 @@ jsr add @happy-js/happy-opfs
 
 > [!NOTE]
 > 本项目依赖了从 JSR 安装的 `@std/path` 包。为确保正确安装依赖，需要在 `package.json` 同级目录下创建 `.npmrc` 文件，并添加以下配置：
+>
 > ```
 > @jsr:registry=https://npm.jsr.io
 > ```
@@ -43,6 +44,58 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 -   早期的 Node.js fs API 是基于回调的语法，虽然较新的版本支持了 Promise 语法，而 Deno fs API 则一开始就是基于 Promise 语法，这样来说的话，Deno 有更少的历史包袱，要实现和 Native 兼容的 API，选择 Deno 做为参考显然更合适。
 -   Deno 原生支持 TypeScript，而 Node.js 在不借助于其它工具的情况下暂不支持。
 
+## 功能特性
+
+### 核心操作
+
+-   `createFile` - 创建空文件（类似 `touch`）
+-   `mkdir` - 递归创建目录（类似 `mkdir -p`）
+-   `readDir` - 读取目录内容，支持递归遍历
+-   `readFile` - 读取文件内容，支持 ArrayBuffer、字符串或 Blob 格式
+-   `writeFile` - 写入文件，支持创建/追加选项
+-   `remove` - 递归删除文件或目录（类似 `rm -rf`）
+-   `stat` - 获取文件/目录句柄和元数据
+
+### 扩展操作
+
+-   `appendFile` - 追加内容到文件
+-   `copy` - 复制文件或目录（类似 `cp -r`）
+-   `move` - 移动/重命名文件或目录
+-   `exists` - 检查路径是否存在（支持 isFile/isDirectory 选项）
+-   `emptyDir` - 清空或创建目录
+-   `readTextFile` - 以 UTF-8 字符串读取文件
+-   `readBlobFile` - 以 Blob/File 对象读取文件
+-   `readJsonFile` - 读取并解析 JSON 文件
+-   `writeJsonFile` - 将对象写入 JSON 文件
+
+### 流式操作
+
+-   `readFileStream` - 获取 `ReadableStream` 用于读取大文件
+-   `writeFileStream` - 获取 `FileSystemWritableFileStream` 用于写入大文件
+
+### 临时文件
+
+-   `mkTemp` - 创建临时文件或目录
+-   `generateTempPath` - 生成临时路径
+-   `pruneTemp` - 清理过期的临时文件
+-   `deleteTemp` - 删除所有临时文件
+
+### Zip 操作
+
+-   `zip` - 压缩文件/目录为 zip
+-   `unzip` - 解压 zip 文件
+-   `zipFromUrl` - 从 URL 下载并创建 zip
+-   `unzipFromUrl` - 从 URL 下载并解压 zip
+
+### 下载/上传
+
+-   `downloadFile` - 下载文件，支持进度跟踪
+-   `uploadFile` - 上传文件，支持进度跟踪
+
+### 同步 API
+
+所有核心操作都有同步版本（如 `mkdirSync`、`readFileSync`、`writeFileSync`），通过 Web Workers 实现。
+
 ## 是否支持同步接口
 
 **支持**
@@ -50,7 +103,7 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 > [!NOTE]
 > 但更推荐使用异步接口，因为主线程并未提供同步接口，为了强制实现同步语法，需要将 I/O 操作移到 `Worker` 进行，同时主线程需要处于阻塞状态，直到 `Worker` 完成 I/O 操作，这显然会带来性能上的损失。
 
-并且由于需要启动 `Worker，同步接口需要在` `Worker` 启动后才能使用，在此之前任何读写都会失败。
+并且由于需要启动 `Worker`，同步接口需要在 `Worker` 启动后才能使用，在此之前任何读写都会失败。
 
 **请注意**，为了在主线程和 `Worker` 之间共享数据，需要使用 `SharedArrayBuffer`，为此需要两个额外的 `HTTP Response Header`:
 `'Cross-Origin-Opener-Policy': 'same-origin'`
@@ -59,180 +112,144 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 
 ## 示例
 
+### 基本用法
+
 ```ts
 import * as fs from 'happy-opfs';
 
-(async () => {
-    const mockServer = 'https://16a6dafa-2258-4a83-88fa-31a409e42b17.mock.pstmn.io';
-    const mockTodos = `${ mockServer }/todos`;
-    const mockTodo1 = `${ mockTodos }/1`;
+// 检查是否支持 OPFS
+console.log(`OPFS ${fs.isOPFSSupported() ? '已' : '未'}支持`);
 
-    // Check if OPFS is supported
-    console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
+// 创建目录
+await fs.mkdir('/my/nested/directory');
 
-    // Clear all files and folders
-    await fs.emptyDir(fs.ROOT_DIR);
-    // Recursively create the /happy/opfs directory
-    await fs.mkdir('/happy/opfs');
-    // Create and write file content
-    await fs.writeFile('/happy/opfs/a.txt', 'hello opfs');
-    await fs.writeFile('/happy/op-fs/fs.txt', 'hello opfs');
-    // Move the file
-    await fs.move('/happy/opfs/a.txt', '/happy/b.txt');
-    // Append content to the file
-    await fs.appendFile('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
+// 写入文件
+await fs.writeFile('/my/file.txt', 'Hello, OPFS!');
+await fs.writeFile('/my/data.bin', new Uint8Array([1, 2, 3, 4, 5]));
 
-    // File no longer exists
-    const statRes = await fs.stat('/happy/opfs/a.txt');
-    console.assert(statRes.isErr());
+// 读取文件
+const textResult = await fs.readTextFile('/my/file.txt');
+if (textResult.isOk()) {
+    console.log(textResult.unwrap()); // 'Hello, OPFS!'
+}
 
-    console.assert((await fs.readFile('/happy/b.txt')).unwrap().byteLength === 21);
-    // Automatically normalize the path
-    console.assert((await fs.readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');
+const binaryResult = await fs.readFile('/my/data.bin');
+if (binaryResult.isOk()) {
+    console.log(new Uint8Array(binaryResult.unwrap())); // [1, 2, 3, 4, 5]
+}
 
-    console.assert((await fs.remove('/happy/not/exists')).isOk());
-    console.assert((await fs.remove('/happy/opfs')).isOk());
+// 检查是否存在
+const exists = await fs.exists('/my/file.txt');
+console.log(exists.unwrap()); // true
 
-    console.assert(!(await fs.exists('/happy/opfs')).unwrap());
-    console.assert((await fs.exists('/happy/b.txt')).unwrap());
-    console.assert(fs.isFileHandle((await fs.stat('/happy/b.txt')).unwrap()));
+// 复制和移动
+await fs.copy('/my/file.txt', '/my/file-backup.txt');
+await fs.move('/my/file.txt', '/my/renamed.txt');
 
-    // Download a file
-    const downloadTask = fs.downloadFile(mockSingle, '/todo.json', {
-        timeout: 1000,
-        onProgress(progressResult): void {
-            progressResult.inspect(progress => {
-                console.log(`Downloaded ${ progress.completedByteLength }/${ progress.totalByteLength } bytes`);
-            });
-        },
-    });
-    const downloadRes = await downloadTask.response;
-    if (downloadRes.isOk()) {
-        console.assert(downloadRes.unwrap() instanceof Response);
+// 删除文件/目录
+await fs.remove('/my/nested/directory');
 
-        const postData = (await fs.readTextFile('/todo.json')).unwrap();
-        const postJson: {
-            id: number;
-            title: string;
-        } = JSON.parse(postData);
-        console.assert(postJson.id === 1);
-
-        // Modify the file
-        postJson.title = 'happy-opfs';
-        await fs.writeFile('/todo.json', JSON.stringify(postJson));
-
-        // Upload a file
-        console.assert((await fs.uploadFile('/todo.json', mockAll).response).unwrap() instanceof Response);
-    } else {
-        console.assert(downloadRes.unwrapErr() instanceof Error);
+// 列出目录内容
+const entries = await fs.readDir('/my', { recursive: true });
+if (entries.isOk()) {
+    for await (const { path, handle } of entries.unwrap()) {
+        console.log(`${path} 是一个 ${handle.kind}`);
     }
+}
+```
 
-    {
-        // Download a file to a temporary file
-        const downloadTask = fs.downloadFile(mockSingle);
-        const downloadRes = await downloadTask.response;
-        downloadRes.inspect(x => {
-            console.assert(fs.isTempPath(x.tempFilePath));
-            console.assert(x.rawResponse instanceof Response);
+### 流式操作
+
+```ts
+import * as fs from 'happy-opfs';
+
+// 使用流读取大文件
+const streamResult = await fs.readFileStream('/large-file.bin');
+if (streamResult.isOk()) {
+    const stream = streamResult.unwrap();
+    const reader = stream.getReader();
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        console.log('接收到数据块:', value.length, '字节');
+    }
+}
+
+// 使用流写入大文件
+const writeStreamResult = await fs.writeFileStream('/output.bin');
+if (writeStreamResult.isOk()) {
+    const stream = writeStreamResult.unwrap();
+    try {
+        await stream.write(new Uint8Array([1, 2, 3]));
+        await stream.write(new Uint8Array([4, 5, 6]));
+    } finally {
+        await stream.close();
+    }
+}
+```
+
+### 下载和上传
+
+```ts
+import * as fs from 'happy-opfs';
+
+// 下载文件并跟踪进度
+const downloadTask = fs.downloadFile('https://example.com/file.zip', '/downloads/file.zip', {
+    timeout: 30000,
+    onProgress(progressResult) {
+        progressResult.inspect((progress) => {
+            console.log(`已下载 ${progress.completedByteLength}/${progress.totalByteLength} 字节`);
         });
-        if (downloadRes.isOk()) {
-            await fs.remove(downloadRes.unwrap().tempFilePath);
-        }
-    }
+    },
+});
+const downloadRes = await downloadTask.response;
 
-    // Will create directory
-    await fs.emptyDir('/not-exists');
-
-    // Zip/Unzip
-    console.assert((await fs.zip('/happy', '/happy.zip')).isOk());
-    console.assert((await fs.zip('/happy')).unwrap().byteLength === (await fs.readFile('/happy.zip')).unwrap().byteLength);
-    console.assert((await fs.unzip('/happy.zip', '/happy-2')).isOk());
-    console.assert((await fs.unzipFromUrl(mockZipUrl, '/happy-3', {
-        onProgress(progressResult) {
-            progressResult.inspect(progress => {
-                console.log(`Unzipped ${ progress.completedByteLength }/${ progress.totalByteLength } bytes`);
-            });
-        },
-    })).isOk());
-    console.assert((await fs.zipFromUrl(mockZipUrl, '/test-zip.zip')).isOk());
-    console.assert((await fs.zipFromUrl(mockZipUrl)).unwrap().byteLength === (await fs.readFile('/test-zip.zip')).unwrap().byteLength);
-
-    // Temp
-    console.log(`temp txt file: ${ fs.generateTempPath({
-        basename: 'opfs',
-        extname: '.txt',
-    }) }`);
-    console.log(`temp dir: ${ fs.generateTempPath({
-        isDirectory: true,
-    }) }`);
-    (await fs.mkTemp()).inspect(path => {
-        console.assert(path.startsWith('/tmp/tmp-'));
-    });
-    const expired = new Date();
-    (await fs.mkTemp({
-        basename: 'opfs',
-        extname: '.txt',
-    })).inspect(path => {
-        console.assert(path.startsWith('/tmp/opfs-'));
-        console.assert(path.endsWith('.txt'));
-    });
-    (await fs.mkTemp({
-        isDirectory: true,
-        basename: '',
-    })).inspect(path => {
-        console.assert(path.startsWith('/tmp/'));
-    });
-    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 3);
-    await fs.pruneTemp(expired);
-    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 2);
-    // await fs.deleteTemp();
-    // console.assert(!(await fs.exists(fs.TMP_DIR)).unwrap());
-
-    // Copy
-    await fs.mkdir('/happy/copy');
-    console.assert((await fs.copy('/happy/b.txt', '/happy-2')).isErr());
-    console.assert((await fs.copy('/happy', '/happy-copy')).isOk());
-    await fs.appendFile('/happy-copy/b.txt', ' copy');
-    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
-    await fs.appendFile('/happy/op-fs/fs.txt', ' copy');
-    await fs.copy('/happy', '/happy-copy', {
-        overwrite: false,
-    });
-    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
-
-    // List all files and folders in the root directory
-    for await (const { path, handle } of (await fs.readDir(fs.ROOT_DIR, {
-        recursive: true,
-    })).unwrap()) {
-        const handleLike = await fs.toFileSystemHandleLike(handle);
-        if (fs.isFileHandleLike(handleLike)) {
-            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ handleLike.type }, size = ${ handleLike.size }, lastModified = ${ handleLike.lastModified }`);
-        } else {
-            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }`);
-        }
-    }
-
-    // Comment this line to view using OPFS Explorer
-    await fs.remove(fs.ROOT_DIR);
-})();
+// 上传文件
+const uploadTask = fs.uploadFile('/my/file.txt', 'https://example.com/upload');
+const uploadRes = await uploadTask.response;
 ```
 
-以上示例代码可以在 [tests/async.ts](tests/async.ts) 找到，也可以通过以下方式查看运行时效果。
+### Zip 操作
 
+```ts
+import * as fs from 'happy-opfs';
+
+// 压缩目录
+await fs.zip('/my/directory', '/archive.zip');
+
+// 解压文件
+await fs.unzip('/archive.zip', '/extracted');
+
+// 从 URL 下载并解压
+await fs.unzipFromUrl('https://example.com/archive.zip', '/from-url');
 ```
-git clone https://github.com/JiangJie/happy-opfs.git
-cd happy-opfs
-pnpm install
-pnpm start
+
+### 临时文件
+
+```ts
+import * as fs from 'happy-opfs';
+
+// 创建临时文件
+const tempPath = await fs.mkTemp({ extname: '.txt' });
+tempPath.inspect((path) => {
+    console.log(`创建了临时文件: ${path}`); // 例如：/tmp/tmp-abc123.txt
+});
+
+// 创建临时目录
+const tempDir = await fs.mkTemp({ isDirectory: true });
+
+// 清理旧的临时文件（早于指定日期）
+const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+await fs.pruneTemp(yesterday);
+
+// 删除所有临时文件
+await fs.deleteTemp();
 ```
-
-通过浏览器打开 [https://localhost:8443/](https://localhost:8443/)，打开开发者工具观察 console 的输出。
-
-你也可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) 浏览器扩展，以便直观地查看文件系统状态。
 
 ### 同步示例
 
 `worker.ts`
+
 ```ts
 import { startSyncAgent } from 'happy-opfs';
 
@@ -240,23 +257,47 @@ startSyncAgent();
 ```
 
 `index.ts`
+
 ```ts
-import { connectSyncAgent, mkdirSync } from 'happy-opfs';
+import { connectSyncAgent, mkdirSync, writeFileSync, readTextFileSync } from 'happy-opfs';
 
 await connectSyncAgent({
     worker: new Worker(new URL('worker.ts', import.meta.url), {
-        type: 'module'
+        type: 'module',
     }),
-    // SharedArrayBuffer size between main thread and worker
+    // 主线程和 Worker 之间的 SharedArrayBuffer 大小
     bufferLength: 10 * 1024 * 1024,
-    // max wait time at main thread per operation
+    // 每次操作在主线程的最大等待时间
     opTimeout: 3000,
 });
 
 mkdirSync('/happy/opfs');
-// other sync operations
+writeFileSync('/happy/opfs/file.txt', 'Hello sync!');
+const content = readTextFileSync('/happy/opfs/file.txt');
+console.log(content.unwrap()); // 'Hello sync!'
 ```
 
-详见 [tests/sync.ts](tests/sync.ts)。
+详见 [tests/sync.test.ts](tests/sync.test.ts)。
+
+## 运行测试
+
+```sh
+# 安装依赖
+pnpm install
+
+# 安装 Playwright 浏览器（浏览器测试必需）
+pnpm run playwright:install
+
+# 运行测试
+pnpm test
+
+# 监听模式运行测试
+pnpm run test:watch
+
+# 使用 UI 运行测试
+pnpm run test:ui
+```
+
+你也可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) 浏览器扩展，以便直观地查看文件系统状态。
 
 ## [文档](docs/README.md)

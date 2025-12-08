@@ -30,6 +30,7 @@ jsr add @happy-js/happy-opfs
 
 > [!NOTE]
 > This package depends on `@std/path` from JSR. To ensure proper installation, make sure you have a `.npmrc` file in the same directory as your `package.json` with the following line:
+>
 > ```
 > @jsr:registry=https://npm.jsr.io
 > ```
@@ -42,12 +43,64 @@ OPFS stands for [Origin private file system](https://developer.mozilla.org/en-US
 
 There are significant differences between the standard OPFS API and familiar file system APIs based on path operations, such as Node.js and Deno. The purpose of this project is to implement an API similar to Deno's in the browser, allowing for convenient file operations.
 
-The return values of asynchronous APIs are of the [Result](https://github.com/JiangJie/happy-opfs) type, similar to Rust's `Result` enum type, providing a more user-friendly error handling approach.
+The return values of asynchronous APIs are of the [Result](https://github.com/JiangJie/happy-rusty) type, similar to Rust's `Result` enum type, providing a more user-friendly error handling approach.
 
 ## Why Reference Deno Instead of Node.js
 
 -   The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.
 -   Previously, only Deno supported TypeScript natively. Node.js since has implemented type stripping.
+
+## Features
+
+### Core Operations
+
+-   `createFile` - Create an empty file (like `touch`)
+-   `mkdir` - Create directories recursively (like `mkdir -p`)
+-   `readDir` - Read directory contents with optional recursive traversal
+-   `readFile` - Read file contents as ArrayBuffer, string, or Blob
+-   `writeFile` - Write content to files with create/append options
+-   `remove` - Remove files or directories recursively (like `rm -rf`)
+-   `stat` - Get file/directory handle and metadata
+
+### Extended Operations
+
+-   `appendFile` - Append content to existing files
+-   `copy` - Copy files or directories (like `cp -r`)
+-   `move` - Move/rename files or directories
+-   `exists` - Check if a path exists (with isFile/isDirectory options)
+-   `emptyDir` - Empty or create a directory
+-   `readTextFile` - Read file as UTF-8 string
+-   `readBlobFile` - Read file as Blob/File object
+-   `readJsonFile` - Read and parse JSON file
+-   `writeJsonFile` - Write object as JSON file
+
+### Stream Operations
+
+-   `readFileStream` - Get a `ReadableStream` for reading large files
+-   `writeFileStream` - Get a `FileSystemWritableFileStream` for writing large files
+
+### Temporary Files
+
+-   `mkTemp` - Create temporary files or directories
+-   `generateTempPath` - Generate a temporary path
+-   `pruneTemp` - Clean up expired temporary files
+-   `deleteTemp` - Delete all temporary files
+
+### Zip Operations
+
+-   `zip` - Compress files/directories to zip
+-   `unzip` - Extract zip archives
+-   `zipFromUrl` - Download and create zip from URL
+-   `unzipFromUrl` - Download and extract zip from URL
+
+### Download/Upload
+
+-   `downloadFile` - Download files with progress tracking
+-   `uploadFile` - Upload files with progress tracking
+
+### Synchronous API
+
+All core operations have synchronous versions (e.g., `mkdirSync`, `readFileSync`, `writeFileSync`) that run via Web Workers.
 
 ## Synchronous support
 
@@ -63,180 +116,146 @@ Otherwise, an error `ReferenceError: SharedArrayBuffer is not defined` will be t
 
 ## Examples
 
+### Basic Usage
+
 ```ts
 import * as fs from 'happy-opfs';
 
-(async () => {
-    const mockServer = 'https://16a6dafa-2258-4a83-88fa-31a409e42b17.mock.pstmn.io';
-    const mockTodos = `${ mockServer }/todos`;
-    const mockTodo1 = `${ mockTodos }/1`;
+// Check if OPFS is supported
+console.log(`OPFS is${fs.isOPFSSupported() ? '' : ' not'} supported`);
 
-    // Check if OPFS is supported
-    console.log(`OPFS is${ isOPFSSupported() ? '' : ' not' } supported`);
+// Create directories
+await fs.mkdir('/my/nested/directory');
 
-    // Clear all files and folders
-    await fs.emptyDir(fs.ROOT_DIR);
-    // Recursively create the /happy/opfs directory
-    await fs.mkdir('/happy/opfs');
-    // Create and write file content
-    await fs.writeFile('/happy/opfs/a.txt', 'hello opfs');
-    await fs.writeFile('/happy/op-fs/fs.txt', 'hello opfs');
-    // Move the file
-    await fs.move('/happy/opfs/a.txt', '/happy/b.txt');
-    // Append content to the file
-    await fs.appendFile('/happy/b.txt', new TextEncoder().encode(' happy opfs'));
+// Write files
+await fs.writeFile('/my/file.txt', 'Hello, OPFS!');
+await fs.writeFile('/my/data.bin', new Uint8Array([1, 2, 3, 4, 5]));
 
-    // File no longer exists
-    const statRes = await fs.stat('/happy/opfs/a.txt');
-    console.assert(statRes.isErr());
+// Read files
+const textResult = await fs.readTextFile('/my/file.txt');
+if (textResult.isOk()) {
+    console.log(textResult.unwrap()); // 'Hello, OPFS!'
+}
 
-    console.assert((await fs.readFile('/happy/b.txt')).unwrap().byteLength === 21);
-    // Automatically normalize the path
-    console.assert((await fs.readTextFile('//happy///b.txt//')).unwrap() === 'hello opfs happy opfs');
+const binaryResult = await fs.readFile('/my/data.bin');
+if (binaryResult.isOk()) {
+    console.log(new Uint8Array(binaryResult.unwrap())); // [1, 2, 3, 4, 5]
+}
 
-    console.assert((await fs.remove('/happy/not/exists')).isOk());
-    console.assert((await fs.remove('/happy/opfs')).isOk());
+// Check existence
+const exists = await fs.exists('/my/file.txt');
+console.log(exists.unwrap()); // true
 
-    console.assert(!(await fs.exists('/happy/opfs')).unwrap());
-    console.assert((await fs.exists('/happy/b.txt')).unwrap());
-    console.assert(fs.isFileHandle((await fs.stat('/happy/b.txt')).unwrap()));
+// Copy and move
+await fs.copy('/my/file.txt', '/my/file-backup.txt');
+await fs.move('/my/file.txt', '/my/renamed.txt');
 
-    // Download a file
-    const downloadTask = fs.downloadFile(mockSingle, '/todo.json', {
-        timeout: 1000,
-        onProgress(progressResult): void {
-            progressResult.inspect(progress => {
-                console.log(`Downloaded ${ progress.completedByteLength }/${ progress.totalByteLength } bytes`);
-            });
-        },
-    });
-    const downloadRes = await downloadTask.response;
-    if (downloadRes.isOk()) {
-        console.assert(downloadRes.unwrap() instanceof Response);
+// Remove files/directories
+await fs.remove('/my/nested/directory');
 
-        const postData = (await fs.readTextFile('/todo.json')).unwrap();
-        const postJson: {
-            id: number;
-            title: string;
-        } = JSON.parse(postData);
-        console.assert(postJson.id === 1);
-
-        // Modify the file
-        postJson.title = 'happy-opfs';
-        await fs.writeFile('/todo.json', JSON.stringify(postJson));
-
-        // Upload a file
-        console.assert((await fs.uploadFile('/todo.json', mockAll).response).unwrap() instanceof Response);
-    } else {
-        console.assert(downloadRes.unwrapErr() instanceof Error);
+// List directory contents
+const entries = await fs.readDir('/my', { recursive: true });
+if (entries.isOk()) {
+    for await (const { path, handle } of entries.unwrap()) {
+        console.log(`${path} is a ${handle.kind}`);
     }
+}
+```
 
-    {
-        // Download a file to a temporary file
-        const downloadTask = fs.downloadFile(mockSingle);
-        const downloadRes = await downloadTask.response;
-        downloadRes.inspect(x => {
-            console.assert(fs.isTempPath(x.tempFilePath));
-            console.assert(x.rawResponse instanceof Response);
+### Stream Operations
+
+```ts
+import * as fs from 'happy-opfs';
+
+// Read large files using streams
+const streamResult = await fs.readFileStream('/large-file.bin');
+if (streamResult.isOk()) {
+    const stream = streamResult.unwrap();
+    const reader = stream.getReader();
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        console.log('Received chunk:', value.length, 'bytes');
+    }
+}
+
+// Write large files using streams
+const writeStreamResult = await fs.writeFileStream('/output.bin');
+if (writeStreamResult.isOk()) {
+    const stream = writeStreamResult.unwrap();
+    try {
+        await stream.write(new Uint8Array([1, 2, 3]));
+        await stream.write(new Uint8Array([4, 5, 6]));
+    } finally {
+        await stream.close();
+    }
+}
+```
+
+### Download and Upload
+
+```ts
+import * as fs from 'happy-opfs';
+
+// Download a file with progress
+const downloadTask = fs.downloadFile('https://example.com/file.zip', '/downloads/file.zip', {
+    timeout: 30000,
+    onProgress(progressResult) {
+        progressResult.inspect((progress) => {
+            console.log(
+                `Downloaded ${progress.completedByteLength}/${progress.totalByteLength} bytes`
+            );
         });
-        if (downloadRes.isOk()) {
-            await fs.remove(downloadRes.unwrap().tempFilePath);
-        }
-    }
+    },
+});
+const downloadRes = await downloadTask.response;
 
-    // Will create directory
-    await fs.emptyDir('/not-exists');
-
-    // Zip/Unzip
-    console.assert((await fs.zip('/happy', '/happy.zip')).isOk());
-    console.assert((await fs.zip('/happy')).unwrap().byteLength === (await fs.readFile('/happy.zip')).unwrap().byteLength);
-    console.assert((await fs.unzip('/happy.zip', '/happy-2')).isOk());
-    console.assert((await fs.unzipFromUrl(mockZipUrl, '/happy-3', {
-        onProgress(progressResult) {
-            progressResult.inspect(progress => {
-                console.log(`Unzipped ${ progress.completedByteLength }/${ progress.totalByteLength } bytes`);
-            });
-        },
-    })).isOk());
-    console.assert((await fs.zipFromUrl(mockZipUrl, '/test-zip.zip')).isOk());
-    console.assert((await fs.zipFromUrl(mockZipUrl)).unwrap().byteLength === (await fs.readFile('/test-zip.zip')).unwrap().byteLength);
-
-    // Temp
-    console.log(`temp txt file: ${ fs.generateTempPath({
-        basename: 'opfs',
-        extname: '.txt',
-    }) }`);
-    console.log(`temp dir: ${ fs.generateTempPath({
-        isDirectory: true,
-    }) }`);
-    (await fs.mkTemp()).inspect(path => {
-        console.assert(path.startsWith('/tmp/tmp-'));
-    });
-    const expired = new Date();
-    (await fs.mkTemp({
-        basename: 'opfs',
-        extname: '.txt',
-    })).inspect(path => {
-        console.assert(path.startsWith('/tmp/opfs-'));
-        console.assert(path.endsWith('.txt'));
-    });
-    (await fs.mkTemp({
-        isDirectory: true,
-        basename: '',
-    })).inspect(path => {
-        console.assert(path.startsWith('/tmp/'));
-    });
-    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 3);
-    await fs.pruneTemp(expired);
-    console.assert((await Array.fromAsync((await fs.readDir(fs.TMP_DIR)).unwrap())).length === 2);
-    // await fs.deleteTemp();
-    // console.assert(!(await fs.exists(fs.TMP_DIR)).unwrap());
-
-    // Copy
-    await fs.mkdir('/happy/copy');
-    console.assert((await fs.copy('/happy/b.txt', '/happy-2')).isErr());
-    console.assert((await fs.copy('/happy', '/happy-copy')).isOk());
-    await fs.appendFile('/happy-copy/b.txt', ' copy');
-    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
-    await fs.appendFile('/happy/op-fs/fs.txt', ' copy');
-    await fs.copy('/happy', '/happy-copy', {
-        overwrite: false,
-    });
-    console.assert((await fs.readFile('/happy-copy/b.txt')).unwrap().byteLength === 26);
-
-    // List all files and folders in the root directory
-    for await (const { path, handle } of (await fs.readDir(fs.ROOT_DIR, {
-        recursive: true,
-    })).unwrap()) {
-        const handleLike = await fs.toFileSystemHandleLike(handle);
-        if (fs.isFileHandleLike(handleLike)) {
-            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }, type = ${ handleLike.type }, size = ${ handleLike.size }, lastModified = ${ handleLike.lastModified }`);
-        } else {
-            console.log(`${ path } is a ${ handleLike.kind }, name = ${ handleLike.name }`);
-        }
-    }
-
-    // Comment this line to view using OPFS Explorer
-    await fs.remove(fs.ROOT_DIR);
-})();
+// Upload a file
+const uploadTask = fs.uploadFile('/my/file.txt', 'https://example.com/upload');
+const uploadRes = await uploadTask.response;
 ```
 
-You can find the above example code in the file [tests/async.ts](tests/async.ts), or you can view the runtime effect using the following steps.
+### Zip Operations
 
+```ts
+import * as fs from 'happy-opfs';
+
+// Compress a directory
+await fs.zip('/my/directory', '/archive.zip');
+
+// Extract a zip file
+await fs.unzip('/archive.zip', '/extracted');
+
+// Download and extract
+await fs.unzipFromUrl('https://example.com/archive.zip', '/from-url');
 ```
-git clone https://github.com/JiangJie/happy-opfs.git
-cd happy-opfs
-pnpm install
-pnpm start
+
+### Temporary Files
+
+```ts
+import * as fs from 'happy-opfs';
+
+// Create temporary file
+const tempPath = await fs.mkTemp({ extname: '.txt' });
+tempPath.inspect((path) => {
+    console.log(`Created temp file: ${path}`); // e.g., /tmp/tmp-abc123.txt
+});
+
+// Create temporary directory
+const tempDir = await fs.mkTemp({ isDirectory: true });
+
+// Clean up old temp files (older than specified date)
+const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+await fs.pruneTemp(yesterday);
+
+// Delete all temp files
+await fs.deleteTemp();
 ```
 
-Open [https://localhost:8443/](https://localhost:8443/) in your browser and open the developer tools to observe the console output.
-
-You can also install the [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) browser extension to visually inspect the file system status.
-
-### Synchronization Example
+### Synchronous API
 
 `worker.ts`
+
 ```ts
 import { startSyncAgent } from 'happy-opfs';
 
@@ -244,12 +263,13 @@ startSyncAgent();
 ```
 
 `index.ts`
+
 ```ts
-import { connectSyncAgent, mkdirSync } from 'happy-opfs';
+import { connectSyncAgent, mkdirSync, writeFileSync, readTextFileSync } from 'happy-opfs';
 
 await connectSyncAgent({
     worker: new Worker(new URL('worker.ts', import.meta.url), {
-        type: 'module'
+        type: 'module',
     }),
     // SharedArrayBuffer size between main thread and worker
     bufferLength: 10 * 1024 * 1024,
@@ -258,9 +278,32 @@ await connectSyncAgent({
 });
 
 mkdirSync('/happy/opfs');
-// other sync operations
+writeFileSync('/happy/opfs/file.txt', 'Hello sync!');
+const content = readTextFileSync('/happy/opfs/file.txt');
+console.log(content.unwrap()); // 'Hello sync!'
 ```
 
-See [tests/sync.ts](tests/sync.ts) for details.
+See [tests/sync.test.ts](tests/sync.test.ts) for more details.
+
+## Running Tests
+
+```sh
+# Install dependencies
+pnpm install
+
+# Install Playwright browsers (required for browser tests)
+pnpm run playwright:install
+
+# Run tests
+pnpm test
+
+# Run tests in watch mode
+pnpm run test:watch
+
+# Run tests with UI
+pnpm run test:ui
+```
+
+You can also install the [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) browser extension to visually inspect the file system status.
 
 ## [Docs](docs/README.md)
