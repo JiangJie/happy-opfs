@@ -48,7 +48,7 @@ The return values of asynchronous APIs are of the [Result](https://github.com/Ji
 ## Why Reference Deno Instead of Node.js
 
 -   The early versions of the Node.js fs API were based on callback syntax, although newer versions support Promise syntax. On the other hand, the Deno fs API was designed from the beginning with Promise syntax. Therefore, Deno has less historical baggage, making it a more suitable choice for implementing a native-compatible API.
--   Previously, only Deno supported TypeScript natively. Node.js since has implemented type stripping.
+-   Deno has native TypeScript support from the start, while Node.js only added type stripping support in version 22+.
 
 ## Features
 
@@ -305,5 +305,33 @@ pnpm run test:ui
 ```
 
 You can also install the [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) browser extension to visually inspect the file system status.
+
+## Test Coverage
+
+Tests are run in a real browser environment using Playwright to ensure OPFS compatibility. Coverage is collected using V8 coverage provider.
+
+**Coverage Notes:**
+- `src/worker/opfs_worker.ts` is excluded from coverage reports because it runs in a Web Worker context, and coverage tools cannot collect data from Worker threads in browser tests
+- `src/fs/opfs_core.ts` does not reach 100% coverage because the `writeFile` function has a branch that runs in the Worker thread context, which cannot be collected by coverage tools. However, this code path is fully tested through the synchronous API tests
+- `src/mod.ts` is excluded as it only contains re-exports
+- `src/fs/defines.ts` is excluded as it only contains TypeScript type definitions
+
+Current coverage status can be viewed on [Codecov](https://codecov.io/gh/JiangJie/happy-opfs).
+
+## Browser Compatibility
+
+OPFS is supported in modern browsers:
+
+| Browser | Version |
+|---------|--------|
+| Chrome | 86+ |
+| Edge | 86+ |
+| Firefox | 111+ |
+| Safari | 15.2+ |
+
+For detailed compatibility information, see [MDN - Origin Private File System](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system#browser_compatibility).
+
+> [!NOTE]
+> Synchronous API requires `SharedArrayBuffer` support, which needs [cross-origin isolation](https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated) headers.
 
 ## [Docs](docs/README.md)

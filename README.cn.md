@@ -7,6 +7,10 @@
 [![Build Status](https://github.com/JiangJie/happy-opfs/actions/workflows/test.yml/badge.svg)](https://github.com/JiangJie/happy-opfs/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/JiangJie/happy-opfs/graph/badge.svg)](https://codecov.io/gh/JiangJie/happy-opfs)
 
+## [English](README.md)
+
+---
+
 这是一套参考 [Deno Runtime File_System](https://deno.land/api#File_System) 和 [Deno @std/fs](https://jsr.io/@std/fs) API，基于 OPFS 实现的浏览器可用的 fs 模块。
 
 ## 安装
@@ -42,7 +46,7 @@ OPFS 是 [Origin private file system](https://developer.mozilla.org/en-US/docs/W
 ## 为什么参考 Deno 而不是 Node.js
 
 -   早期的 Node.js fs API 是基于回调的语法，虽然较新的版本支持了 Promise 语法，而 Deno fs API 则一开始就是基于 Promise 语法，这样来说的话，Deno 有更少的历史包袱，要实现和 Native 兼容的 API，选择 Deno 做为参考显然更合适。
--   Deno 原生支持 TypeScript，而 Node.js 在不借助于其它工具的情况下暂不支持。
+-   Deno 从一开始就原生支持 TypeScript，而 Node.js 直到 22+ 版本才支持 type stripping。
 
 ## 功能特性
 
@@ -299,5 +303,33 @@ pnpm run test:ui
 ```
 
 你也可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) 浏览器扩展，以便直观地查看文件系统状态。
+
+## 测试覆盖率
+
+测试在真实浏览器环境中使用 Playwright 运行，以确保 OPFS 兼容性。覆盖率使用 V8 覆盖率提供程序收集。
+
+**覆盖率说明：**
+- `src/worker/opfs_worker.ts` 被排除在覆盖率报告之外，因为它运行在 Web Worker 上下文中，覆盖率工具无法从浏览器测试中的 Worker 线程收集数据
+- `src/fs/opfs_core.ts` 未达到 100% 覆盖率，因为 `writeFile` 函数有一个分支是在 Worker 线程中运行的，覆盖率工具无法收集。但该代码路径已通过同步 API 测试完整覆盖
+- `src/mod.ts` 被排除，因为它只包含重导出
+- `src/fs/defines.ts` 被排除，因为它只包含 TypeScript 类型定义
+
+当前覆盖率状态可在 [Codecov](https://codecov.io/gh/JiangJie/happy-opfs) 查看。
+
+## 浏览器兼容性
+
+OPFS 在现代浏览器中受支持：
+
+| 浏览器 | 版本 |
+|--------|------|
+| Chrome | 86+ |
+| Edge | 86+ |
+| Firefox | 111+ |
+| Safari | 15.2+ |
+
+详细兼容性信息请参阅 [MDN - Origin Private File System](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system#browser_compatibility)。
+
+> [!NOTE]
+> 同步 API 需要 `SharedArrayBuffer` 支持，这要求设置[跨域隔离](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/crossOriginIsolated)响应头。
 
 ## [文档](docs/README.md)
