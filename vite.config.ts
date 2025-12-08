@@ -57,7 +57,16 @@ export default defineConfig({
         // Use Playwright browser environment for OPFS testing
         browser: {
             enabled: true,
-            provider: playwright(),
+            provider: playwright({
+                launchOptions: {
+                    // Ignore HTTPS certificate errors for self-signed certs
+                    // Required for MSW Service Worker registration in CI
+                    args: [
+                        '--ignore-certificate-errors',
+                        '--ignore-certificate-errors-spki-list',
+                    ],
+                },
+            }),
             instances: [{ browser: 'chromium' }],
             headless: true,
             // Fix port for MSW service worker registration
