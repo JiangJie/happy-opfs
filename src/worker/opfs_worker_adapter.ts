@@ -1,9 +1,10 @@
 import { Err, Ok, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
+import { textDecode } from '../fs/codec.ts';
 import type { CopyOptions, ExistsOptions, FileLike, FileSystemHandleLike, MoveOptions, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
-import { deserializeError, setGlobalOpTimeout } from './helpers.ts';
-import { callWorkerFromMain, decodeFromBuffer, decodeToString, encodeToBuffer, SyncMessenger, WorkerAsyncOp } from './shared.ts';
+import { deserializeError, setGlobalOpTimeout, sleepUntil } from './helpers.ts';
+import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 
 /**
  * Cache the messenger instance.
@@ -99,6 +100,45 @@ export function getSyncMessenger(): SyncMessenger {
 export function setSyncMessenger(syncMessenger: SyncMessenger): void {
     invariant(syncMessenger != null, () => 'syncMessenger is null or undefined');
     messenger = syncMessenger;
+}
+
+/**
+ * Sends a synchronous request from main thread to worker and waits for response.
+ * This function blocks the main thread until the worker responds.
+ *
+ * @param messenger - The `SyncMessenger` instance for communication.
+ * @param data - The request data as a `Uint8Array`.
+ * @returns The response data as a `Uint8Array`.
+ * @throws {RangeError} If the request data exceeds the buffer's maximum capacity.
+ */
+function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Array {
+    const { i32a, u8a, headerLength, maxDataLength } = messenger;
+    const requestLength = data.byteLength;
+
+    // check whether request is too large
+    if (requestLength > maxDataLength) {
+        throw new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider grow the size of SharedArrayBuffer.`);
+    }
+
+    // lock main thread
+    Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_LOCKED);
+
+    // payload and length
+    i32a[DATA_INDEX] = requestLength;
+    u8a.set(data, headerLength);
+
+    // wakeup worker
+    // Atomics.notify(i32a, WORKER_LOCK_INDEX); // this may not work
+    Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_UNLOCKED);
+
+    // wait for worker to finish
+    sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
+
+    // worker return
+    const responseLength = i32a[DATA_INDEX];
+    const response = u8a.slice(headerLength, headerLength + responseLength);
+
+    return response;
 }
 
 /**
@@ -240,7 +280,7 @@ export function readFileSync<T extends ReadFileContent>(filePath: string, option
                 return file as unknown as T;
             }
             case 'utf8': {
-                return decodeToString(new Uint8Array(file.data)) as unknown as T;
+                return textDecode(new Uint8Array(file.data)) as unknown as T;
             }
             default: {
                 return file.data as unknown as T;

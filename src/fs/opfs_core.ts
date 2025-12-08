@@ -1,6 +1,7 @@
 import { basename, dirname, join } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
+import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR, NOT_FOUND_ERROR } from './constants.ts';
 import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './helpers.ts';
@@ -309,7 +310,7 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
             try {
                 // Always write as Uint8Array to avoid copying buffer.
                 let remaining = typeof contents === 'string'
-                    ? new TextEncoder().encode(contents)
+                    ? textEncode(contents)
                     : contents instanceof Blob
                         ? new Uint8Array(await contents.arrayBuffer())
                         : contents instanceof ArrayBuffer

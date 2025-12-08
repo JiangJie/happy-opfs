@@ -7,7 +7,13 @@ import { unzip } from '../fs/opfs_unzip.ts';
 import { zip } from '../fs/opfs_zip.ts';
 import { toFileSystemHandleLike } from '../fs/utils.ts';
 import { serializeError, serializeFile } from './helpers.ts';
-import { decodeFromBuffer, encodeToBuffer, respondToMainFromWorker, SyncMessenger, WorkerAsyncOp } from './shared.ts';
+import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
+
+/**
+ * Worker thread locked value.
+ * Default.
+ */
+const WORKER_LOCKED = MAIN_UNLOCKED;
 
 /**
  * Mapping of async operation enums to their corresponding functions.
@@ -75,6 +81,67 @@ export function startSyncAgent(): void {
         // start waiting for request
         runWorkerLoop();
     });
+}
+
+/**
+ * Handles incoming requests from main thread and sends responses.
+ * This function runs in the worker thread and processes one request.
+ *
+ * @param messenger - The `SyncMessenger` instance for communication.
+ * @param transfer - Async function that processes request data and returns response data.
+ * @throws {RangeError} If the response data exceeds the buffer's maximum capacity.
+ */
+async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
+    const { i32a, u8a, headerLength, maxDataLength } = messenger;
+
+    while (true) {
+        if (Atomics.load(i32a, WORKER_LOCK_INDEX) === WORKER_UNLOCKED) {
+            break;
+        }
+    }
+
+    // because of `Atomics.notify` may not work
+    // const waitRes = Atomics.wait(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
+    // if (waitRes !== 'ok') {
+    //     throw new Error(`Unexpected Atomics.wait result: ${ waitRes }`);
+    // }
+
+    // payload and length
+    const requestLength = i32a[DATA_INDEX];
+    // console.log(`requestLength: ${ requestLength }`);
+    const data = u8a.slice(headerLength, headerLength + requestLength);
+
+    // call async I/O operation
+    let response = await transfer(data);
+    const responseLength = response.byteLength;
+
+    // check whether response is too large
+    if (responseLength > maxDataLength) {
+        const message = `Response is too large: ${ responseLength } > ${ maxDataLength }. Consider grow the size of SharedArrayBuffer.`;
+
+        response = encodeToBuffer([{
+            name: 'RangeError',
+            message,
+        }]);
+
+        // the error is too large?
+        if (response.byteLength > maxDataLength) {
+            // lock worker thread before throw
+            Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
+
+            throw new RangeError(message);
+        }
+    }
+
+    // write response data
+    i32a[DATA_INDEX] = response.byteLength;
+    u8a.set(response, headerLength);
+
+    // lock worker thread
+    Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
+
+    // wakeup main thread
+    Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_UNLOCKED);
 }
 
 /**
