@@ -22,7 +22,7 @@ jobs:
       - run: npm install pnpm -g
       - run: pnpm install
       - run: pnpm run playwright:install
-      - run: pnpm run test:coverage
+      - run: pnpm test
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
