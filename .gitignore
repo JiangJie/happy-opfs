@@ -3,9 +3,4 @@ node_modules
 
 # Test coverage
 coverage
-
-# Test results
-test-results
-playwright-report
-
 __screenshots__
