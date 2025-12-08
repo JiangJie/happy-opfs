@@ -7,7 +7,7 @@ import { connectSyncAgent } from '../src/worker/opfs_worker_adapter.ts';
 // Try to call connectSyncAgent from worker - this should throw
 try {
     connectSyncAgent({
-        worker: self as unknown as Worker,
+        worker: '',
     });
     // If no error, post failure
     postMessage({ success: false, error: 'Expected error was not thrown' });
