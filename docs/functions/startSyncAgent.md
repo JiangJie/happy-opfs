@@ -10,12 +10,23 @@
 function startSyncAgent(): void
 ```
 
-Defined in: [worker/opfs\_worker.ts:45](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker.ts#L45)
+Defined in: [worker/opfs\_worker.ts:53](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker.ts#L53)
 
-Start worker agent.
-Listens to postMessage from main thread.
-Start runner loop.
+Starts the sync agent in a Web Worker.
+Listens for a SharedArrayBuffer from the main thread and begins processing requests.
 
 ## Returns
 
 `void`
+
+## Throws
+
+If called outside a Worker context or if already started.
+
+## Example
+
+```typescript
+// In worker.js
+import { startSyncAgent } from 'happy-opfs';
+startSyncAgent();
+```

@@ -10,18 +10,28 @@
 function mkdir(dirPath): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_core.ts:31](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_core.ts#L31)
+Defined in: [fs/opfs\_core.ts:48](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L48)
 
-Creates a new directory at the specified path same as `mkdir -p`.
+Creates a new directory at the specified path, similar to `mkdir -p`.
+Creates all necessary parent directories if they don't exist.
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `dirPath` | `string` | The path where the new directory will be created. |
+| `dirPath` | `string` | The absolute path where the directory will be created. |
 
 ## Returns
 
 `AsyncVoidIOResult`
 
-A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully created.
+A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+
+## Example
+
+```typescript
+const result = await mkdir('/path/to/new/directory');
+if (result.isOk()) {
+    console.log('Directory created successfully');
+}
+```

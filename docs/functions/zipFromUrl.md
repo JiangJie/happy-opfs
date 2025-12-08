@@ -15,7 +15,7 @@ function zipFromUrl(
    requestInit?): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_zip.ts:114](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_zip.ts#L114)
+Defined in: [fs/opfs\_zip.ts:122](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_zip.ts#L122)
 
 Zip a remote file and write to a zip file.
 
@@ -41,7 +41,7 @@ A promise that resolves to an `AsyncIOResult` indicating whether the source was 
 function zipFromUrl(sourceUrl, requestInit?): AsyncIOResult<Uint8Array<ArrayBufferLike>>
 ```
 
-Defined in: [fs/opfs\_zip.ts:124](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_zip.ts#L124)
+Defined in: [fs/opfs\_zip.ts:132](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_zip.ts#L132)
 
 Zip a remote file and return the zip file data.
 

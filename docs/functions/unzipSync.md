@@ -10,17 +10,24 @@
 function unzipSync(zipFilePath, targetPath): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:287](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L287)
+Defined in: [worker/opfs\_worker\_adapter.ts:471](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L471)
 
-Sync version of `unzip`.
+Synchronous version of `unzip`.
+Extracts a zip file to a directory.
 
 ## Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `zipFilePath` | `string` |
-| `targetPath` | `string` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `zipFilePath` | `string` | The path to the zip file. |
+| `targetPath` | `string` | The directory to extract to. |
 
 ## Returns
 
 `VoidIOResult`
+
+A `VoidIOResult` indicating success or failure.
+
+## See
+
+[unzip](unzip.md) for the async version.

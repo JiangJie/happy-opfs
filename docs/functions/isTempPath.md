@@ -10,9 +10,9 @@
 function isTempPath(path): boolean
 ```
 
-Defined in: [fs/utils.ts:30](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/utils.ts#L30)
+Defined in: [fs/utils.ts:44](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/utils.ts#L44)
 
-Check whether the path is a temporary path.
+Checks whether the path is a temporary path (under `/tmp`).
 
 ## Parameters
 
@@ -24,4 +24,11 @@ Check whether the path is a temporary path.
 
 `boolean`
 
-`true` if the path is a temporary path otherwise `false`.
+`true` if the path starts with `/tmp/`, otherwise `false`.
+
+## Example
+
+```typescript
+isTempPath('/tmp/file.txt');  // true
+isTempPath('/data/file.txt'); // false
+```

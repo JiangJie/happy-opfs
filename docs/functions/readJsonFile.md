@@ -10,24 +10,37 @@
 function readJsonFile<T>(filePath): AsyncIOResult<T>
 ```
 
-Defined in: [fs/opfs\_ext.ts:231](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_ext.ts#L231)
+Defined in: [fs/opfs\_ext.ts:295](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_ext.ts#L295)
 
-Reads the content of a file at the specified path as a string and returns it as a JSON object.
+Reads a JSON file and parses its content.
 
 ## Type Parameters
 
-| Type Parameter |
-| ------ |
-| `T` |
+| Type Parameter | Description |
+| ------ | ------ |
+| `T` | The expected type of the parsed JSON object. |
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `filePath` | `string` | The path of the file to read. |
+| `filePath` | `string` | The path of the JSON file to read. |
 
 ## Returns
 
 `AsyncIOResult`\<`T`\>
 
-A promise that resolves to an `AsyncIOResult` containing the file content as a JSON object.
+A promise that resolves to an `AsyncIOResult` containing the parsed JSON object.
+
+## Example
+
+```typescript
+interface Config {
+    name: string;
+    version: number;
+}
+const result = await readJsonFile<Config>('/config.json');
+if (result.isOk()) {
+    console.log(result.unwrap().name);
+}
+```

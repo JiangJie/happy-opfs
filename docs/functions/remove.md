@@ -10,18 +10,28 @@
 function remove(path): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_core.ts:143](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_core.ts#L143)
+Defined in: [fs/opfs\_core.ts:168](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L168)
 
-Removes a file or directory at the specified path same as `rm -rf`.
+Removes a file or directory at the specified path, similar to `rm -rf`.
+If the path doesn't exist, the operation succeeds silently.
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `string` | The path of the file or directory to remove. |
+| `path` | `string` | The absolute path of the file or directory to remove. |
 
 ## Returns
 
 `AsyncVoidIOResult`
 
-A promise that resolves to an `AsyncIOResult` indicating whether the file or directory was successfully removed.
+A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+
+## Example
+
+```typescript
+const result = await remove('/path/to/file-or-directory');
+if (result.isOk()) {
+    console.log('Removed successfully');
+}
+```

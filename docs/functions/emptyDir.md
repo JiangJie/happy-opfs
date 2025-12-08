@@ -10,18 +10,25 @@
 function emptyDir(dirPath): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_ext.ts:152](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_ext.ts#L152)
+Defined in: [fs/opfs\_ext.ts:173](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_ext.ts#L173)
 
-Empties the contents of a directory at the specified path.
+Empties all contents of a directory at the specified path.
+If the directory doesn't exist, it will be created.
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `dirPath` | `string` | The path of the directory to empty. |
+| `dirPath` | `string` | The absolute path of the directory to empty. |
 
 ## Returns
 
 `AsyncVoidIOResult`
 
-A promise that resolves to an `AsyncIOResult` indicating whether the directory was successfully emptied.
+A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+
+## Example
+
+```typescript
+await emptyDir('/path/to/directory');
+```

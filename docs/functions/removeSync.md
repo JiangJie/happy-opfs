@@ -10,16 +10,23 @@
 function removeSync(path): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:173](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L173)
+Defined in: [worker/opfs\_worker\_adapter.ts:260](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L260)
 
-Sync version of `remove`.
+Synchronous version of `remove`.
+Removes a file or directory at the specified path.
 
 ## Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `path` | `string` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | The absolute path of the file or directory to remove. |
 
 ## Returns
 
 `VoidIOResult`
+
+A `VoidIOResult` indicating success or failure.
+
+## See
+
+[remove](remove.md) for the async version.

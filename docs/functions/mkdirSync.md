@@ -10,16 +10,23 @@
 function mkdirSync(dirPath): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:118](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L118)
+Defined in: [worker/opfs\_worker\_adapter.ts:156](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L156)
 
-Sync version of `mkdir`.
+Synchronous version of `mkdir`.
+Creates a directory at the specified path, including any necessary parent directories.
 
 ## Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `dirPath` | `string` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `dirPath` | `string` | The absolute path of the directory to create. |
 
 ## Returns
 
 `VoidIOResult`
+
+A `VoidIOResult` indicating success or failure.
+
+## See
+
+[mkdir](mkdir.md) for the async version.

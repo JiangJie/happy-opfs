@@ -10,7 +10,7 @@
 function assertFileUrl(fileUrl): void
 ```
 
-Defined in: [fs/assertions.ts:21](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/assertions.ts#L21)
+Defined in: [fs/assertions.ts:21](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/assertions.ts#L21)
 
 Asserts that the provided URL is a valid file URL.
 

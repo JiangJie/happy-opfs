@@ -6,12 +6,12 @@
 
 # Interface: ReadDirOptions
 
-Defined in: [fs/defines.ts:86](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L86)
+Defined in: [fs/defines.ts:95](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L95)
 
 Options for reading directories.
 
 ## Properties
 
-| Property | Type | Description | Defined in |
-| ------ | ------ | ------ | ------ |
-| <a id="recursive"></a> `recursive` | `boolean` | Whether to recursively read the contents of directories. | [fs/defines.ts:90](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L90) |
+| Property | Type | Default value | Description | Defined in |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="recursive"></a> `recursive?` | `boolean` | `false` | Whether to recursively read the contents of subdirectories. | [fs/defines.ts:100](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L100) |

@@ -12,7 +12,7 @@
 function downloadFile(fileUrl, requestInit?): FetchTask<DownloadFileTempResponse>
 ```
 
-Defined in: [fs/opfs\_download.ts:18](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_download.ts#L18)
+Defined in: [fs/opfs\_download.ts:35](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_download.ts#L35)
 
 Downloads a file from a URL and saves it to a temporary file.
 The returned response will contain the temporary file path.
@@ -39,7 +39,7 @@ function downloadFile(
 requestInit?): FetchTask<Response>
 ```
 
-Defined in: [fs/opfs\_download.ts:27](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_download.ts#L27)
+Defined in: [fs/opfs\_download.ts:44](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_download.ts#L44)
 
 Downloads a file from a URL and saves it to the specified path.
 

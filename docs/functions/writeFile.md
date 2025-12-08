@@ -13,20 +13,34 @@ function writeFile(
    options?): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_core.ts:217](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_core.ts#L217)
+Defined in: [fs/opfs\_core.ts:272](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L272)
 
 Writes content to a file at the specified path.
+Creates the file and parent directories if they don't exist (unless `create: false`).
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `filePath` | `string` | The path of the file to write to. |
-| `contents` | [`WriteFileContent`](../type-aliases/WriteFileContent.md) | The content to write to the file. |
+| `filePath` | `string` | The absolute path of the file to write to. |
+| `contents` | [`WriteFileContent`](../type-aliases/WriteFileContent.md) | The content to write (string, ArrayBuffer, TypedArray, or Blob). |
 | `options`? | [`WriteOptions`](../interfaces/WriteOptions.md) | Optional write options. |
 
 ## Returns
 
 `AsyncVoidIOResult`
 
-A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully written.
+A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+
+## Example
+
+```typescript
+// Write string content
+await writeFile('/path/to/file.txt', 'Hello, World!');
+
+// Write binary content
+await writeFile('/path/to/file.bin', new Uint8Array([1, 2, 3]));
+
+// Append to existing file
+await writeFile('/path/to/file.txt', '\nMore content', { append: true });
+```

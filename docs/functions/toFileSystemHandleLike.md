@@ -10,7 +10,7 @@
 function toFileSystemHandleLike(handle): Promise<FileSystemHandleLike>
 ```
 
-Defined in: [fs/utils.ts:39](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/utils.ts#L39)
+Defined in: [fs/utils.ts:53](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/utils.ts#L53)
 
 Serialize a `FileSystemHandle` to plain object.
 

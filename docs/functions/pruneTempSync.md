@@ -10,16 +10,23 @@
 function pruneTempSync(expired): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:249](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L249)
+Defined in: [worker/opfs\_worker\_adapter.ts:392](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L392)
 
-Sync version of `pruneTemp`.
+Synchronous version of `pruneTemp`.
+Removes expired files from the temporary directory.
 
 ## Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `expired` | `Date` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `expired` | `Date` | Files with lastModified before this date will be removed. |
 
 ## Returns
 
 `VoidIOResult`
+
+A `VoidIOResult` indicating success or failure.
+
+## See
+
+[pruneTemp](pruneTemp.md) for the async version.

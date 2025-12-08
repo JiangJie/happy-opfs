@@ -10,18 +10,27 @@
 function isFileHandleLike(handle): handle is FileSystemFileHandleLike
 ```
 
-Defined in: [fs/utils.ts:88](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/utils.ts#L88)
+Defined in: [fs/utils.ts:126](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/utils.ts#L126)
 
-Whether the handle is a file-like.
+Checks whether the given handle-like object represents a file.
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `handle` | [`FileSystemHandleLike`](../interfaces/FileSystemHandleLike.md) | The handle which is a FileSystemHandleLike. |
+| `handle` | [`FileSystemHandleLike`](../interfaces/FileSystemHandleLike.md) | The `FileSystemHandleLike` object to check. |
 
 ## Returns
 
 `handle is FileSystemFileHandleLike`
 
-`true` if the handle is a file, otherwise `false`.
+`true` if the handle-like object represents a file, otherwise `false`.
+
+## Example
+
+```typescript
+const handleLike = await statSync('/path/to/file').unwrap();
+if (isFileHandleLike(handleLike)) {
+    console.log(`File size: ${handleLike.size}`);
+}
+```

@@ -10,16 +10,23 @@
 function mkTempSync(options?): IOResult<string>
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:242](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L242)
+Defined in: [worker/opfs\_worker\_adapter.ts:380](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L380)
 
-Sync version of `mkTemp`.
+Synchronous version of `mkTemp`.
+Creates a temporary file or directory.
 
 ## Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `options`? | [`TempOptions`](../interfaces/TempOptions.md) |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `options`? | [`TempOptions`](../interfaces/TempOptions.md) | Optional temp options (e.g., isDirectory, basename, extname). |
 
 ## Returns
 
 `IOResult`\<`string`\>
+
+An `IOResult` containing the temporary path.
+
+## See
+
+[mkTemp](mkTemp.md) for the async version.

@@ -10,6 +10,9 @@
 type FileEncoding = "binary" | "utf8" | "blob";
 ```
 
-Defined in: [fs/defines.ts:66](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L66)
+Defined in: [fs/defines.ts:75](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L75)
 
-Supported file encodings for reading and writing files.
+Supported file encodings for reading files.
+- `'binary'`: Returns raw `ArrayBuffer`
+- `'utf8'`: Returns decoded `string`
+- `'blob'`: Returns `File` object with metadata

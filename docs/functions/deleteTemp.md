@@ -10,12 +10,21 @@
 function deleteTemp(): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_tmp.ts:29](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_tmp.ts#L29)
+Defined in: [fs/opfs\_tmp.ts:52](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_tmp.ts#L52)
 
-Delete the temporary directory and all its contents.
+Deletes the entire temporary directory (`/tmp`) and all its contents.
 
 ## Returns
 
 `AsyncVoidIOResult`
 
-A promise that resolves to an `AsyncVoidIOResult` indicating whether the temporary directory was successfully deleted.
+A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+
+## Example
+
+```typescript
+const result = await deleteTemp();
+if (result.isOk()) {
+    console.log('Temporary directory deleted');
+}
+```

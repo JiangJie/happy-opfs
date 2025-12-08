@@ -6,7 +6,7 @@
 
 # Interface: MoveOptions
 
-Defined in: [fs/defines.ts:285](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L285)
+Defined in: [fs/defines.ts:313](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L313)
 
 Options for `move`.
 
@@ -14,4 +14,4 @@ Options for `move`.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="overwrite"></a> `overwrite?` | `boolean` | `true` | Whether to overwrite the destination file if it already exists. | [fs/defines.ts:290](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L290) |
+| <a id="overwrite"></a> `overwrite?` | `boolean` | `true` | Whether to overwrite the destination file if it already exists. | [fs/defines.ts:318](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L318) |

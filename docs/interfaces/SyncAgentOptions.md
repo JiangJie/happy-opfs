@@ -6,14 +6,14 @@
 
 # Interface: SyncAgentOptions
 
-Defined in: [fs/defines.ts:203](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L203)
+Defined in: [fs/defines.ts:223](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L223)
 
-Setup options of `connectSyncAgent`.
+Setup options for `connectSyncAgent`.
 
 ## Properties
 
-| Property | Type | Description | Defined in |
-| ------ | ------ | ------ | ------ |
-| <a id="bufferlength"></a> `bufferLength?` | `number` | The length of the buffer to use for communication. | [fs/defines.ts:212](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L212) |
-| <a id="optimeout"></a> `opTimeout?` | `number` | The timeout for operations. | [fs/defines.ts:217](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L217) |
-| <a id="worker"></a> `worker` | `string` \| `Worker` \| `URL` | The worker to communicate with. | [fs/defines.ts:207](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L207) |
+| Property | Type | Default value | Description | Defined in |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="bufferlength"></a> `bufferLength?` | `number` | `1048576` (1MB) | The size of the `SharedArrayBuffer` in bytes. Larger buffers can handle larger file operations but consume more memory. Must be a multiple of 4 and greater than 16. | [fs/defines.ts:236](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L236) |
+| <a id="optimeout"></a> `opTimeout?` | `number` | `1000` (1 second) | The timeout for each synchronous operation in milliseconds. If an operation takes longer than this, a `TimeoutError` is thrown. | [fs/defines.ts:243](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L243) |
+| <a id="worker"></a> `worker` | `string` \| `Worker` \| `URL` | `undefined` | The worker to communicate with. Can be a `Worker` instance, a `URL`, or a URL string. | [fs/defines.ts:228](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L228) |

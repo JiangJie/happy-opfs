@@ -10,18 +10,27 @@
 function isFileHandle(handle): handle is FileSystemFileHandle
 ```
 
-Defined in: [fs/utils.ts:70](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/utils.ts#L70)
+Defined in: [fs/utils.ts:92](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/utils.ts#L92)
 
-Whether the handle is a file.
+Checks whether the given handle is a file handle.
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `handle` | `FileSystemHandle` | The handle which is a FileSystemHandle. |
+| `handle` | `FileSystemHandle` | The `FileSystemHandle` to check. |
 
 ## Returns
 
 `handle is FileSystemFileHandle`
 
-`true` if the handle is a file, otherwise `false`.
+`true` if the handle is a `FileSystemFileHandle`, otherwise `false`.
+
+## Example
+
+```typescript
+const handle = await stat('/path/to/file');
+if (handle.isOk() && isFileHandle(handle.unwrap())) {
+    console.log('This is a file');
+}
+```

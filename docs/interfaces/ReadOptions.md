@@ -6,7 +6,7 @@
 
 # Interface: ReadOptions
 
-Defined in: [fs/defines.ts:21](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L21)
+Defined in: [fs/defines.ts:27](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L27)
 
 Options for reading files with specified encoding.
 
@@ -14,4 +14,4 @@ Options for reading files with specified encoding.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="encoding"></a> `encoding?` | [`FileEncoding`](../type-aliases/FileEncoding.md) | `'binary'` | The encoding to use for reading the file's content. | [fs/defines.ts:26](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L26) |
+| <a id="encoding"></a> `encoding?` | [`FileEncoding`](../type-aliases/FileEncoding.md) | `'binary'` | The encoding to use for reading the file's content. | [fs/defines.ts:32](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L32) |

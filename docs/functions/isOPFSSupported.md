@@ -10,12 +10,24 @@
 function isOPFSSupported(): boolean
 ```
 
-Defined in: [fs/support.ts:6](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/support.ts#L6)
+Defined in: [fs/support.ts:16](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/support.ts#L16)
 
 Checks if the Origin Private File System (OPFS) is supported in the current environment.
+OPFS requires a secure context (HTTPS or localhost) and browser support.
 
 ## Returns
 
 `boolean`
 
-A boolean indicating whether OPFS is supported.
+`true` if OPFS is supported, `false` otherwise.
+
+## Example
+
+```typescript
+if (isOPFSSupported()) {
+    // Use OPFS APIs
+    const result = await readFile('/path/to/file');
+} else {
+    console.warn('OPFS is not supported in this environment');
+}
+```

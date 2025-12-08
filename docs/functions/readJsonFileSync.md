@@ -10,22 +10,29 @@
 function readJsonFileSync<T>(filePath): IOResult<T>
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:265](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/worker/opfs_worker_adapter.ts#L265)
+Defined in: [worker/opfs\_worker\_adapter.ts:419](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L419)
 
-Sync version of `readJsonFile`.
+Synchronous version of `readJsonFile`.
+Reads and parses a JSON file.
 
 ## Type Parameters
 
-| Type Parameter |
-| ------ |
-| `T` |
+| Type Parameter | Description |
+| ------ | ------ |
+| `T` | The expected type of the parsed JSON. |
 
 ## Parameters
 
-| Parameter | Type |
-| ------ | ------ |
-| `filePath` | `string` |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `filePath` | `string` | The absolute path of the JSON file to read. |
 
 ## Returns
 
 `IOResult`\<`T`\>
+
+An `IOResult` containing the parsed JSON object.
+
+## See
+
+[readJsonFile](readJsonFile.md) for the async version.

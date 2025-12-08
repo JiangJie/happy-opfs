@@ -6,9 +6,10 @@
 
 # Interface: FileSystemFileHandleLike
 
-Defined in: [fs/defines.ts:138](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L138)
+Defined in: [fs/defines.ts:158](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L158)
 
-A handle to a file or directory returned by `statSync`.
+A serializable representation of a file handle with additional metadata.
+Extends `FileSystemHandleLike` with file-specific properties.
 
 ## Extends
 
@@ -18,8 +19,8 @@ A handle to a file or directory returned by `statSync`.
 
 | Property | Type | Description | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="kind"></a> `kind` | `FileSystemHandleKind` | The kind of the entry. | [`FileSystemHandleLike`](FileSystemHandleLike.md).[`kind`](FileSystemHandleLike.md#kind) | [fs/defines.ts:135](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L135) |
-| <a id="lastmodified"></a> `lastModified` | `number` | The last modified time of the file. | - | [fs/defines.ts:152](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L152) |
-| <a id="name"></a> `name` | `string` | The name of the entry. | [`FileSystemHandleLike`](FileSystemHandleLike.md).[`name`](FileSystemHandleLike.md#name) | [fs/defines.ts:130](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L130) |
-| <a id="size"></a> `size` | `number` | The size of the file. | - | [fs/defines.ts:147](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L147) |
-| <a id="type"></a> `type` | `string` | The type of the file. | - | [fs/defines.ts:142](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/defines.ts#L142) |
+| <a id="kind"></a> `kind` | `FileSystemHandleKind` | The kind of the entry: `'file'` or `'directory'`. | [`FileSystemHandleLike`](FileSystemHandleLike.md).[`kind`](FileSystemHandleLike.md#kind) | [fs/defines.ts:151](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L151) |
+| <a id="lastmodified"></a> `lastModified` | `number` | The last modified timestamp in milliseconds since Unix epoch. | - | [fs/defines.ts:172](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L172) |
+| <a id="name"></a> `name` | `string` | The name of the file or directory. | [`FileSystemHandleLike`](FileSystemHandleLike.md).[`name`](FileSystemHandleLike.md#name) | [fs/defines.ts:146](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L146) |
+| <a id="size"></a> `size` | `number` | The size of the file in bytes. | - | [fs/defines.ts:167](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L167) |
+| <a id="type"></a> `type` | `string` | The MIME type of the file (e.g., `'text/plain'`, `'image/png'`). | - | [fs/defines.ts:162](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L162) |

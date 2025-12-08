@@ -10,19 +10,26 @@
 function appendFile(filePath, contents): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_ext.ts:120](https://github.com/JiangJie/happy-opfs/blob/318f46cfcd998ebd962bc0e9335ea2aaef290cf7/src/fs/opfs_ext.ts#L120)
+Defined in: [fs/opfs\_ext.ts:125](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_ext.ts#L125)
 
 Appends content to a file at the specified path.
+Creates the file if it doesn't exist.
 
 ## Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `filePath` | `string` | The path of the file to append to. |
-| `contents` | [`WriteFileContent`](../type-aliases/WriteFileContent.md) | The content to append to the file. |
+| `filePath` | `string` | The absolute path of the file to append to. |
+| `contents` | [`WriteFileContent`](../type-aliases/WriteFileContent.md) | The content to append (string, ArrayBuffer, TypedArray, or Blob). |
 
 ## Returns
 
 `AsyncVoidIOResult`
 
-A promise that resolves to an `AsyncIOResult` indicating whether the content was successfully appended.
+A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+
+## Example
+
+```typescript
+await appendFile('/path/to/log.txt', 'New log entry\n');
+```
