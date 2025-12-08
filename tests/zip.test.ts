@@ -102,6 +102,20 @@ describe('OPFS Zip Operations', () => {
             const content = await fs.readTextFile('/unzip-dest/unzip-src/file1.txt');
             expect(content.unwrap()).toBe('content1');
         });
+
+        it('should fail to unzip invalid zip data', async () => {
+            // Create a file with invalid zip format (random bytes that are not valid zip)
+            const invalidZipData = new Uint8Array([0x00, 0x01, 0x02, 0x03, 0x04, 0x05]);
+            await fs.writeFile('/invalid.zip', invalidZipData);
+
+            // Attempt to unzip should fail
+            const result = await fs.unzip('/invalid.zip', '/invalid-dest');
+            expect(result.isErr()).toBe(true);
+
+            // Clean up
+            await fs.remove('/invalid.zip');
+            await fs.remove('/invalid-dest');
+        });
     });
 
     describe('unzipFromUrl', () => {
