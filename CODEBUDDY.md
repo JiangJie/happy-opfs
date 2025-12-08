@@ -68,6 +68,14 @@ Tests are located in `tests/` directory. The test environment:
 - Automatically configures HTTPS and required COOP/COEP headers
 - Runs tests sequentially to avoid OPFS conflicts
 - Coverage reports via v8 provider
+- Uses MSW (Mock Service Worker) for download/upload API mocking
+
+### Mock Server (MSW)
+Download and upload tests use MSW instead of external APIs:
+- Handlers defined in `tests/mocks/handlers.ts`
+- Browser setup in `tests/mocks/browser.ts`
+- Service worker at `tests/public/mockServiceWorker.js`
+- Mock endpoints use `https://mock.test` domain
 
 ## Code Architecture
 
