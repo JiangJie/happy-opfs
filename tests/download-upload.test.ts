@@ -11,8 +11,11 @@ const mockServer = 'https://mock.test';
 
 describe('OPFS Download/Upload Operations', () => {
     beforeAll(async () => {
-        // Start MSW worker
+        // Start MSW worker from fixed port (configured in vite.config.ts)
         await worker.start({
+            serviceWorker: {
+                url: 'https://localhost:8443/mockServiceWorker.js',
+            },
             onUnhandledRequest: 'bypass',
             quiet: true,
         });

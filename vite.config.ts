@@ -1,7 +1,7 @@
 import { playwright } from '@vitest/browser-playwright';
-import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import mkcert from 'vite-plugin-mkcert';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     plugins: [
@@ -23,6 +23,7 @@ export default defineConfig({
             'Cross-Origin-Embedder-Policy': 'require-corp'
         },
     },
+    publicDir: 'tests/public',
     build: {
         target: 'esnext',
         minify: false,
@@ -59,6 +60,11 @@ export default defineConfig({
             provider: playwright(),
             instances: [{ browser: 'chromium' }],
             headless: true,
+            // Fix port for MSW service worker registration
+            api: {
+                port: 8443,
+                strictPort: true,
+            },
         },
         // Coverage configuration
         coverage: {
