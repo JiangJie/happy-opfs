@@ -10,7 +10,7 @@
 function startSyncAgent(): void
 ```
 
-Defined in: [worker/opfs\_worker.ts:53](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker.ts#L53)
+Defined in: [worker/opfs\_worker.ts:64](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker.ts#L64)
 
 Starts the sync agent in a Web Worker.
 Listens for a SharedArrayBuffer from the main thread and begins processing requests.

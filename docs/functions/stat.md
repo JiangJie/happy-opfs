@@ -10,7 +10,7 @@
 function stat(path): AsyncIOResult<FileSystemHandle>
 ```
 
-Defined in: [fs/opfs\_core.ts:216](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L216)
+Defined in: [fs/opfs\_core.ts:217](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_core.ts#L217)
 
 Retrieves the `FileSystemHandle` for a file or directory at the specified path.
 Can be used to check the type (file or directory) and access metadata.

@@ -13,7 +13,7 @@ function writeFile(
    options?): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_core.ts:272](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L272)
+Defined in: [fs/opfs\_core.ts:273](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_core.ts#L273)
 
 Writes content to a file at the specified path.
 Creates the file and parent directories if they don't exist (unless `create: false`).

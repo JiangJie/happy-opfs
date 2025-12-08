@@ -26,7 +26,7 @@ Optional read options.
 function readFile(filePath, options): AsyncIOResult<File>
 ```
 
-Defined in: [fs/opfs\_core.ts:97](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L97)
+Defined in: [fs/opfs\_core.ts:98](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_core.ts#L98)
 
 Reads the content of a file at the specified path as a File.
 
@@ -63,7 +63,7 @@ Optional read options.
 function readFile(filePath, options): AsyncIOResult<string>
 ```
 
-Defined in: [fs/opfs\_core.ts:108](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L108)
+Defined in: [fs/opfs\_core.ts:109](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_core.ts#L109)
 
 Reads the content of a file at the specified path as a string.
 
@@ -100,7 +100,7 @@ Optional read options.
 function readFile(filePath, options?): AsyncIOResult<ArrayBuffer>
 ```
 
-Defined in: [fs/opfs\_core.ts:119](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L119)
+Defined in: [fs/opfs\_core.ts:120](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_core.ts#L120)
 
 Reads the content of a file at the specified path as an ArrayBuffer by default.
 

@@ -13,7 +13,7 @@ function moveSync(
    options?): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:170](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L170)
+Defined in: [worker/opfs\_worker\_adapter.ts:222](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker_adapter.ts#L222)
 
 Synchronous version of `move`.
 Moves a file or directory from one location to another.

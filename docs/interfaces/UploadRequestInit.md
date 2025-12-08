@@ -6,7 +6,7 @@
 
 # Interface: UploadRequestInit
 
-Defined in: [fs/defines.ts:85](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L85)
+Defined in: [fs/defines.ts:85](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/defines.ts#L85)
 
 fetch-t request options for uploading files.
 
@@ -18,4 +18,4 @@ fetch-t request options for uploading files.
 
 | Property | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="filename"></a> `filename?` | `string` | The filename to use when uploading the file. | [fs/defines.ts:89](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/defines.ts#L89) |
+| <a id="filename"></a> `filename?` | `string` | The filename to use when uploading the file. | [fs/defines.ts:89](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/defines.ts#L89) |

@@ -10,7 +10,7 @@
 function emptyDirSync(dirPath): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:344](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L344)
+Defined in: [worker/opfs\_worker\_adapter.ts:398](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker_adapter.ts#L398)
 
 Synchronous version of `emptyDir`.
 Removes all contents of a directory.

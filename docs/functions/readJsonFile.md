@@ -10,7 +10,7 @@
 function readJsonFile<T>(filePath): AsyncIOResult<T>
 ```
 
-Defined in: [fs/opfs\_ext.ts:295](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_ext.ts#L295)
+Defined in: [fs/opfs\_ext.ts:314](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_ext.ts#L314)
 
 Reads a JSON file and parses its content.
 

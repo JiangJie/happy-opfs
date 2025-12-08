@@ -10,7 +10,7 @@
 function remove(path): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_core.ts:168](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L168)
+Defined in: [fs/opfs\_core.ts:169](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_core.ts#L169)
 
 Removes a file or directory at the specified path, similar to `rm -rf`.
 If the path doesn't exist, the operation succeeds silently.

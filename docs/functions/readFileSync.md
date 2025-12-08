@@ -31,7 +31,7 @@ Optional read options.
 function readFileSync(filePath, options): IOResult<FileLike>
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:195](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L195)
+Defined in: [worker/opfs\_worker\_adapter.ts:247](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker_adapter.ts#L247)
 
 Synchronous version of `readFile`.
 Reads the content of a file as a `FileLike` object (blob encoding).
@@ -73,7 +73,7 @@ Optional read options.
 function readFileSync(filePath, options): IOResult<string>
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:206](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L206)
+Defined in: [worker/opfs\_worker\_adapter.ts:258](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker_adapter.ts#L258)
 
 Synchronous version of `readFile`.
 Reads the content of a file as a string (utf8 encoding).
@@ -115,7 +115,7 @@ Optional read options.
 function readFileSync(filePath, options?): IOResult<ArrayBuffer>
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:217](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L217)
+Defined in: [worker/opfs\_worker\_adapter.ts:269](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker_adapter.ts#L269)
 
 Synchronous version of `readFile`.
 Reads the content of a file as an ArrayBuffer (binary/default encoding).

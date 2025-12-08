@@ -10,7 +10,7 @@
 function setSyncMessenger(syncMessenger): void
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:99](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L99)
+Defined in: [worker/opfs\_worker\_adapter.ts:100](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker_adapter.ts#L100)
 
 Sets the sync messenger instance.
 Used to share a messenger from another environment.

@@ -10,7 +10,7 @@
 function writeJsonFile<T>(filePath, data): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_ext.ts:340](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_ext.ts#L340)
+Defined in: [fs/opfs\_ext.ts:359](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_ext.ts#L359)
 
 Writes an object to a file as JSON.
 

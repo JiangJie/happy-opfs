@@ -10,7 +10,7 @@
 function writeJsonFileSync<T>(filePath, data): VoidIOResult
 ```
 
-Defined in: [worker/opfs\_worker\_adapter.ts:453](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/worker/opfs_worker_adapter.ts#L453)
+Defined in: [worker/opfs\_worker\_adapter.ts:507](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/worker/opfs_worker_adapter.ts#L507)
 
 Synchronous version of `writeJsonFile`.
 Writes an object to a file as JSON.

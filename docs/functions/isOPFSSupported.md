@@ -10,7 +10,7 @@
 function isOPFSSupported(): boolean
 ```
 
-Defined in: [fs/support.ts:16](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/support.ts#L16)
+Defined in: [fs/support.ts:16](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/support.ts#L16)
 
 Checks if the Origin Private File System (OPFS) is supported in the current environment.
 OPFS requires a secure context (HTTPS or localhost) and browser support.

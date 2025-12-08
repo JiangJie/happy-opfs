@@ -10,7 +10,7 @@
 function isFileHandleLike(handle): handle is FileSystemFileHandleLike
 ```
 
-Defined in: [fs/utils.ts:126](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/utils.ts#L126)
+Defined in: [fs/utils.ts:126](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/utils.ts#L126)
 
 Checks whether the given handle-like object represents a file.
 

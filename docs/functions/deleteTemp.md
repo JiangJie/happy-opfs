@@ -10,7 +10,7 @@
 function deleteTemp(): AsyncVoidIOResult
 ```
 
-Defined in: [fs/opfs\_tmp.ts:52](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_tmp.ts#L52)
+Defined in: [fs/opfs\_tmp.ts:52](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_tmp.ts#L52)
 
 Deletes the entire temporary directory (`/tmp`) and all its contents.
 

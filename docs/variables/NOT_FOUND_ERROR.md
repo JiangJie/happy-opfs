@@ -10,7 +10,7 @@
 const NOT_FOUND_ERROR: "NotFoundError";
 ```
 
-Defined in: [fs/constants.ts:7](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/constants.ts#L7)
+Defined in: [fs/constants.ts:7](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/constants.ts#L7)
 
 A constant representing the error thrown when a file or directory is not found.
 Name of DOMException.NOT_FOUND_ERR.

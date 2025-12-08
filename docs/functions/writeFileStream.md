@@ -10,7 +10,7 @@
 function writeFileStream(filePath, options?): AsyncIOResult<FileSystemWritableFileStream>
 ```
 
-Defined in: [fs/opfs\_core.ts:403](https://github.com/JiangJie/happy-opfs/blob/1ca6e66c9ddde628f35ecf68e910628f2b61ed78/src/fs/opfs_core.ts#L403)
+Defined in: [fs/opfs\_core.ts:404](https://github.com/JiangJie/happy-opfs/blob/dd0edb865892acc2abe55bcb047ccf0f8773705c/src/fs/opfs_core.ts#L404)
 
 Opens a file and returns a writable stream for writing contents.
 Useful for writing large files without loading them entirely into memory.
