@@ -79,7 +79,7 @@
   },
   "msw": {
     "workerDirectory": [
-      "tests/public"
+      "public"
     ]
   }
 }
