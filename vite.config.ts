@@ -68,6 +68,7 @@ export default defineConfig({
             exclude: [
                 'src/mod.ts', // Just re-exports
                 'src/fs/defines.ts', // Type definitions only
+                'src/worker/opfs_worker.ts', // Worker thread code - coverage cannot be collected from Worker context in browser tests
             ],
         },
         // Test configuration
