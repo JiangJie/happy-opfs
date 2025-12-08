@@ -27,10 +27,10 @@
     "predocs": "pnpm dlx rimraf docs",
     "docs": "pnpm exec typedoc",
     "prepublishOnly": "pnpm run build",
-    "test": "pnpm exec vitest run",
+    "playwright:install": "pnpm exec playwright install",
+    "test": "pnpm exec vitest run --coverage",
     "test:watch": "pnpm exec vitest watch",
-    "test:ui": "pnpm exec vitest --ui",
-    "test:coverage": "pnpm exec vitest run --coverage"
+    "test:ui": "pnpm exec vitest --ui"
   },
   "repository": {
     "type": "git",
