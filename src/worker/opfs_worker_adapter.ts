@@ -106,10 +106,18 @@ export function setSyncMessenger(syncMessenger: SyncMessenger): void {
  * Sends a synchronous request from main thread to worker and waits for response.
  * This function blocks the main thread until the worker responds.
  *
+ * Communication Protocol:
+ * 1. Lock main thread (set MAIN_LOCKED) to signal we're waiting
+ * 2. Write request data and length to SharedArrayBuffer
+ * 3. Wake worker by setting WORKER_UNLOCKED
+ * 4. Busy-wait until worker signals completion (MAIN_UNLOCKED)
+ * 5. Read response from SharedArrayBuffer
+ *
  * @param messenger - The `SyncMessenger` instance for communication.
  * @param data - The request data as a `Uint8Array`.
  * @returns The response data as a `Uint8Array`.
  * @throws {RangeError} If the request data exceeds the buffer's maximum capacity.
+ * @internal
  */
 function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Array {
     const { i32a, u8a, headerLength, maxDataLength } = messenger;
@@ -120,21 +128,22 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Ar
         throw new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider grow the size of SharedArrayBuffer.`);
     }
 
-    // lock main thread
+    // Lock main thread - signal that we're waiting for a response
     Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_LOCKED);
 
-    // payload and length
+    // Write payload: store length and data to SharedArrayBuffer
     i32a[DATA_INDEX] = requestLength;
     u8a.set(data, headerLength);
 
-    // wakeup worker
+    // Wake up worker by setting it to UNLOCKED
+    // Note: Atomics.notify() may not work reliably cross-thread, using store + busy-wait instead
     // Atomics.notify(i32a, WORKER_LOCK_INDEX); // this may not work
     Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_UNLOCKED);
 
-    // wait for worker to finish
+    // Busy-wait for worker to finish processing and unlock main thread
     sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
 
-    // worker return
+    // Worker has finished - read response data
     const responseLength = i32a[DATA_INDEX];
     const response = u8a.slice(headerLength, headerLength + responseLength);
 
@@ -143,11 +152,12 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Ar
 
 /**
  * Calls a worker I/O operation synchronously.
+ * Serializes the request, sends to worker, and deserializes the response.
  *
  * @template T - The expected return type.
- * @param op - The I/O operation enum value.
+ * @param op - The I/O operation enum value from `WorkerAsyncOp`.
  * @param args - Arguments to pass to the operation.
- * @returns The I/O operation result.
+ * @returns The I/O operation result wrapped in `IOResult<T>`.
  * @internal
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -157,12 +167,14 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
         return Err(new Error('Worker not initialized. Come back later.'));
     }
 
+    // Serialize request: [operation, ...arguments]
     const request = [op, ...args];
     const requestData = encodeToBuffer(request);
 
     try {
         const response = callWorkerFromMain(messenger, requestData);
 
+        // Deserialize response: [error, result] or [error] if failed
         const decodedResponse = decodeFromBuffer(response) as [Error, T];
         const err = decodedResponse[0];
         const result: IOResult<T> = err ? Err(deserializeError(err)) : Ok((decodedResponse[1] ?? undefined) as T);
@@ -271,7 +283,7 @@ export function readFileSync<T extends ReadFileContent>(filePath: string, option
     const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
 
     return res.map(file => {
-        // actually data is number array
+        // Data was serialized as number[] for JSON transport, convert back to ArrayBuffer
         const u8a = new Uint8Array(file.data);
         file.data = u8a.buffer.slice(u8a.byteOffset, u8a.byteOffset + u8a.byteLength);
 
@@ -314,8 +326,8 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
 }
 
 /**
- * Serializes write contents to a format that can be sent to the worker.
- * Converts `ArrayBuffer` and `TypedArray` to a number array, keeps strings as-is.
+ * Serializes write contents to a format suitable for JSON transport.
+ * Binary data (ArrayBuffer, TypedArray) is converted to number arrays.
  *
  * @param contents - The content to serialize (ArrayBuffer, TypedArray, or string).
  * @returns A number array for binary data, or the original string.
@@ -323,12 +335,14 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
  */
 function serializeWriteContents(contents: WriteSyncFileContent): number[] | string {
     if (contents instanceof ArrayBuffer) {
+        // ArrayBuffer -> number[]
         return [...new Uint8Array(contents)];
     }
     if (ArrayBuffer.isView(contents)) {
-        // Handle TypedArrays with potential byteOffset
+        // TypedArray -> number[] (handle potential byteOffset)
         return [...new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength)];
     }
+    // String passes through unchanged
     return contents;
 }
 
@@ -546,6 +560,7 @@ export function zipSync<T>(sourcePath: string, zipFilePath?: string | ZipOptions
     const res = callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options) as IOResult<number[]> | VoidIOResult;
 
     return res.map(data => {
+        // Data was serialized as number[] for JSON transport, convert back to Uint8Array if present
         return (data ? new Uint8Array(data) : data) as T;
     });
 }

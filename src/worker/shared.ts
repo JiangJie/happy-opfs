@@ -28,33 +28,37 @@ export const enum WorkerAsyncOp {
 }
 
 /**
- * Main thread lock index used in Int32Array.
+ * Main thread lock index in the Int32Array view of SharedArrayBuffer.
+ * Used to synchronize main thread state.
  */
 export const MAIN_LOCK_INDEX = 0;
 
 /**
- * Worker thread lock index used in Int32Array.
+ * Worker thread lock index in the Int32Array view of SharedArrayBuffer.
+ * Used to synchronize worker thread state.
  */
 export const WORKER_LOCK_INDEX = 1;
 
 /**
- * Data index used in Int32Array.
+ * Data length index in the Int32Array view of SharedArrayBuffer.
+ * Stores the byte length of the current payload.
  */
 export const DATA_INDEX = 2;
 
 /**
- * Main thread locked value.
+ * Main thread locked value (waiting for response).
  */
 export const MAIN_LOCKED = 1;
 
 /**
- * Main thread unlocked value.
- * Default.
+ * Main thread unlocked value (response ready or idle).
+ * This is the default/initial state.
  */
 export const MAIN_UNLOCKED = 0;
 
 /**
- * Worker thread unlocked value.
+ * Worker thread unlocked value (request ready to process).
+ * Intentionally equals MAIN_LOCKED to simplify state machine.
  */
 export const WORKER_UNLOCKED = MAIN_LOCKED;
 
@@ -97,33 +101,64 @@ export function decodeFromBuffer<T>(data: Uint8Array): T {
  * Inspired by [memfs](https://github.com/streamich/memfs/blob/master/src/fsa-to-node/worker/SyncMessenger.ts).
  *
  * Uses a `SharedArrayBuffer` with lock-based synchronization via `Atomics`.
- * The buffer layout is:
- * - Bytes 0-3: Main thread lock (Int32)
- * - Bytes 4-7: Worker thread lock (Int32)
- * - Bytes 8-11: Data length (Int32)
- * - Bytes 12-15: Reserved
- * - Bytes 16+: Payload data
+ *
+ * Buffer Layout (all values are Int32 at 4-byte boundaries):
+ * ```
+ * Offset  Size    Field           Description
+ * ------  ----    -----           -----------
+ * 0       4       MAIN_LOCK       Main thread state (0=unlocked/ready, 1=locked/waiting)
+ * 4       4       WORKER_LOCK     Worker thread state (0=locked/idle, 1=unlocked/processing)
+ * 8       4       DATA_LENGTH     Length of payload data in bytes
+ * 12      4       RESERVED        Reserved for future use
+ * 16+     var     PAYLOAD         Actual request/response binary data
+ * ```
+ *
+ * Communication Flow:
+ * 1. Main thread writes request to PAYLOAD, sets DATA_LENGTH
+ * 2. Main thread sets MAIN_LOCK=1 (locked), WORKER_LOCK=1 (unlocked)
+ * 3. Worker sees WORKER_LOCK=1, reads request, processes it
+ * 4. Worker writes response to PAYLOAD, sets DATA_LENGTH
+ * 5. Worker sets WORKER_LOCK=0 (locked), MAIN_LOCK=0 (unlocked)
+ * 6. Main thread sees MAIN_LOCK=0, reads response
  *
  * @example
  * ```typescript
+ * // Create messenger with 1MB buffer
  * const sab = new SharedArrayBuffer(1024 * 1024);
  * const messenger = new SyncMessenger(sab);
  * ```
  */
 export class SyncMessenger {
-    /** Int32 view for lock operations. */
+    /**
+     * Int32 view for atomic lock operations.
+     * Layout: [MAIN_LOCK, WORKER_LOCK, DATA_LENGTH, RESERVED]
+     */
     readonly i32a: Int32Array;
-    /** Uint8 view for reading/writing binary payload. */
+
+    /**
+     * Uint8 view for reading/writing binary payload.
+     * Payload starts at offset `headerLength` (16 bytes).
+     */
     readonly u8a: Uint8Array;
-    /** Header size in bytes (4 Int32 values = 16 bytes). */
+
+    /**
+     * Header size in bytes: 4 Int32 values = 16 bytes.
+     * Payload data starts after this offset.
+     */
     readonly headerLength = 4 * 4;
-    /** Maximum payload size in bytes. */
+
+    /**
+     * Maximum payload size in bytes.
+     * Calculated as: total buffer size - header length.
+     * Requests/responses exceeding this limit will fail.
+     */
     readonly maxDataLength: number;
 
     /**
-     * Creates a new SyncMessenger.
+     * Creates a new SyncMessenger instance.
      *
-     * @param sab - The SharedArrayBuffer to use for communication.
+     * @param sab - The SharedArrayBuffer to use for cross-thread communication.
+     *              Must be created in the main thread and transferred to the worker.
      */
     constructor(sab: SharedArrayBuffer) {
         this.i32a = new Int32Array(sab);

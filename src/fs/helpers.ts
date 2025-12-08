@@ -40,8 +40,9 @@ export function isRootPath(path: string): boolean {
  *
  * @param dirHandle - The handle to the parent directory.
  * @param dirName - The name of the child directory to retrieve.
- * @param options - Optional parameters that specify options such as whether to create the directory if it does not exist.
- * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle` for the child directory.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
+ * @internal
  */
 async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     try {
@@ -62,8 +63,9 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: 
  *
  * @param dirHandle - The directory handle to search within.
  * @param fileName - The name of the file to retrieve.
- * @param options - Optional parameters for getting the file handle.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
+ * @internal
  */
 async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     try {
@@ -80,44 +82,55 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName
 }
 
 /**
- * Retrieves a directory handle given a path.
+ * Retrieves a directory handle by traversing the path from root.
  *
- * @param dirPath - The path of the directory to retrieve.
- * @param options - Optional parameters for getting the directory handle.
+ * Algorithm:
+ * 1. Start from the OPFS root directory
+ * 2. If path is `/`, return root immediately
+ * 3. Split path by `/` separator and iterate through each segment
+ * 4. For each segment, get or create the child directory handle
+ * 5. Return error immediately if any segment fails
+ *
+ * @param dirPath - The absolute path of the directory to retrieve.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create intermediate directories).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    // create from root
+    // Start from root
     let dirHandle = await getFsRoot();
 
     if (isRootPath(dirPath)) {
-        // root is already the a handle
+        // Root is already a handle, no traversal needed
         return Ok(dirHandle);
     }
 
-    // start with /
+    // Remove leading '/' and start traversing
     let childDirPath = dirPath.slice(1);
 
+    // Iterate through each path segment
     while (childDirPath) {
         let dirName = '';
         const index = childDirPath.indexOf(SEPARATOR);
 
         if (index === -1) {
+            // Last segment
             dirName = childDirPath;
             childDirPath = '';
         } else {
+            // Extract current segment and remaining path
             dirName = childDirPath.slice(0, index);
             childDirPath = childDirPath.slice(index + 1);
 
-            // skip //
+            // Skip empty segments (handles '//' in path)
             if (index === 0) {
                 continue;
             }
         }
 
+        // Get or create child directory
         const dirHandleRes = await getChildDirHandle(dirHandle, dirName, options);
         if (dirHandleRes.isErr()) {
-            // stop
+            // Stop traversal on error
             return dirHandleRes;
         }
 
@@ -130,8 +143,8 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
 /**
  * Retrieves a file handle given a file path.
  *
- * @param filePath - The path of the file to retrieve.
- * @param options - Optional parameters for getting the file handle.
+ * @param filePath - The absolute path of the file to retrieve.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create the file if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {

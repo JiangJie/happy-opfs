@@ -8,11 +8,13 @@ import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.t
 import { isDirectoryHandle, isFileHandle } from './utils.ts';
 
 /**
- * Moves a file handle to a new path.
+ * Moves a file handle to a new path using the FileSystemFileHandle.move() method.
+ * This is an optimized operation that avoids data copying.
  *
  * @param fileHandle - The file handle to move.
- * @param newPath - The new path of the file handle.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the file handle was successfully moved.
+ * @param newPath - The new absolute path for the file.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @internal
  */
 async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
     const newDirPath = dirname(newPath);
@@ -34,33 +36,47 @@ async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): As
 }
 
 /**
- * @param srcFileHandle - The source file handle to move or copy.
+ * Handler function type for processing source file to destination.
+ *
+ * @param srcFileHandle - The source file handle to process.
  * @param destFilePath - The destination file path.
+ * @internal
  */
 type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
+
 /**
- * Copy or move a file or directory from one path to another.
+ * Internal helper that copies or moves a file/directory from source to destination.
+ *
+ * Algorithm:
+ * 1. Verify source exists via stat()
+ * 2. Check if destination exists and validate type compatibility (file-to-file or dir-to-dir)
+ * 3. For files: directly apply handler (copy or move)
+ * 4. For directories: recursively process all entries in parallel
+ * 5. Respect overwrite flag - skip if dest exists and overwrite=false
+ *
  * @param srcPath - The source file/directory path.
  * @param destPath - The destination file/directory path.
- * @param handler - How to handle the file handle to the destination.
- * @param overwrite - Whether to overwrite the destination file if it exists.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating whether the file was successfully copied/moved.
+ * @param handler - The function to handle file transfer (copy or move).
+ * @param overwrite - Whether to overwrite existing files. Default: `true`.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @internal
  */
 async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
     assertAbsolutePath(destPath);
 
     return (await stat(srcPath)).andThenAsync(async srcHandle => {
-        // if overwrite is false, we need this flag to determine whether to write file.
+        // Track whether destination already exists (needed for overwrite logic)
         let destExists = false;
         const destHandleRes = await stat(destPath);
 
         if (destHandleRes.isErr()) {
+            // Destination doesn't exist - that's OK unless it's an unexpected error
             if (!isNotFoundError(destHandleRes.unwrapErr())) {
                 return destHandleRes.asErr();
             }
         } else {
             destExists = true;
-            // check
+            // Validate type compatibility: both must be files OR both must be directories
             const destHandle = destHandleRes.unwrap();
             if (!((isFileHandle(srcHandle) && isFileHandle(destHandle))
                 || (isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle)))) {
@@ -68,29 +84,30 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleS
             }
         }
 
-        // both are files
+        // Handle file source: apply handler directly
         if (isFileHandle(srcHandle)) {
             return (overwrite || !destExists) ? await handler(srcHandle, destPath) : RESULT_VOID;
         }
 
-        // both are directories
+        // Handle directory source: recursively process all entries
         const readDirRes = await readDir(srcPath, {
             recursive: true,
         });
         return readDirRes.andThenAsync(async entries => {
+            // Collect all tasks for parallel execution
             const tasks: AsyncVoidIOResult[] = [
-                // make sure new dir created
+                // Ensure destination directory exists first
                 mkdir(destPath),
             ];
 
             for await (const { path, handle } of entries) {
                 const newEntryPath = join(destPath, path);
-                // for parallel
+                // Wrap each entry processing in an async IIFE for parallel execution
                 tasks.push((async (): AsyncVoidIOResult => {
                     let newPathExists = false;
 
                     if (destExists) {
-                        // should check every file
+                        // Destination dir exists, need to check each file individually
                         const existsRes = await exists(newEntryPath);
                         if (existsRes.isErr()) {
                             return existsRes.asErr();
@@ -99,12 +116,14 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleS
                         newPathExists = existsRes.unwrap();
                     }
 
+                    // For files: apply handler; for directories: just create them
                     return isFileHandle(handle)
                         ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : Promise.resolve(RESULT_VOID))
                         : mkdir(newEntryPath);
                 })());
             }
 
+            // Wait for all tasks and return first error if any
             return getFinalResult(tasks);
         });
     });

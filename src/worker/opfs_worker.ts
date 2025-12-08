@@ -16,7 +16,12 @@ import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_UNL
 const WORKER_LOCKED = MAIN_UNLOCKED;
 
 /**
- * Mapping of async operation enums to their corresponding functions.
+ * Mapping of async operation enums to their corresponding OPFS functions.
+ * Used by the worker loop to dispatch operations from the main thread.
+ *
+ * Key: `WorkerAsyncOp` enum value
+ * Value: The async function to execute
+ *
  * @internal
  */
 const asyncOps = {
@@ -94,6 +99,8 @@ export function startSyncAgent(): void {
 async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
     const { i32a, u8a, headerLength, maxDataLength } = messenger;
 
+    // Busy-wait until main thread signals a request is ready
+    // Using busy-wait instead of Atomics.wait() because Atomics.notify() may not work reliably cross-thread
     while (true) {
         if (Atomics.load(i32a, WORKER_LOCK_INDEX) === WORKER_UNLOCKED) {
             break;
@@ -154,16 +161,18 @@ async function runWorkerLoop(): Promise<void> {
     while (true) {
         try {
             await respondToMainFromWorker(messenger, async (data) => {
+                // Decode the request: [operation, ...arguments]
                 const [op, ...args] = decodeFromBuffer(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
 
-                // handling unequal parameters for serialization and deserialization
+                // Handle parameter deserialization for specific operations
+                // JSON.parse loses type info for some types, so we reconstruct them here
                 if (op === WorkerAsyncOp.writeFile || op === WorkerAsyncOp.appendFile) {
-                    // actually is an byte array
+                    // Binary data was serialized as number[] for JSON transport, convert back to Uint8Array
                     if (Array.isArray(args[1])) {
                         args[1] = new Uint8Array(args[1]);
                     }
                 } else if (op === WorkerAsyncOp.pruneTemp) {
-                    // actually is a Date string
+                    // Date was serialized as ISO string, reconstruct Date object
                     args[0] = new Date(args[0] as Date);
                 }
 
@@ -176,27 +185,30 @@ async function runWorkerLoop(): Promise<void> {
                     const res: IOResult<any> = await (handle as any)(...args);
 
                     if (res.isErr()) {
-                        // without result success
+                        // Operation failed - encode error only: [serializedError]
                         response = encodeToBuffer([serializeError(res.unwrapErr())]);
                     } else {
-                        // manually serialize response
+                        // Operation succeeded - serialize response based on operation type
+                        // Different operations return different types that need specific serialization
                         let rawResponse;
 
                         if (op === WorkerAsyncOp.readBlobFile) {
+                            // File object needs full serialization (name, type, size, lastModified, data)
                             const file: File = res.unwrap();
-
                             const fileLike = await serializeFile(file);
 
                             rawResponse = {
                                 ...fileLike,
-                                // for serialize
+                                // ArrayBuffer becomes number[] for JSON serialization
                                 data: [...new Uint8Array(fileLike.data)],
                             };
                         } else if (op === WorkerAsyncOp.readDir) {
+                            // Async iterator needs full materialization to array
                             const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
                             const entries: ReadDirEntrySync[] = [];
 
                             for await (const { path, handle } of iterator) {
+                                // Convert FileSystemHandle to serializable object
                                 const handleLike = await toFileSystemHandleLike(handle);
                                 entries.push({
                                     path,
@@ -206,20 +218,22 @@ async function runWorkerLoop(): Promise<void> {
 
                             rawResponse = entries;
                         } else if (op === WorkerAsyncOp.stat) {
+                            // FileSystemHandle needs serialization to plain object
                             const handle: FileSystemHandle = res.unwrap();
                             const data = await toFileSystemHandleLike(handle);
 
                             rawResponse = data;
                         } else if (op === WorkerAsyncOp.zip) {
+                            // Uint8Array becomes number[] for JSON serialization
                             const data: Uint8Array | undefined = res.unwrap();
 
                             rawResponse = data instanceof Uint8Array ? [...data] : data;
                         } else {
-                            // others are all boolean
+                            // Other operations return boolean or void (undefined)
                             rawResponse = res.unwrap();
                         }
 
-                        // without error
+                        // Encode success response: [null (no error), result]
                         response = encodeToBuffer([null, rawResponse]);
                     }
                 } catch (e) {
