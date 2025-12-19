@@ -4,3 +4,6 @@ node_modules
 # Test coverage
 coverage
 __screenshots__
+
+# MSW auto-generated file
+tests/public/mockServiceWorker.js
