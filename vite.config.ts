@@ -82,8 +82,6 @@ export default defineConfig({
             reporter: ['text', 'json', 'html', 'lcov'],
             include: ['src/**/*.ts'],
             exclude: [
-                'src/mod.ts', // Just re-exports
-                'src/fs/defines.ts', // Type definitions only
                 'src/worker/opfs_worker.ts', // Worker thread code - coverage cannot be collected from Worker context in browser tests
             ],
         },
@@ -99,10 +97,4 @@ export default defineConfig({
         // Retry failed tests in CI
         retry: process.env['CI'] ? 2 : 0,
     },
-    // Required for proper module resolution
-    // resolve: {
-    //     alias: {
-    //         '@': '/src',
-    //     },
-    // },
 });
