@@ -1,17 +1,17 @@
 {
-  "$schema": "https://typedoc-plugin-markdown.org/schema.json",
+  "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["src/mod.ts"],
   "out": "docs",
-  "plugin": ["typedoc-plugin-markdown"],
   "readme": "none",
-  "entryFileName": "README",
-  "enumMembersFormat": "table",
-  "parametersFormat": "table",
-  "interfacePropertiesFormat": "table",
-  "classPropertiesFormat": "table",
-  "typeDeclarationFormat": "table",
-  "indexFormat": "table",
-  "useCodeBlocks": true,
-  "expandObjects": true,
-  "exclude": ["**/node_modules/**"]
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "categorizeByGroup": true,
+  "exclude": ["**/node_modules/**"],
+  "navigationLinks": {
+    "GitHub": "https://github.com/JiangJie/happy-opfs",
+    "npm": "https://www.npmjs.com/package/happy-opfs",
+    "JSR": "https://jsr.io/@happy-js/happy-opfs"
+  }
 }
