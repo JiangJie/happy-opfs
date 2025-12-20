@@ -12,9 +12,20 @@ import { readBlobFile } from './opfs_ext.ts';
  * @param filePath - The path of the file to upload.
  * @param fileUrl - The URL where the file will be uploaded.
  * @param requestInit - Optional request initialization parameters.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the file was successfully uploaded.
+ * @returns A task that can be aborted and contains the result of the upload.
+ * @example
+ * ```typescript
+ * const task = uploadFile('/documents/report.pdf', 'https://example.com/upload');
+ * const result = await task.response;
+ * if (result.isOk()) {
+ *     console.log('File uploaded successfully');
+ * }
+ *
+ * // Abort the upload
+ * task.abort();
+ * ```
  */
-export function uploadFile(filePath: string, fileUrl: string, requestInit?: UploadRequestInit): FetchTask<Response> {
+export function uploadFile(filePath: string, fileUrl: string | URL, requestInit?: UploadRequestInit): FetchTask<Response> {
     type T = Response;
 
     assertFileUrl(fileUrl);

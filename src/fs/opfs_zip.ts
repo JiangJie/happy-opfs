@@ -45,6 +45,14 @@ async function zipTo<T>(zippable: fflate.AsyncZippable, zipFilePath?: string): A
  * @param zipFilePath - The path to the zip file.
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @example
+ * ```typescript
+ * // Zip a directory to a file
+ * const result = await zip('/documents', '/backups/documents.zip');
+ * if (result.isOk()) {
+ *     console.log('Directory zipped successfully');
+ * }
+ * ```
  */
 export async function zip(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult;
 
@@ -56,6 +64,15 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
  * @param sourcePath - The path to be zipped.
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @example
+ * ```typescript
+ * // Zip a directory and get the data
+ * const result = await zip('/documents');
+ * if (result.isOk()) {
+ *     const zipData = result.unwrap();
+ *     console.log(`Zip size: ${zipData.byteLength} bytes`);
+ * }
+ * ```
  */
 export async function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array>;
 export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): AsyncIOResult<T> {
@@ -118,8 +135,16 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
  * @param zipFilePath - The path to the zip file.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @example
+ * ```typescript
+ * // Zip a remote file to a local zip file
+ * const result = await zipFromUrl('https://example.com/file.txt', '/backups/file.zip');
+ * if (result.isOk()) {
+ *     console.log('Remote file zipped successfully');
+ * }
+ * ```
  */
-export async function zipFromUrl(sourceUrl: string, zipFilePath: string, requestInit?: FsRequestInit): AsyncVoidIOResult;
+export async function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, requestInit?: FsRequestInit): AsyncVoidIOResult;
 
 /**
  * Zip a remote file and return the zip file data.
@@ -128,9 +153,18 @@ export async function zipFromUrl(sourceUrl: string, zipFilePath: string, request
  * @param sourceUrl - The url to be zipped.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @example
+ * ```typescript
+ * // Zip a remote file and get the data
+ * const result = await zipFromUrl('https://example.com/file.txt');
+ * if (result.isOk()) {
+ *     const zipData = result.unwrap();
+ *     console.log(`Zip size: ${zipData.byteLength} bytes`);
+ * }
+ * ```
  */
-export async function zipFromUrl(sourceUrl: string, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array>;
-export async function zipFromUrl<T>(sourceUrl: string, zipFilePath?: string | FsRequestInit, requestInit?: FsRequestInit): AsyncIOResult<T> {
+export async function zipFromUrl(sourceUrl: string | URL, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array>;
+export async function zipFromUrl<T>(sourceUrl: string | URL, zipFilePath?: string | FsRequestInit, requestInit?: FsRequestInit): AsyncIOResult<T> {
     assertFileUrl(sourceUrl);
 
     if (typeof zipFilePath === 'string') {
@@ -148,7 +182,10 @@ export async function zipFromUrl<T>(sourceUrl: string, zipFilePath?: string | Fs
     });
 
     return fetchRes.andThenAsync(buffer => {
-        const sourceName = basename(sourceUrl);
+        const pathname = sourceUrl instanceof URL
+            ? sourceUrl.pathname
+            : new URL(sourceUrl).pathname;
+        const sourceName = basename(pathname);
         const zippable: fflate.AsyncZippable = {};
 
         zippable[sourceName] = new Uint8Array(buffer);

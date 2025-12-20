@@ -73,10 +73,37 @@ describe('Assertions', () => {
             expect(() => assertFileUrl({})).toThrow();
         });
 
-        it('should pass for any string (minimal validation)', () => {
-            // Note: assertFileUrl only checks if it's a string
-            expect(() => assertFileUrl('any-string')).not.toThrow();
-            expect(() => assertFileUrl('')).not.toThrow();
+        it('should throw for invalid URL format', () => {
+            // assertFileUrl now validates URL format
+            expect(() => assertFileUrl('any-string')).toThrow();
+            expect(() => assertFileUrl('')).toThrow();
+            expect(() => assertFileUrl('/relative/path')).toThrow();
+        });
+
+        it('should pass for URL objects', () => {
+            expect(() => assertFileUrl(new URL('https://example.com'))).not.toThrow();
+        });
+
+        it('should work when URL.canParse is not available (fallback)', () => {
+            // Save original URL.canParse
+            const originalCanParse = URL.canParse;
+
+            try {
+                // Remove URL.canParse to simulate older browsers
+                // @ts-expect-error Simulating older browser
+                delete URL.canParse;
+
+                // Valid URLs should still pass
+                expect(() => assertFileUrl('https://example.com/file.txt')).not.toThrow();
+                expect(() => assertFileUrl('http://localhost:8080/path')).not.toThrow();
+
+                // Invalid URLs should still throw
+                expect(() => assertFileUrl('not-a-url')).toThrow();
+                expect(() => assertFileUrl('')).toThrow();
+            } finally {
+                // Restore URL.canParse
+                URL.canParse = originalCanParse;
+            }
         });
     });
 });

@@ -26,8 +26,9 @@ async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): As
 
         try {
             // TODO ts not support yet
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await (fileHandle as any).move(newDirHandle, newName);
+            await (fileHandle as FileSystemFileHandle & {
+                move(newParent: FileSystemDirectoryHandle, newName: string): Promise<void>;
+            }).move(newDirHandle, newName);
             return RESULT_VOID;
         } catch (e) {
             return Err(e as DOMException);

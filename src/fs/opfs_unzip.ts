@@ -47,6 +47,13 @@ function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoid
  * @param zipFilePath - Zip file path.
  * @param targetPath - The directory to unzip to.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ * @example
+ * ```typescript
+ * const result = await unzip('/downloads/archive.zip', '/extracted');
+ * if (result.isOk()) {
+ *     console.log('Unzipped successfully');
+ * }
+ * ```
  */
 export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
     assertAbsolutePath(targetPath);
@@ -67,8 +74,15 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
  * @param targetPath - The directory to unzip to.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ * @example
+ * ```typescript
+ * const result = await unzipFromUrl('https://example.com/archive.zip', '/extracted');
+ * if (result.isOk()) {
+ *     console.log('Remote zip file unzipped successfully');
+ * }
+ * ```
  */
-export async function unzipFromUrl(zipFileUrl: string, targetPath: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
+export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
     assertFileUrl(zipFileUrl);
     assertAbsolutePath(targetPath);
 

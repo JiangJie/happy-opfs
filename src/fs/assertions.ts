@@ -13,11 +13,34 @@ export function assertAbsolutePath(path: string): void {
 }
 
 /**
+ * Checks if a string is a valid URL.
+ *
+ * @param url - The URL string to validate.
+ * @returns Whether the URL is valid.
+ */
+function isValidUrl(url: string): boolean {
+    if (typeof URL.canParse === 'function') {
+        return URL.canParse(url);
+    }
+    // Fallback for older browsers
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Asserts that the provided URL is a valid file URL.
  *
  * @param fileUrl - The file URL to validate.
  * @throws Will throw an error if the URL is not a valid file URL.
  */
-export function assertFileUrl(fileUrl: string): void {
-    invariant(typeof fileUrl === 'string', () => `File url must be a string but received ${ fileUrl }`);
+export function assertFileUrl(fileUrl: string | URL): void {
+    if (fileUrl instanceof URL) {
+        return;
+    }
+    invariant(typeof fileUrl === 'string', () => `File url must be a string or URL but received ${ fileUrl }`);
+    invariant(isValidUrl(fileUrl), () => `File url must be a valid URL but received ${ fileUrl }`);
 }

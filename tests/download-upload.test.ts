@@ -144,16 +144,10 @@ describe('OPFS Download/Upload Operations', () => {
             expect(task.aborted).toBe(true);
         });
 
-        it('should handle invalid URL format for extension extraction', async () => {
-            // Use a truly malformed URL that will fail new URL() parsing
-            // A relative path without protocol causes new URL() to throw
+        it('should throw for invalid URL format', () => {
+            // assertFileUrl now validates URL format, so invalid URLs throw immediately
             const invalidUrl = '/relative/path/file.json?query=1#hash';
-
-            const task = fs.downloadFile(invalidUrl);
-
-            // The URL is invalid for fetch (relative URL), so it should error
-            const result = await task.response;
-            expect(result.isErr()).toBe(true);
+            expect(() => fs.downloadFile(invalidUrl)).toThrow();
         });
 
         it('should return AbortError when aborted before completion', async () => {

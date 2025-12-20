@@ -179,8 +179,9 @@ export async function remove(path: string): AsyncVoidIOResult {
             // root
             if (isRootPath(dirPath) && isRootPath(childName)) {
                 // TODO ts not support yet
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await (dirHandle as any).remove({
+                await (dirHandle as FileSystemDirectoryHandle & {
+                    remove(options?: FileSystemRemoveOptions): Promise<void>;
+                }).remove({
                     recursive: true,
                 });
             } else {

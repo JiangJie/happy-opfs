@@ -14,14 +14,11 @@ import { generateTempPath } from './utils.ts';
  * @returns The file extension including the dot (e.g., '.txt'), or empty string if none.
  * @internal
  */
-function getExtFromUrl(fileUrl: string): string {
-    try {
-        const url = new URL(fileUrl);
-        return extname(url.pathname);
-    } catch {
-        // Fallback for invalid URLs
-        return extname(fileUrl.split('?')[0].split('#')[0]);
-    }
+function getExtFromUrl(fileUrl: string | URL): string {
+    const pathname = fileUrl instanceof URL
+        ? fileUrl.pathname
+        : new URL(fileUrl).pathname;
+    return extname(pathname);
 }
 
 /**
@@ -31,8 +28,18 @@ function getExtFromUrl(fileUrl: string): string {
  * @param fileUrl - The URL of the file to download.
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the download.
+ * @example
+ * ```typescript
+ * // Download to a temporary file
+ * const task = downloadFile('https://example.com/file.pdf');
+ * const result = await task.response;
+ * if (result.isOk()) {
+ *     const { tempFilePath, rawResponse } = result.unwrap();
+ *     console.log(`File downloaded to: ${tempFilePath}`);
+ * }
+ * ```
  */
-export function downloadFile(fileUrl: string, requestInit?: FsRequestInit): FetchTask<DownloadFileTempResponse>;
+export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit): FetchTask<DownloadFileTempResponse>;
 /**
  * Downloads a file from a URL and saves it to the specified path.
  *
@@ -40,9 +47,21 @@ export function downloadFile(fileUrl: string, requestInit?: FsRequestInit): Fetc
  * @param filePath - The path where the downloaded file will be saved.
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the download.
+ * @example
+ * ```typescript
+ * // Download to a specific path
+ * const task = downloadFile('https://example.com/file.pdf', '/downloads/file.pdf');
+ * const result = await task.response;
+ * if (result.isOk()) {
+ *     console.log('File downloaded successfully');
+ * }
+ *
+ * // Abort the download
+ * task.abort();
+ * ```
  */
-export function downloadFile(fileUrl: string, filePath: string, requestInit?: FsRequestInit): FetchTask<Response>;
-export function downloadFile(fileUrl: string, filePath?: string | FsRequestInit, requestInit?: FsRequestInit): FetchTask<Response | DownloadFileTempResponse> {
+export function downloadFile(fileUrl: string | URL, filePath: string, requestInit?: FsRequestInit): FetchTask<Response>;
+export function downloadFile(fileUrl: string | URL, filePath?: string | FsRequestInit, requestInit?: FsRequestInit): FetchTask<Response | DownloadFileTempResponse> {
     assertFileUrl(fileUrl);
 
     let saveToTemp = false;

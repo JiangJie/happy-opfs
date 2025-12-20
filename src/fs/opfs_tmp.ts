@@ -86,8 +86,9 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
             tasks.push((async () => {
                 if ((await handle.getFile()).lastModified <= expired.getTime()) {
                     // TODO ts not support yet
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    await (handle as any).remove();
+                    await (handle as FileSystemFileHandle & {
+                        remove(): Promise<void>;
+                    }).remove();
                 }
             })());
         }
