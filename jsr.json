@@ -5,11 +5,11 @@
   "version": "1.10.0",
   "exports": "./src/mod.ts",
   "imports": {
-    "@happy-ts/fetch-t": "npm:@happy-ts/fetch-t@^1.3.3",
+    "@happy-ts/fetch-t": "npm:@happy-ts/fetch-t@^1.4.0",
     "@std/path": "jsr:@std/path@^1.1.3",
     "fflate": "npm:fflate@^0.8.2",
-    "happy-rusty": "npm:happy-rusty@^1.5.0",
-    "tiny-future": "npm:tiny-future@^1.1.0",
+    "happy-rusty": "npm:happy-rusty@^1.6.1",
+    "tiny-future": "npm:tiny-future@^1.2.0",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3"
   },
   "publish": {
