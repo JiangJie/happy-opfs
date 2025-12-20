@@ -25,6 +25,7 @@ export default defineConfig({
     },
     publicDir: 'tests/public',
     build: {
+        copyPublicDir: false,
         target: 'esnext',
         minify: false,
         sourcemap: true,
