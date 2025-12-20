@@ -29,7 +29,8 @@
     "pretest": "pnpm exec msw init tests/public --save=false",
     "test": "pnpm exec vitest run --coverage",
     "test:watch": "pnpm exec vitest watch",
-    "test:ui": "pnpm exec vitest --ui"
+    "test:ui": "pnpm exec vitest --ui",
+    "eg": "pnpm exec vite --config examples/vite.config.ts"
   },
   "repository": {
     "type": "git",

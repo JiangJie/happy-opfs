@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>happy-opfs Examples</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .example-list {
+            list-style: none;
+            padding: 0;
+        }
+        .example-list li {
+            margin: 10px 0;
+        }
+        .example-list a {
+            display: block;
+            padding: 15px 20px;
+            background: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #0066cc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .example-list a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .example-list .desc {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>happy-opfs Examples</h1>
+    <p>Click on an example to run it. Open the browser console (F12) to see the output.</p>
+    <ul class="example-list">
+        <li>
+            <a href="basic.html">
+                Basic Usage
+                <div class="desc">File CRUD operations: read, write, copy, move, remove</div>
+            </a>
+        </li>
+        <li>
+            <a href="download-upload.html">
+                Download &amp; Upload
+                <div class="desc">Download files with progress tracking and upload files</div>
+            </a>
+        </li>
+        <li>
+            <a href="zip.html">
+                Zip Operations
+                <div class="desc">Compress and extract files</div>
+            </a>
+        </li>
+        <li>
+            <a href="stream.html">
+                Stream Operations
+                <div class="desc">Read and write files using streams</div>
+            </a>
+        </li>
+        <li>
+            <a href="sync-api.html">
+                Synchronous API
+                <div class="desc">Sync file operations via Web Worker</div>
+            </a>
+        </li>
+        <li>
+            <a href="shared-messenger.html">
+                Shared Messenger
+                <div class="desc">Share sync messenger between main page and iframe</div>
+            </a>
+        </li>
+    </ul>
+</body>
+</html>

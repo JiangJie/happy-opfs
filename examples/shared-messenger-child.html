@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Messenger - Child Frame</title>
+    <style>
+        body { font-family: monospace; padding: 10px; margin: 0; }
+        pre { background: #e8f4e8; padding: 10px; margin: 5px 0; font-size: 12px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 8px 16px; font-size: 14px; cursor: pointer; margin-right: 5px; }
+        #status { padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+        .connected { background: #d4edda; color: #155724; }
+        .disconnected { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div id="status" class="disconnected">Not connected</div>
+    <div>
+        <button id="write" disabled>Write from Iframe</button>
+        <button id="read" disabled>Read Main's File</button>
+    </div>
+    <pre id="output">Waiting for shared messenger...</pre>
+    <script type="module" src="shared-messenger-child.ts"></script>
+</body>
+</html>

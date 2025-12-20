@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download &amp; Upload - happy-opfs</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        pre { background: #f4f4f4; padding: 15px; overflow-x: auto; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin-right: 10px; }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #4caf50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <h1>Download &amp; Upload Example</h1>
+    <p>This example demonstrates downloading files with progress tracking.</p>
+    <p><strong>Note:</strong> This example downloads a sample file from the internet.</p>
+    <div>
+        <button id="download">Download File</button>
+        <button id="cancel" disabled>Cancel</button>
+        <button id="cleanup">Cleanup Files</button>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progress"></div>
+    </div>
+    <pre id="output">Click "Download File" to start...</pre>
+    <p><a href="index.html">← Back to examples</a></p>
+    <script type="module" src="download-upload.ts"></script>
+</body>
+</html>

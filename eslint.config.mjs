@@ -46,4 +46,11 @@ export default defineConfig([
             }],
         },
     },
+    {
+        files: ['examples/**/*.ts'],
+        rules: {
+            // Allow non-null assertions in examples for DOM elements
+            '@typescript-eslint/no-non-null-assertion': 'off',
+        },
+    },
 ]);

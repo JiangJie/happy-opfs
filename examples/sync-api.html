@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synchronous API - happy-opfs</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        pre { background: #f4f4f4; padding: 15px; overflow-x: auto; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        .warning { color: orange; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Synchronous API Example</h1>
+    <p>This example demonstrates synchronous file operations via Web Worker.</p>
+    <div class="warning" style="padding: 10px; background: #fff3cd; margin: 10px 0;">
+        <strong>Note:</strong> Sync APIs require SharedArrayBuffer, which needs COOP/COEP headers.
+        This example may not work without proper server configuration.
+    </div>
+    <button id="run">Run Example</button>
+    <pre id="output">Click "Run Example" to start...</pre>
+    <p><a href="index.html">← Back to examples</a></p>
+    <script type="module" src="sync-api.ts"></script>
+</body>
+</html>
