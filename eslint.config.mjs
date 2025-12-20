@@ -7,6 +7,7 @@ export default defineConfig([
     globalIgnores([
         'dist',
         'coverage',
+        'tests/public',
     ]),
     {
         files: ['**/*.ts'],
