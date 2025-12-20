@@ -1,6 +1,7 @@
-# This workflow will run tests using deno and then publish a package to JSR.
+# This workflow will run tests and then publish a package to JSR.
 
 name: JSR Package
+
 on:
   push:
     branches:
@@ -8,25 +9,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/test.yml
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@main
-
-      - name: Run test cases
-        uses: actions/setup-node@v6
-        with:
-          node-version: latest
-      - run: npm install pnpm -g
-      - run: pnpm install
-      - run: pnpm run playwright:install
-      - run: pnpm test
-
-  publish-jsr:
+  publish:
     needs: test
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       id-token: write
@@ -35,10 +22,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Publish JSR
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: latest
-      - run: npm install pnpm -g
-      - run: pnpm install
-      - run: npx jsr publish --config jsr.json
+
+      - name: Install pnpm
+        run: npm install pnpm -g
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish to JSR
+        run: npx jsr publish --config jsr.json

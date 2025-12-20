@@ -1,6 +1,6 @@
-# This workflow will run tests using deno and then publish a package to npm when a release is created.
+# This workflow will run tests and then publish a package to npm when a release is created.
 
-name: Node.js Package npm
+name: npm Package
 
 on:
   release:
@@ -8,25 +8,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/test.yml
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@main
-
-      - name: Run test cases
-        uses: actions/setup-node@v6
-        with:
-          node-version: latest
-      - run: npm install pnpm -g
-      - run: pnpm install
-      - run: pnpm run playwright:install
-      - run: pnpm test
-
-  publish-npm:
+  publish:
     needs: test
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       id-token: write
@@ -35,11 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Publish npm package
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: latest
           registry-url: https://registry.npmjs.org/
-      - run: npm install pnpm -g
-      - run: pnpm install
-      - run: npm publish
+
+      - name: Install pnpm
+        run: npm install pnpm -g
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish to npm
+        run: npm publish

@@ -1,4 +1,4 @@
-# This workflow will run tests using deno and then upload the coverage reports to Codecov.
+# This workflow will run tests using node and then upload the coverage reports to Codecov.
 
 name: Run Tests
 
@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+  workflow_call:
 
 jobs:
   test:
@@ -15,16 +16,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@main
 
-      - name: Run test cases
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: latest
-      - run: npm install pnpm -g
-      - run: pnpm install
-      - run: pnpm run playwright:install
-      - run: pnpm test
+
+      - name: Install pnpm
+        run: npm install pnpm -g
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install playwright
+        run: pnpm run playwright:install
+
+      - name: Run tests
+        run: pnpm test
 
       - name: Upload coverage reports to Codecov
+        if: github.workflow == 'Run Tests'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
