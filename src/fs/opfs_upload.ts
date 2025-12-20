@@ -24,7 +24,7 @@ export function uploadFile(filePath: string, fileUrl: string, requestInit?: Uplo
     let fetchTask: FetchTask<T>;
 
     const response = (async (): FetchResponse<T> => {
-        const fileRes = await readBlobFile(filePath)
+        const fileRes = await readBlobFile(filePath);
 
         return fileRes.andThenAsync(async file => {
             // maybe aborted

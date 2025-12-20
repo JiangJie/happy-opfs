@@ -77,7 +77,7 @@ export type FileEncoding = 'binary' | 'utf8' | 'blob';
 /**
  * fetch-t options for download and upload.
  */
-export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>
+export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>;
 
 /**
  * fetch-t request options for uploading files.

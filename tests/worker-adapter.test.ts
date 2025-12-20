@@ -9,7 +9,7 @@ describe('Worker Adapter Edge Cases', () => {
     beforeAll(async () => {
         await fs.connectSyncAgent({
             worker: new Worker(new URL('./worker.ts', import.meta.url), {
-                type: 'module'
+                type: 'module',
             }),
             bufferLength: 10 * 1024 * 1024,
             opTimeout: 5000,
@@ -226,7 +226,7 @@ describe('Worker Adapter Edge Cases', () => {
             // messenger is already set from beforeAll, calling again should throw
             expect(() => fs.connectSyncAgent({
                 worker: new Worker(new URL('./worker.ts', import.meta.url), {
-                    type: 'module'
+                    type: 'module',
                 }),
             })).toThrow('Main messenger already started');
         });
@@ -234,10 +234,10 @@ describe('Worker Adapter Edge Cases', () => {
         it('should throw error when called from worker thread', async () => {
             // Create a worker that tries to call connectSyncAgent
             const worker = new Worker(new URL('./worker-connect-error.ts', import.meta.url), {
-                type: 'module'
+                type: 'module',
             });
 
-            const result = await new Promise<{ success: boolean; errorMessage?: string }>((resolve) => {
+            const result = await new Promise<{ success: boolean; errorMessage?: string; }>((resolve) => {
                 worker.addEventListener('message', (event) => {
                     resolve(event.data);
                     worker.terminate();

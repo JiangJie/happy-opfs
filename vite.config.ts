@@ -20,7 +20,7 @@ export default defineConfig({
         port: 8443,
         headers: {
             'Cross-Origin-Opener-Policy': 'same-origin',
-            'Cross-Origin-Embedder-Policy': 'require-corp'
+            'Cross-Origin-Embedder-Policy': 'require-corp',
         },
     },
     publicDir: 'tests/public',

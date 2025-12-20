@@ -44,7 +44,7 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
 
     // check parameters
     invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be Worker or valid URL(string)');
-    invariant(bufferLength > 16 && bufferLength % 4 === 0, () => 'bufferLength must be a multiple of 4')
+    invariant(bufferLength > 16 && bufferLength % 4 === 0, () => 'bufferLength must be a multiple of 4');
     invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
 
     setGlobalOpTimeout(opTimeout);

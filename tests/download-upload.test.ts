@@ -51,7 +51,7 @@ describe('OPFS Download/Upload Operations', () => {
 
             expect((await fs.exists('/downloaded.json')).unwrap()).toBe(true);
 
-            const content = await fs.readJsonFile<{ id: number }>('/downloaded.json');
+            const content = await fs.readJsonFile<{ id: number; }>('/downloaded.json');
             expect(content.unwrap().id).toBe(1);
         });
 

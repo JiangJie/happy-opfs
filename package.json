@@ -55,6 +55,7 @@
   ],
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@stylistic/eslint-plugin": "^5.6.1",
     "@vitest/browser-playwright": "^4.0.14",
     "@vitest/coverage-v8": "^4.0.14",
     "@vitest/ui": "^4.0.15",

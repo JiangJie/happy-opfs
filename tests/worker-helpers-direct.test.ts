@@ -90,7 +90,7 @@ describe('Worker Helpers Direct Tests', () => {
             const content = 'test file content';
             const file = new File([content], 'test.txt', {
                 type: 'text/plain',
-                lastModified: 1234567890
+                lastModified: 1234567890,
             });
 
             const fileLike = await serializeFile(file);
@@ -141,7 +141,7 @@ describe('Worker Helpers Direct Tests', () => {
                 type: 'text/plain',
                 lastModified: 1234567890,
                 size: content.length,
-                data: data
+                data: data,
             };
 
             const file = deserializeFile(fileLike);
@@ -156,7 +156,7 @@ describe('Worker Helpers Direct Tests', () => {
             const originalContent = 'Round trip test content';
             const originalFile = new File([originalContent], 'roundtrip.txt', {
                 type: 'text/plain',
-                lastModified: 9876543210
+                lastModified: 9876543210,
             });
 
             const serialized = await serializeFile(originalFile);

@@ -161,12 +161,12 @@ describe('OPFS Edge Cases', () => {
                 array: [1, 2, 3],
                 nested: {
                     deep: {
-                        value: 'test'
-                    }
+                        value: 'test',
+                    },
                 },
                 null_value: null,
                 boolean: true,
-                number: 42.5
+                number: 42.5,
             };
 
             await fs.writeJsonFile('/edge-file.txt', complexData);

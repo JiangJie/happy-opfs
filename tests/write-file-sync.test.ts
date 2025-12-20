@@ -18,7 +18,7 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
     beforeAll(async () => {
         await fs.connectSyncAgent({
             worker: new Worker(new URL('./worker.ts', import.meta.url), {
-                type: 'module'
+                type: 'module',
             }),
             bufferLength: 10 * 1024 * 1024,
             opTimeout: 10000,
