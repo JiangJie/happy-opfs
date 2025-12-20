@@ -17,9 +17,7 @@
       "LICENSE",
       "README.md",
       "README.cn.md",
-      "package.json",
-      "docs",
-      "jsr.json",
+      "CHANGELOG.md",
       "src"
     ]
   }

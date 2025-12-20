@@ -13,9 +13,7 @@
     "LICENSE",
     "README.md",
     "README.cn.md",
-    "package.json",
-    "docs",
-    "src",
+    "CHANGELOG.md",
     "dist"
   ],
   "sideEffects": false,
