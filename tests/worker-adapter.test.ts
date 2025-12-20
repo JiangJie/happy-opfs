@@ -30,9 +30,30 @@ describe('Worker Adapter Edge Cases', () => {
             const messenger = fs.getSyncMessenger();
             expect(messenger).toBeDefined();
             expect(messenger.i32a).toBeInstanceOf(Int32Array);
-            expect(messenger.u8a).toBeInstanceOf(Uint8Array);
-            expect(messenger.headerLength).toBe(16);
             expect(messenger.maxDataLength).toBeGreaterThan(0);
+        });
+    });
+
+    describe('isSyncAgentConnected', () => {
+        it('should return true after connection', () => {
+            expect(fs.isSyncAgentConnected()).toBe(true);
+        });
+
+        it('should return false before connection in isolated context', async () => {
+            // Create a worker to test in isolated context (worker has separate messenger state)
+            const worker = new Worker(new URL('./worker-check-connected.ts', import.meta.url), {
+                type: 'module',
+            });
+
+            const result = await new Promise<{ initialState: boolean; }>((resolve) => {
+                worker.addEventListener('message', (event) => {
+                    resolve(event.data);
+                    worker.terminate();
+                });
+            });
+
+            // In worker context, isSyncAgentConnected should return false initially
+            expect(result.initialState).toBe(false);
         });
     });
 
@@ -222,13 +243,13 @@ describe('Worker Adapter Edge Cases', () => {
     });
 
     describe('connectSyncAgent error cases', () => {
-        it('should throw error when called again (already started)', () => {
+        it('should throw error when called again (already connected)', () => {
             // messenger is already set from beforeAll, calling again should throw
             expect(() => fs.connectSyncAgent({
                 worker: new Worker(new URL('./worker.ts', import.meta.url), {
                     type: 'module',
                 }),
-            })).toThrow('Main messenger already started');
+            })).toThrow('Main messenger already connected');
         });
 
         it('should throw error when called from worker thread', async () => {

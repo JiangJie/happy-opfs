@@ -1,9 +1,9 @@
 /**
  * Tests for writeFile function's NoStrategyError branch (line 341-344)
- * 
+ *
  * This test covers the edge case when neither createWritable nor
  * createSyncAccessHandle is available.
- * 
+ *
  * Note: The createSyncAccessHandle branch (line 306-340) can only be tested
  * in a dedicated Worker context, as createSyncAccessHandle is not available
  * in the main thread. The sync API tests (write-file-sync.test.ts) indirectly
@@ -43,7 +43,7 @@ describe('writeFile - NoStrategyError branch (line 341-344)', () => {
 
         const error = result.unwrapErr();
         expect(error.name).toBe('NoStrategyError');
-        expect(error.message).toBe('No file write strategy available.');
+        expect(error.message).toBe('No file write strategy available');
 
         // Restore methods immediately
         if (originalCreateWritable) {

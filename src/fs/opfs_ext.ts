@@ -81,7 +81,7 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleS
             const destHandle = destHandleRes.unwrap();
             if (!((isFileHandle(srcHandle) && isFileHandle(destHandle))
                 || (isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle)))) {
-                return Err(new Error(`Both 'srcPath' and 'destPath' must both be a file or directory.`));
+                return Err(new Error(`Both 'srcPath' and 'destPath' must both be a file or directory`));
             }
         }
 

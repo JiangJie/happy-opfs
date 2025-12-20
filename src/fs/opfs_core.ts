@@ -241,7 +241,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
             const dirChildHandle = await dirHandle.getDirectoryHandle(childName);
             return Ok(dirChildHandle);
         } catch (e) {
-            const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'.`);
+            const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'`);
             err.name = (e as DOMException).name;
 
             return Err(err);
@@ -341,7 +341,7 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
 
             return RESULT_VOID;
         } else {
-            const error = new Error('No file write strategy available.');
+            const error = new Error('No file write strategy available');
             error.name = NO_STRATEGY_ERROR;
             return Err(error);
         }

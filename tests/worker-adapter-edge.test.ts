@@ -12,10 +12,8 @@ describe('Worker Adapter Edge Cases - Special Setup', () => {
             const sab = new SharedArrayBuffer(20);
             const messenger = new SyncMessenger(sab);
 
-            expect(messenger.headerLength).toBe(16);
             expect(messenger.maxDataLength).toBe(4); // 20 - 16
             expect(messenger.i32a).toBeInstanceOf(Int32Array);
-            expect(messenger.u8a).toBeInstanceOf(Uint8Array);
         });
 
         it('should have correct maxDataLength calculation', () => {
@@ -84,16 +82,15 @@ describe('Worker Adapter Edge Cases - Special Setup', () => {
             expect(messenger.i32a[2]).toBe(100);
         });
 
-        it('should allow writing payload after header', () => {
+        it('should allow writing and reading payload', () => {
             const sab = new SharedArrayBuffer(1024);
             const messenger = new SyncMessenger(sab);
 
             const payload = new Uint8Array([1, 2, 3, 4, 5]);
-            messenger.u8a.set(payload, messenger.headerLength);
+            messenger.setPayload(payload);
 
-            expect(messenger.u8a[16]).toBe(1);
-            expect(messenger.u8a[17]).toBe(2);
-            expect(messenger.u8a[20]).toBe(5);
+            const readPayload = messenger.getPayload(5);
+            expect(readPayload).toEqual(payload);
         });
     });
 });

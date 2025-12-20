@@ -33,7 +33,7 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
     }
 
     if (messenger) {
-        throw new Error('Main messenger already started');
+        throw new Error('Main messenger already connected');
     }
 
     const {
@@ -69,15 +69,34 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
 }
 
 /**
+ * Checks if the sync agent is already connected.
+ *
+ * @returns `true` if connected, `false` otherwise.
+ * @example
+ * ```typescript
+ * if (!isSyncAgentConnected()) {
+ *     await connectSyncAgent({ worker: new URL('./worker.js', import.meta.url) });
+ * }
+ * ```
+ */
+export function isSyncAgentConnected(): boolean {
+    return messenger !== undefined;
+}
+
+/**
  * Gets the current sync messenger instance.
- * Can be used to share the messenger with other environments.
+ * Can be used to share the messenger with other contexts (e.g., iframes).
+ *
+ * This is useful when you have multiple contexts that need to use sync APIs
+ * but only want to create one worker connection.
  *
  * @returns The `SyncMessenger` instance, or `undefined` if not connected.
  * @example
  * ```typescript
+ * // In main page: connect and share messenger to iframe
+ * await connectSyncAgent({ worker: new URL('./worker.js', import.meta.url) });
  * const messenger = getSyncMessenger();
- * // Pass to another context
- * otherContext.setSyncMessenger(messenger);
+ * iframe.contentWindow.postMessage({ type: 'sync-messenger', messenger }, '*');
  * ```
  */
 export function getSyncMessenger(): SyncMessenger {
@@ -86,15 +105,23 @@ export function getSyncMessenger(): SyncMessenger {
 
 /**
  * Sets the sync messenger instance.
- * Used to share a messenger from another environment.
+ * Used to receive a shared messenger from another context.
+ *
+ * After calling this function, sync APIs (e.g., `readFileSync`, `writeFileSync`)
+ * can be used in the current context without calling `connectSyncAgent`.
  *
  * @param syncMessenger - The `SyncMessenger` instance to use.
  * @throws {Error} If syncMessenger is null or undefined.
  * @example
  * ```typescript
- * // Receive messenger from main context
- * setSyncMessenger(receivedMessenger);
- * // Now sync APIs can be used
+ * // In iframe: receive messenger from main page
+ * window.addEventListener('message', (event) => {
+ *     if (event.data.type === 'sync-messenger') {
+ *         setSyncMessenger(event.data.messenger);
+ *         // Now sync APIs can be used
+ *         const result = readTextFileSync('/data/file.txt');
+ *     }
+ * });
  * ```
  */
 export function setSyncMessenger(syncMessenger: SyncMessenger): void {
@@ -120,12 +147,12 @@ export function setSyncMessenger(syncMessenger: SyncMessenger): void {
  * @internal
  */
 function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Array {
-    const { i32a, u8a, headerLength, maxDataLength } = messenger;
+    const { i32a, maxDataLength } = messenger;
     const requestLength = data.byteLength;
 
     // check whether request is too large
     if (requestLength > maxDataLength) {
-        throw new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider grow the size of SharedArrayBuffer.`);
+        throw new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`);
     }
 
     // Lock main thread - signal that we're waiting for a response
@@ -133,7 +160,7 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Ar
 
     // Write payload: store length and data to SharedArrayBuffer
     i32a[DATA_INDEX] = requestLength;
-    u8a.set(data, headerLength);
+    messenger.setPayload(data);
 
     // Wake up worker by setting it to UNLOCKED
     // Note: Atomics.notify() may not work reliably cross-thread, using store + busy-wait instead
@@ -145,7 +172,7 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Ar
 
     // Worker has finished - read response data
     const responseLength = i32a[DATA_INDEX];
-    const response = u8a.slice(headerLength, headerLength + responseLength);
+    const response = messenger.getPayload(responseLength);
 
     return response;
 }
@@ -164,7 +191,7 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Ar
 function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
     if (!messenger) {
         // too early
-        return Err(new Error('Worker not initialized. Come back later.'));
+        return Err(new Error('Worker not initialized'));
     }
 
     // Serialize request: [operation, ...arguments]

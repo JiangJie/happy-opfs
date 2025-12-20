@@ -97,7 +97,7 @@ export function startSyncAgent(): void {
  * @throws {RangeError} If the response data exceeds the buffer's maximum capacity.
  */
 async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
-    const { i32a, u8a, headerLength, maxDataLength } = messenger;
+    const { i32a, maxDataLength } = messenger;
 
     // Busy-wait until main thread signals a request is ready
     // Using busy-wait instead of Atomics.wait() because Atomics.notify() may not work reliably cross-thread
@@ -116,7 +116,7 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
     // payload and length
     const requestLength = i32a[DATA_INDEX];
     // console.log(`requestLength: ${ requestLength }`);
-    const data = u8a.slice(headerLength, headerLength + requestLength);
+    const data = messenger.getPayload(requestLength);
 
     // call async I/O operation
     let response = await transfer(data);
@@ -124,7 +124,7 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
 
     // check whether response is too large
     if (responseLength > maxDataLength) {
-        const message = `Response is too large: ${ responseLength } > ${ maxDataLength }. Consider grow the size of SharedArrayBuffer.`;
+        const message = `Response is too large: ${ responseLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`;
 
         response = encodeToBuffer([{
             name: 'RangeError',
@@ -142,7 +142,7 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
 
     // write response data
     i32a[DATA_INDEX] = response.byteLength;
-    u8a.set(response, headerLength);
+    messenger.setPayload(response);
 
     // lock worker thread
     Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);

@@ -130,22 +130,16 @@ export function decodeFromBuffer<T>(data: Uint8Array): T {
  */
 export class SyncMessenger {
     /**
+     * Header size in bytes: 4 Int32 values = 16 bytes.
+     * Payload data starts after this offset.
+     */
+    private static readonly HEADER_LENGTH = 4 * 4;
+
+    /**
      * Int32 view for atomic lock operations.
      * Layout: [MAIN_LOCK, WORKER_LOCK, DATA_LENGTH, RESERVED]
      */
     readonly i32a: Int32Array;
-
-    /**
-     * Uint8 view for reading/writing binary payload.
-     * Payload starts at offset `headerLength` (16 bytes).
-     */
-    readonly u8a: Uint8Array;
-
-    /**
-     * Header size in bytes: 4 Int32 values = 16 bytes.
-     * Payload data starts after this offset.
-     */
-    readonly headerLength = 4 * 4;
 
     /**
      * Maximum payload size in bytes.
@@ -153,6 +147,12 @@ export class SyncMessenger {
      * Requests/responses exceeding this limit will fail.
      */
     readonly maxDataLength: number;
+
+    /**
+     * Uint8 view for reading/writing binary payload.
+     * Payload starts after the header.
+     */
+    private readonly u8a: Uint8Array;
 
     /**
      * Creates a new SyncMessenger instance.
@@ -163,6 +163,25 @@ export class SyncMessenger {
     constructor(sab: SharedArrayBuffer) {
         this.i32a = new Int32Array(sab);
         this.u8a = new Uint8Array(sab);
-        this.maxDataLength = sab.byteLength - this.headerLength;
+        this.maxDataLength = sab.byteLength - SyncMessenger.HEADER_LENGTH;
+    }
+
+    /**
+     * Writes payload data to the buffer after the header.
+     *
+     * @param data - The payload data to write.
+     */
+    setPayload(data: Uint8Array): void {
+        this.u8a.set(data, SyncMessenger.HEADER_LENGTH);
+    }
+
+    /**
+     * Reads payload data from the buffer.
+     *
+     * @param length - The number of bytes to read.
+     * @returns A copy of the payload data.
+     */
+    getPayload(length: number): Uint8Array {
+        return this.u8a.slice(SyncMessenger.HEADER_LENGTH, SyncMessenger.HEADER_LENGTH + length);
     }
 }

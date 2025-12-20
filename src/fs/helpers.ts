@@ -51,7 +51,7 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: 
         return Ok(handle);
     } catch (e) {
         const err = e as DOMException;
-        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
+        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
         error.name = err.name;
 
         return Err(error);
@@ -74,7 +74,7 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName
         return Ok(handle);
     } catch (e) {
         const err = e as DOMException;
-        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'.`);
+        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
         error.name = err.name;
 
         return Err(error);
