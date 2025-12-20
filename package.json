@@ -36,13 +36,14 @@
     "url": "git+https://github.com/JiangJie/happy-opfs.git"
   },
   "keywords": [
-    "fs",
-    "system",
+    "browser",
+    "filesystem",
     "file",
     "directory",
     "opfs",
-    "origin",
-    "private",
+    "origin-private-file-system",
+    "storage",
+    "deno",
     "worker",
     "sync",
     "async",
