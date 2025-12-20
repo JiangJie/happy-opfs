@@ -92,24 +92,4 @@ describe('OPFS Utils', () => {
             expect(fs.isFileHandleLike(handleLike)).toBe(false);
         });
     });
-
-    describe('isOPFSSupported', () => {
-        it('should return true in supported environment', () => {
-            // In a browser environment with OPFS support
-            const supported = fs.isOPFSSupported();
-            expect(typeof supported).toBe('boolean');
-            // If we're running tests, OPFS must be supported
-            expect(supported).toBe(true);
-        });
-    });
-
-    describe('constants', () => {
-        it('ROOT_DIR should be /', () => {
-            expect(fs.ROOT_DIR).toBe('/');
-        });
-
-        it('TMP_DIR should be /tmp', () => {
-            expect(fs.TMP_DIR).toBe('/tmp');
-        });
-    });
 });

@@ -10,11 +10,6 @@ describe('Constants', () => {
         it('should be "/"', () => {
             expect(ROOT_DIR).toBe('/');
         });
-
-        it('should be immutable', () => {
-            // This is a const export, should always be the same
-            expect(ROOT_DIR).toBe('/');
-        });
     });
 
     describe('TMP_DIR', () => {
