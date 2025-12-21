@@ -1,5 +1,4 @@
 import { playwright } from '@vitest/browser-playwright';
-import dts from 'vite-plugin-dts';
 import mkcert from 'vite-plugin-mkcert';
 import { defineConfig } from 'vitest/config';
 
@@ -7,10 +6,6 @@ export default defineConfig({
     plugins: [
         mkcert({
             source: 'coding',
-        }),
-        dts({
-            rollupTypes: true, // combine declaration and type definition
-            include: 'src',
         }),
     ],
     server: {
