@@ -80,7 +80,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
             };
 
             if (isDirectoryHandle(handle) && options?.recursive) {
-                yield* read(await dirHandle.getDirectoryHandle(name), path);
+                yield* read(handle, path);
             }
         }
     }
