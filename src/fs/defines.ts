@@ -109,13 +109,13 @@ export interface ReadDirEntry {
      * For non-recursive reads, this is just the entry name.
      * For recursive reads, this includes the subdirectory path.
      */
-    path: string;
+    readonly path: string;
 
     /**
      * The `FileSystemHandle` of the entry.
      * Use `isFileHandle()` or `isDirectoryHandle()` to determine the type.
      */
-    handle: FileSystemHandle;
+    readonly handle: FileSystemHandle;
 }
 
 /**
@@ -126,13 +126,13 @@ export interface ReadDirEntrySync {
     /**
      * The relative path of the entry from the `readDirSync` path parameter.
      */
-    path: string;
+    readonly path: string;
 
     /**
      * The serializable handle-like object of the entry.
      * Use `isFileHandleLike()` to check if it's a file.
      */
-    handle: FileSystemHandleLike;
+    readonly handle: FileSystemHandleLike;
 }
 
 /**
@@ -143,12 +143,12 @@ export interface FileSystemHandleLike {
     /**
      * The name of the file or directory.
      */
-    name: string;
+    readonly name: string;
 
     /**
      * The kind of the entry: `'file'` or `'directory'`.
      */
-    kind: FileSystemHandleKind;
+    readonly kind: FileSystemHandleKind;
 }
 
 /**
@@ -159,62 +159,17 @@ export interface FileSystemFileHandleLike extends FileSystemHandleLike {
     /**
      * The MIME type of the file (e.g., `'text/plain'`, `'image/png'`).
      */
-    type: string;
+    readonly type: string;
 
     /**
      * The size of the file in bytes.
      */
-    size: number;
+    readonly size: number;
 
     /**
      * The last modified timestamp in milliseconds since Unix epoch.
      */
-    lastModified: number;
-}
-
-/**
- * Serializable version of Error.
- */
-export interface ErrorLike {
-    /**
-     * The name of the error.
-     */
-    name: string;
-
-    /**
-     * The message of the error.
-     */
-    message: string;
-}
-
-/**
- * Serializable version of File.
- */
-export interface FileLike {
-    /**
-     * The name of the file.
-     */
-    name: string;
-
-    /**
-     * The type of the file.
-     */
-    type: string;
-
-    /**
-     * The last modified time of the file.
-     */
-    lastModified: number;
-
-    /**
-     * The size of the file.
-     */
-    size: number;
-
-    /**
-     * The binary data of the file.
-     */
-    data: ArrayBuffer;
+    readonly lastModified: number;
 }
 
 /**
@@ -299,12 +254,12 @@ export interface DownloadFileTempResponse {
     /**
      * The temporary path of the downloaded file to be saved.
      */
-    tempFilePath: string;
+    readonly tempFilePath: string;
 
     /**
      * The raw response.
      */
-    rawResponse: Response;
+    readonly rawResponse: Response;
 }
 
 /**

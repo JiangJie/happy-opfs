@@ -2,8 +2,9 @@ import { Err, Ok, Once, type IOResult, type Option, type VoidIOResult } from 'ha
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import { textDecode } from '../fs/codec.ts';
-import type { CopyOptions, ExistsOptions, FileLike, FileSystemHandleLike, MoveOptions, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
-import { deserializeError, setGlobalOpTimeout, sleepUntil } from './helpers.ts';
+import type { CopyOptions, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
+import type { FileLike } from './defines.ts';
+import { deserializeError, deserializeFile, setGlobalOpTimeout, sleepUntil } from './helpers.ts';
 import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 
 /**
@@ -276,7 +277,7 @@ export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult
  */
 export function readFileSync(filePath: string, options: ReadOptions & {
     encoding: 'blob';
-}): IOResult<FileLike>;
+}): IOResult<File>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file as a string (utf8 encoding).
@@ -313,19 +314,18 @@ export function readFileSync<T extends ReadFileContent>(filePath: string, option
     const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
 
     return res.map(file => {
-        // Data was serialized as number[] for JSON transport, convert back to ArrayBuffer
-        const u8a = new Uint8Array(file.data);
-        file.data = u8a.buffer.slice(u8a.byteOffset, u8a.byteOffset + u8a.byteLength);
-
         switch (options?.encoding) {
             case 'blob': {
-                return file as unknown as T;
+                // File
+                return deserializeFile(file) as unknown as T;
             }
             case 'utf8': {
+                // string
                 return textDecode(new Uint8Array(file.data)) as unknown as T;
             }
             default: {
-                return file.data as unknown as T;
+                // ArrayBuffer
+                return new Uint8Array(file.data).buffer as unknown as T;
             }
         }
     });
@@ -485,7 +485,7 @@ export function pruneTempSync(expired: Date): VoidIOResult {
  * @returns An `IOResult` containing a `FileLike` object.
  * @see {@link readBlobFile} for the async version.
  */
-export function readBlobFileSync(filePath: string): IOResult<FileLike> {
+export function readBlobFileSync(filePath: string): IOResult<File> {
     return readFileSync(filePath, {
         encoding: 'blob',
     });

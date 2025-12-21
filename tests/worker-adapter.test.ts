@@ -102,9 +102,9 @@ describe('Worker Adapter Edge Cases', () => {
             const result = fs.readFileSync('/adapter-test.txt', { encoding: 'blob' });
             expect(result.isOk()).toBe(true);
 
-            const fileLike = result.unwrap();
-            expect(fileLike.name).toBe('adapter-test.txt');
-            expect(fileLike.data).toBeInstanceOf(ArrayBuffer);
+            const file = result.unwrap();
+            expect(file.name).toBe('adapter-test.txt');
+            expect(file instanceof File).toBe(true);
         });
 
         it('should read as utf8 encoding', () => {

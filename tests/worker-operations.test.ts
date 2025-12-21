@@ -339,15 +339,15 @@ describe('Worker Operations Coverage', () => {
     });
 
     describe('WorkerAsyncOp.readBlobFile', () => {
-        it('should read file as FileLike', () => {
+        it('should read file as File', () => {
             fs.writeFileSync('/worker-op-file.txt', 'blob content');
             const result = fs.readBlobFileSync('/worker-op-file.txt');
             expect(result.isOk()).toBe(true);
 
-            const fileLike = result.unwrap();
-            expect(fileLike.name).toBe('worker-op-file.txt');
-            expect(fileLike.size).toBe(12);
-            expect(fileLike.data).toBeInstanceOf(ArrayBuffer);
+            const file = result.unwrap();
+            expect(file.name).toBe('worker-op-file.txt');
+            expect(file.size).toBe(12);
+            expect(file instanceof File).toBe(true);
         });
     });
 

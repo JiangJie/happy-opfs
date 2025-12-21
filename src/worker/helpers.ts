@@ -1,5 +1,5 @@
 import { TIMEOUT_ERROR } from '../fs/constants.ts';
-import type { ErrorLike, FileLike } from '../fs/defines.ts';
+import type { ErrorLike, FileLike } from './defines.ts';
 
 /**
  * Serializes an `Error` object to a plain object for cross-thread communication.
@@ -55,7 +55,7 @@ export async function serializeFile(file: File): Promise<FileLike> {
         type: file.type,
         lastModified: file.lastModified,
         size: ab.byteLength,
-        data: ab,
+        data: Array.from(new Uint8Array(ab)),
     };
 }
 
@@ -71,7 +71,7 @@ export async function serializeFile(file: File): Promise<FileLike> {
  * ```
  */
 export function deserializeFile(file: FileLike): File {
-    const blob = new Blob([file.data]);
+    const blob = new Blob([new Uint8Array(file.data)]);
 
     return new File([blob], file.name, {
         type: file.type,

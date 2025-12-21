@@ -111,15 +111,15 @@ describe('OPFS Sync Operations', () => {
             fs.removeSync('/sync-blob.txt');
         });
 
-        it('should read file as FileLike', () => {
+        it('should read file as File', () => {
             fs.writeFileSync('/sync-blob.txt', 'Blob content');
 
             const result = fs.readBlobFileSync('/sync-blob.txt');
-            const fileLike = result.unwrap();
+            const file = result.unwrap();
 
-            expect(fileLike.name).toBe('sync-blob.txt');
-            expect(fileLike.size).toBe(12);
-            expect(fileLike.data instanceof ArrayBuffer).toBe(true);
+            expect(file.name).toBe('sync-blob.txt');
+            expect(file.size).toBe(12);
+            expect(file instanceof File).toBe(true);
         });
     });
 

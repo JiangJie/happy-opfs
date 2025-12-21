@@ -25,7 +25,7 @@ describe('Worker Helpers', () => {
     });
 
     describe('File serialization/deserialization (via readBlobFileSync)', () => {
-        it('should serialize and deserialize file content correctly', () => {
+        it('should serialize and deserialize file content correctly', async () => {
             // Create a file with specific content
             const content = 'Test file content for serialization';
             fs.writeFileSync('/test-file-serialize.txt', content);
@@ -34,18 +34,16 @@ describe('Worker Helpers', () => {
             const result = fs.readBlobFileSync('/test-file-serialize.txt');
             expect(result.isOk()).toBe(true);
 
-            const fileLike = result.unwrap();
-            expect(fileLike.name).toBe('test-file-serialize.txt');
-            expect(fileLike.size).toBe(content.length);
-            expect(fileLike.data).toBeInstanceOf(ArrayBuffer);
+            const file = result.unwrap();
+            expect(file.name).toBe('test-file-serialize.txt');
+            expect(file.size).toBe(content.length);
 
-            // Verify data content
-            const decoder = new TextDecoder();
-            const decodedContent = decoder.decode(new Uint8Array(fileLike.data));
-            expect(decodedContent).toBe(content);
+            // Verify data content by reading the file
+            const text = await file.text();
+            expect(text).toBe(content);
         });
 
-        it('should handle file with binary content', () => {
+        it('should handle file with binary content', async () => {
             // Binary content including null bytes
             const binaryData = new Uint8Array([0, 1, 2, 128, 255, 0, 127]);
             fs.writeFileSync('/test-file-serialize.txt', binaryData);
@@ -53,10 +51,11 @@ describe('Worker Helpers', () => {
             const result = fs.readBlobFileSync('/test-file-serialize.txt');
             expect(result.isOk()).toBe(true);
 
-            const fileLike = result.unwrap();
-            expect(fileLike.size).toBe(7);
+            const file = result.unwrap();
+            expect(file.size).toBe(7);
 
-            const arr = new Uint8Array(fileLike.data);
+            const buffer = await file.arrayBuffer();
+            const arr = new Uint8Array(buffer);
             expect(arr).toEqual(binaryData);
         });
 
@@ -64,11 +63,11 @@ describe('Worker Helpers', () => {
             fs.writeFileSync('/test-file-serialize.txt', 'content');
 
             const result = fs.readBlobFileSync('/test-file-serialize.txt');
-            const fileLike = result.unwrap();
+            const file = result.unwrap();
 
-            // FileLike should have type property (may be empty for OPFS files)
-            expect(typeof fileLike.type).toBe('string');
-            expect(typeof fileLike.lastModified).toBe('number');
+            // File should have type property (may be empty for OPFS files)
+            expect(typeof file.type).toBe('string');
+            expect(typeof file.lastModified).toBe('number');
         });
 
         it('should handle empty file', () => {
@@ -77,9 +76,8 @@ describe('Worker Helpers', () => {
             const result = fs.readBlobFileSync('/test-file-serialize.txt');
             expect(result.isOk()).toBe(true);
 
-            const fileLike = result.unwrap();
-            expect(fileLike.size).toBe(0);
-            expect(fileLike.data.byteLength).toBe(0);
+            const file = result.unwrap();
+            expect(file.size).toBe(0);
         });
 
         it('should handle large file content', () => {
@@ -90,8 +88,8 @@ describe('Worker Helpers', () => {
             const result = fs.readBlobFileSync('/test-file-serialize.txt');
             expect(result.isOk()).toBe(true);
 
-            const fileLike = result.unwrap();
-            expect(fileLike.size).toBe(100000);
+            const file = result.unwrap();
+            expect(file.size).toBe(100000);
         });
     });
 

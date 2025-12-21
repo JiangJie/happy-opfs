@@ -3,7 +3,8 @@
  * Tests functions that can be called directly from main thread
  */
 import { describe, expect, it } from 'vitest';
-import * as fs from '../src/mod.ts';
+import { TIMEOUT_ERROR } from '../src/mod.ts';
+import type { ErrorLike, FileLike } from '../src/worker/defines.ts';
 import { deserializeError, deserializeFile, serializeError, serializeFile, setGlobalOpTimeout, sleepUntil } from '../src/worker/helpers.ts';
 
 describe('Worker Helpers Direct Tests', () => {
@@ -77,7 +78,7 @@ describe('Worker Helpers Direct Tests', () => {
             const original = new Error('Round trip test');
             original.name = 'CustomError';
 
-            const serialized = serializeError(original) as fs.ErrorLike;
+            const serialized = serializeError(original) as ErrorLike;
             const deserialized = deserializeError(serialized);
 
             expect(deserialized.name).toBe(original.name);
@@ -99,7 +100,7 @@ describe('Worker Helpers Direct Tests', () => {
             expect(fileLike.type).toBe('text/plain');
             expect(fileLike.lastModified).toBe(1234567890);
             expect(fileLike.size).toBe(content.length);
-            expect(fileLike.data).toBeInstanceOf(ArrayBuffer);
+            expect(Array.isArray(fileLike.data)).toBe(true);
         });
 
         it('should preserve binary content', async () => {
@@ -118,7 +119,7 @@ describe('Worker Helpers Direct Tests', () => {
             const fileLike = await serializeFile(file);
 
             expect(fileLike.size).toBe(0);
-            expect(fileLike.data.byteLength).toBe(0);
+            expect(fileLike.data.length).toBe(0);
         });
 
         it('should handle file with special characters in name', async () => {
@@ -136,12 +137,12 @@ describe('Worker Helpers Direct Tests', () => {
             const encoder = new TextEncoder();
             const data = encoder.encode(content).buffer;
 
-            const fileLike = {
+            const fileLike: FileLike = {
                 name: 'test.txt',
                 type: 'text/plain',
                 lastModified: 1234567890,
                 size: content.length,
-                data: data,
+                data: Array.from(new Uint8Array(data)),
             };
 
             const file = deserializeFile(fileLike);
@@ -245,7 +246,7 @@ describe('Worker Helpers Direct Tests', () => {
                 expect.fail('Should have thrown');
             } catch (error) {
                 expect(error).toBeInstanceOf(Error);
-                expect((error as Error).name).toBe(fs.TIMEOUT_ERROR);
+                expect((error as Error).name).toBe(TIMEOUT_ERROR);
                 expect((error as Error).message).toBe('Operation timed out');
             } finally {
                 setGlobalOpTimeout(5000);
