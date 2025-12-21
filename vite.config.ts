@@ -9,8 +9,8 @@ export default defineConfig({
             source: 'coding',
         }),
         dts({
-            outDir: 'dist',
             rollupTypes: true, // combine declaration and type definition
+            include: 'src',
         }),
     ],
     server: {
