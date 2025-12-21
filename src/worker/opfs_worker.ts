@@ -1,5 +1,5 @@
 import type { IOResult } from 'happy-rusty';
-import type { ReadDirEntry, ReadDirEntrySync } from '../fs/defines.ts';
+import type { DirEntry, DirEntryLike } from '../fs/defines.ts';
 import { createFile, mkdir, readDir, remove, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/opfs_ext.ts';
 import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
@@ -204,8 +204,8 @@ async function runWorkerLoop(): Promise<void> {
                             };
                         } else if (op === WorkerAsyncOp.readDir) {
                             // Async iterator needs full materialization to array
-                            const iterator: AsyncIterableIterator<ReadDirEntry> = res.unwrap();
-                            const entries: ReadDirEntrySync[] = [];
+                            const iterator: AsyncIterableIterator<DirEntry> = res.unwrap();
+                            const entries: DirEntryLike[] = [];
 
                             for await (const { path, handle } of iterator) {
                                 // Convert FileSystemHandle to serializable object

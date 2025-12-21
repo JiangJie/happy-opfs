@@ -103,7 +103,7 @@ export interface ReadDirOptions {
 /**
  * An entry returned by `readDir`.
  */
-export interface ReadDirEntry {
+export interface DirEntry {
     /**
      * The relative path of the entry from the `readDir` path parameter.
      * For non-recursive reads, this is just the entry name.
@@ -122,7 +122,7 @@ export interface ReadDirEntry {
  * An entry returned by `readDirSync`.
  * Similar to `ReadDirEntry` but uses serializable `FileSystemHandleLike`.
  */
-export interface ReadDirEntrySync {
+export interface DirEntryLike {
     /**
      * The relative path of the entry from the `readDirSync` path parameter.
      */

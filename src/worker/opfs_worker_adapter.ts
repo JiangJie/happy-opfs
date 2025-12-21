@@ -2,7 +2,7 @@ import { Err, Ok, Once, type IOResult, type Option, type VoidIOResult } from 'ha
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import { textDecode } from '../fs/codec.ts';
-import type { CopyOptions, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirEntrySync, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
+import type { CopyOptions, DirEntryLike, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
 import type { FileLike } from './defines.ts';
 import { deserializeError, deserializeFile, setGlobalOpTimeout, sleepUntil } from './helpers.ts';
 import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
@@ -263,7 +263,7 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  * @returns An `IOResult` containing an array of directory entries.
  * @see {@link readDir} for the async version.
  */
-export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult<ReadDirEntrySync[]> {
+export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult<DirEntryLike[]> {
     return callWorkerOp(WorkerAsyncOp.readDir, dirPath, options);
 }
 

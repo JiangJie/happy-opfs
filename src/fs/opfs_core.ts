@@ -3,7 +3,7 @@ import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from
 import { assertAbsolutePath } from './assertions.ts';
 import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR, NOT_FOUND_ERROR } from './constants.ts';
-import type { ReadDirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
+import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './helpers.ts';
 import { isDirectoryHandle } from './utils.ts';
 
@@ -63,12 +63,12 @@ export async function mkdir(dirPath: string): AsyncVoidIOResult {
  * @param options - Options of readdir.
  * @returns A promise that resolves to an `AsyncIOResult` containing an async iterable iterator over the entries of the directory.
  */
-export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<ReadDirEntry>> {
+export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<DirEntry>> {
     assertAbsolutePath(dirPath);
 
     const dirHandleRes = await getDirHandle(dirPath);
 
-    async function* read(dirHandle: FileSystemDirectoryHandle, subDirPath: string): AsyncIterableIterator<ReadDirEntry> {
+    async function* read(dirHandle: FileSystemDirectoryHandle, subDirPath: string): AsyncIterableIterator<DirEntry> {
         const entries = dirHandle.entries();
 
         for await (const [name, handle] of entries) {
@@ -79,7 +79,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
                 handle,
             };
 
-            if (isDirectoryHandle(handle) && options?.recursive) {
+            if (options?.recursive && isDirectoryHandle(handle)) {
                 yield* read(handle, path);
             }
         }
