@@ -14,7 +14,8 @@ describe('Worker Adapter with Small Buffer', () => {
 
     beforeAll(() => {
         // Save the original messenger if it exists
-        originalMessenger = getSyncMessenger();
+        const opt = getSyncMessenger();
+        originalMessenger = opt.isSome() ? opt.unwrap() : undefined;
     });
 
     afterAll(() => {

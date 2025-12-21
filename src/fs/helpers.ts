@@ -1,24 +1,13 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
-import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { Err, LazyAsync, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { ABORT_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
- * The cached root directory handle of the file system.
+ * Lazily initialized root directory handle of the file system.
+ * Created on first access via `force()`.
  * @internal
  */
-let fsRoot: FileSystemDirectoryHandle;
-
-/**
- * Retrieves the root directory handle of the file system.
- * Uses a cached instance for better performance.
- *
- * @returns A promise that resolves to the `FileSystemDirectoryHandle` of the root directory.
- * @internal
- */
-async function getFsRoot(): Promise<FileSystemDirectoryHandle> {
-    fsRoot ??= await navigator.storage.getDirectory();
-    return fsRoot;
-}
+const fsRoot = LazyAsync(() => navigator.storage.getDirectory());
 
 /**
  * Checks if the provided path is the root directory path.
@@ -97,7 +86,7 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     // Start from root
-    let dirHandle = await getFsRoot();
+    let dirHandle = await fsRoot.force();
 
     if (isRootPath(dirPath)) {
         // Root is already a handle, no traversal needed

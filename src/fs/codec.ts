@@ -1,30 +1,16 @@
-/**
- * Cache the `TextEncoder` instance.
- */
-let encoder: TextEncoder;
+import { Lazy } from 'happy-rusty';
 
 /**
- * Cache the `TextDecoder` instance.
+ * Lazily initialized `TextEncoder` instance.
+ * Created on first access via `force()`.
  */
-let decoder: TextDecoder;
+const encoder = Lazy(() => new TextEncoder());
 
 /**
- * Get the cached `TextEncoder` instance.
- * @returns Instance of `TextEncoder`.
+ * Lazily initialized `TextDecoder` instance.
+ * Created on first access via `force()`.
  */
-function getEncoder(): TextEncoder {
-    encoder ??= new TextEncoder();
-    return encoder;
-}
-
-/**
- * Get the cached `TextDecoder` instance.
- * @returns Instance of `TextDecoder`.
- */
-function getDecoder(): TextDecoder {
-    decoder ??= new TextDecoder();
-    return decoder;
-}
+const decoder = Lazy(() => new TextDecoder());
 
 /**
  * Encodes a string to a UTF-8 `Uint8Array`.
@@ -33,7 +19,7 @@ function getDecoder(): TextDecoder {
  * @returns A `Uint8Array` containing the encoded data.
  */
 export function textEncode(data: string): Uint8Array {
-    return getEncoder().encode(data);
+    return encoder.force().encode(data);
 }
 
 /**
@@ -43,5 +29,5 @@ export function textEncode(data: string): Uint8Array {
  * @returns The decoded string.
  */
 export function textDecode(data: Uint8Array): string {
-    return getDecoder().decode(data);
+    return decoder.force().decode(data);
 }

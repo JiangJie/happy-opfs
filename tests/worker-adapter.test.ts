@@ -27,8 +27,9 @@ describe('Worker Adapter Edge Cases', () => {
 
     describe('getSyncMessenger', () => {
         it('should return the messenger instance after connection', () => {
-            const messenger = fs.getSyncMessenger();
-            expect(messenger).toBeDefined();
+            const messengerOpt = fs.getSyncMessenger();
+            expect(messengerOpt.isSome()).toBe(true);
+            const messenger = messengerOpt.unwrap();
             expect(messenger.i32a).toBeInstanceOf(Int32Array);
             expect(messenger.maxDataLength).toBeGreaterThan(0);
         });
@@ -60,10 +61,11 @@ describe('Worker Adapter Edge Cases', () => {
     describe('setSyncMessenger', () => {
         it('should set messenger and allow operations', () => {
             // Get current messenger
-            const currentMessenger = fs.getSyncMessenger();
+            const messengerOpt = fs.getSyncMessenger();
+            expect(messengerOpt.isSome()).toBe(true);
 
             // Set it again (simulates sharing messenger between contexts)
-            fs.setSyncMessenger(currentMessenger);
+            fs.setSyncMessenger(messengerOpt.unwrap());
 
             // Operations should still work
             const result = fs.writeFileSync('/adapter-test.txt', 'content');

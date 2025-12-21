@@ -72,11 +72,13 @@ document.getElementById('share')!.addEventListener('click', () => {
         return;
     }
 
-    const messenger = getSyncMessenger();
-    if (!messenger) {
+    const messengerOpt = getSyncMessenger();
+    if (messengerOpt.isNone()) {
         log('Messenger not available', 'error');
         return;
     }
+
+    const messenger = messengerOpt.unwrap();
 
     // Send messenger to iframe
     // Note: We send the internal SharedArrayBuffer (from i32a.buffer)

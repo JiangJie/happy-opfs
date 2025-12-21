@@ -39,18 +39,15 @@ export default defineConfig([
         },
     },
     {
-        files: ['**/*.test.ts'],
+        files: [
+            '**/*.test.ts',
+            'examples/**/*.ts',
+        ],
         rules: {
+            '@typescript-eslint/no-non-null-assertion': 'off',
             '@typescript-eslint/no-empty-function': ['error', {
                 allow: ['arrowFunctions', 'functions'],
             }],
-        },
-    },
-    {
-        files: ['examples/**/*.ts'],
-        rules: {
-            // Allow non-null assertions in examples for DOM elements
-            '@typescript-eslint/no-non-null-assertion': 'off',
         },
     },
 ]);
