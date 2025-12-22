@@ -5,9 +5,10 @@ import { Err, Ok, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } fr
 import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit, ZipOptions } from './defines.ts';
-import { readDir, stat, writeFile } from './opfs_core.ts';
 import { isFileHandle } from './guards.ts';
 import { getFileDataByHandle } from './helpers.ts';
+import { readDir, stat, writeFile } from './opfs_core.ts';
+import { getUrlPathname } from './url.ts';
 
 /**
  * Zip a zippable data then write to the target path.
@@ -183,10 +184,7 @@ export async function zipFromUrl<T>(sourceUrl: string | URL, zipFilePath?: strin
     });
 
     return fetchRes.andThenAsync(buffer => {
-        const pathname = sourceUrl instanceof URL
-            ? sourceUrl.pathname
-            : new URL(sourceUrl).pathname;
-        const sourceName = basename(pathname);
+        const sourceName = basename(getUrlPathname(sourceUrl));
         const zippable: fflate.AsyncZippable = {};
 
         zippable[sourceName] = new Uint8Array(buffer);
