@@ -161,7 +161,7 @@ export interface DirEntryLike {
  * **When it's used:**
  * - Returned by `statSync()` for directory entries
  * - Used as the `handle` property in `DirEntryLike`
- * - Internally converted from `FileSystemHandle` via `toFileSystemHandleLike()`
+ * - Internally converted from `FileSystemHandle` via `serializeFileSystemHandle()`
  */
 export interface FileSystemHandleLike {
     /**

@@ -1,6 +1,6 @@
 /**
- * Tests for worker helpers functions
- * Covers: serializeFile, deserializeFile, serializeError, deserializeError, setGlobalOpTimeout, sleepUntil
+ * Tests for worker serialization/deserialization functions via sync APIs
+ * Covers: serializeFile, deserializeFile, serializeError, deserializeError, toFileSystemHandleLike
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import * as fs from '../src/mod.ts';

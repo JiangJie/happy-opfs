@@ -2,16 +2,68 @@ import { Err, Ok, Once, type IOResult, type Option, type VoidIOResult } from 'ha
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import { textDecode } from '../fs/codec.ts';
+import { TIMEOUT_ERROR } from '../fs/constants.ts';
 import type { CopyOptions, DirEntryLike, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
-import type { FileLike } from './defines.ts';
-import { deserializeError, deserializeFile, setGlobalOpTimeout, sleepUntil } from './helpers.ts';
+import type { ErrorLike, FileLike } from './defines.ts';
 import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
+
+/**
+ * Deserializes an `ErrorLike` object back to an `Error` instance.
+ *
+ * @param error - The `ErrorLike` object to deserialize.
+ * @returns An `Error` instance with the same name and message.
+ */
+function deserializeError(error: ErrorLike): Error {
+    const err = new Error(error.message);
+    err.name = error.name;
+
+    return err;
+}
+
+/**
+ * Deserializes a `FileLike` object back to a `File` instance.
+ *
+ * @param file - The `FileLike` object to deserialize.
+ * @returns A `File` instance with the same properties.
+ */
+function deserializeFile(file: FileLike): File {
+    const blob = new Blob([new Uint8Array(file.data)]);
+
+    return new File([blob], file.name, {
+        type: file.type,
+        lastModified: file.lastModified,
+    });
+}
 
 /**
  * Once-initialized messenger instance.
  * Can only be set once via `connectSyncAgent` or `setSyncMessenger`.
  */
 const messengerOnce = Once<SyncMessenger>();
+
+/**
+ * Global timeout for synchronous I/O operations in milliseconds.
+ */
+let globalOpTimeout = 1000;
+
+/**
+ * Blocks execution until a condition is met or timeout occurs.
+ * Uses busy-waiting, which is necessary for synchronous operations.
+ *
+ * @param condition - A function that returns `true` when the wait should end.
+ * @throws {Error} With name `'TimeoutError'` if the condition is not met within the timeout.
+ */
+function sleepUntil(condition: () => boolean): void {
+    const start = Date.now();
+    while (!condition()) {
+        if (Date.now() - start > globalOpTimeout) {
+            const error = new Error('Operation timed out');
+            error.name = TIMEOUT_ERROR;
+
+            throw error;
+        }
+    }
+}
 
 /**
  * Connects to a sync agent worker for synchronous file system operations.
@@ -49,7 +101,7 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
     invariant(bufferLength > 16 && bufferLength % 4 === 0, () => 'bufferLength must be a multiple of 4');
     invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
 
-    setGlobalOpTimeout(opTimeout);
+    globalOpTimeout = opTimeout;
 
     const sab = new SharedArrayBuffer(bufferLength);
 
@@ -148,7 +200,6 @@ export function setSyncMessenger(syncMessenger: SyncMessenger): void {
  * @param data - The request data as a `Uint8Array`.
  * @returns The response data as a `Uint8Array`.
  * @throws {RangeError} If the request data exceeds the buffer's maximum capacity.
- * @internal
  */
 function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Array {
     const { i32a, maxDataLength } = messenger;
@@ -189,7 +240,6 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Ar
  * @param op - The I/O operation enum value from `WorkerAsyncOp`.
  * @param args - Arguments to pass to the operation.
  * @returns The I/O operation result wrapped in `IOResult<T>`.
- * @internal
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
@@ -361,7 +411,6 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
  *
  * @param contents - The content to serialize (ArrayBuffer, TypedArray, or string).
  * @returns A number array for binary data, or the original string.
- * @internal
  */
 function serializeWriteContents(contents: WriteSyncFileContent): number[] | string {
     if (contents instanceof ArrayBuffer) {

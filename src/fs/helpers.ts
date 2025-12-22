@@ -5,7 +5,6 @@ import { ABORT_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 /**
  * Lazily initialized root directory handle of the file system.
  * Created on first access via `force()`.
- * @internal
  */
 const fsRoot = LazyAsync(() => navigator.storage.getDirectory());
 
@@ -31,7 +30,6 @@ export function isRootPath(path: string): boolean {
  * @param dirName - The name of the child directory to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
- * @internal
  */
 async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     try {
@@ -54,7 +52,6 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: 
  * @param fileName - The name of the file to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
- * @internal
  */
 async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     try {

@@ -12,7 +12,6 @@ import { generateTempPath } from './opfs_tmp.ts';
  *
  * @param fileUrl - The URL to extract the extension from.
  * @returns The file extension including the dot (e.g., '.txt'), or empty string if none.
- * @internal
  */
 function getExtFromUrl(fileUrl: string | URL): string {
     const pathname = fileUrl instanceof URL

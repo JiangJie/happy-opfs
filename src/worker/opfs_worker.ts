@@ -1,13 +1,74 @@
 import type { IOResult } from 'happy-rusty';
-import type { DirEntry, DirEntryLike } from '../fs/defines.ts';
+import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
 import { createFile, mkdir, readDir, remove, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/opfs_ext.ts';
 import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
 import { unzip } from '../fs/opfs_unzip.ts';
 import { zip } from '../fs/opfs_zip.ts';
-import { toFileSystemHandleLike } from './helpers.ts';
-import { serializeError, serializeFile } from './helpers.ts';
+import type { ErrorLike, FileLike } from './defines.ts';
 import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
+
+/**
+ * Serializes a `FileSystemHandle` to a plain object for cross-thread communication.
+ *
+ * @param handle - `FileSystemHandle` object.
+ * @returns Serializable version of FileSystemHandle that is FileSystemHandleLike.
+ */
+async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<FileSystemHandleLike> {
+    const { name, kind } = handle;
+
+    if (handle.kind === 'file') {
+        const file = await (handle as FileSystemFileHandle).getFile();
+        const { size, lastModified, type } = file;
+
+        const fileHandle: FileSystemFileHandleLike = {
+            name,
+            kind,
+            type,
+            size,
+            lastModified,
+        };
+
+        return fileHandle;
+    }
+
+    const handleLike: FileSystemHandleLike = {
+        name,
+        kind,
+    };
+
+    return handleLike;
+}
+
+/**
+ * Serializes an `Error` object to a plain object for cross-thread communication.
+ *
+ * @param error - The `Error` object to serialize, or `null`.
+ * @returns A serializable `ErrorLike` object, or `null` if input is `null`.
+ */
+function serializeError(error: Error | null): ErrorLike | null {
+    return error ? {
+        name: error.name,
+        message: error.message,
+    } : error;
+}
+
+/**
+ * Serializes a `File` object to a plain object for cross-thread communication.
+ *
+ * @param file - The `File` object to serialize.
+ * @returns A promise that resolves to a serializable `FileLike` object.
+ */
+async function serializeFile(file: File): Promise<FileLike> {
+    const ab = await file.arrayBuffer();
+    return {
+        name: file.name,
+        type: file.type,
+        lastModified: file.lastModified,
+        size: ab.byteLength,
+        data: Array.from(new Uint8Array(ab)),
+    };
+}
 
 /**
  * Worker thread locked value.
@@ -21,8 +82,6 @@ const WORKER_LOCKED = MAIN_UNLOCKED;
  *
  * Key: `WorkerAsyncOp` enum value
  * Value: The async function to execute
- *
- * @internal
  */
 const asyncOps = {
     [WorkerAsyncOp.createFile]: createFile,
@@ -154,7 +213,6 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
 /**
  * Main loop that continuously processes requests from the main thread.
  * Runs indefinitely until the worker is terminated.
- * @internal
  */
 async function runWorkerLoop(): Promise<void> {
     // loop forever
@@ -209,7 +267,7 @@ async function runWorkerLoop(): Promise<void> {
 
                             for await (const { path, handle } of iterator) {
                                 // Convert FileSystemHandle to serializable object
-                                const handleLike = await toFileSystemHandleLike(handle);
+                                const handleLike = await serializeFileSystemHandle(handle);
                                 entries.push({
                                     path,
                                     handle: handleLike,
@@ -220,7 +278,7 @@ async function runWorkerLoop(): Promise<void> {
                         } else if (op === WorkerAsyncOp.stat) {
                             // FileSystemHandle needs serialization to plain object
                             const handle: FileSystemHandle = res.unwrap();
-                            const data = await toFileSystemHandleLike(handle);
+                            const data = await serializeFileSystemHandle(handle);
 
                             rawResponse = data;
                         } else if (op === WorkerAsyncOp.zip) {

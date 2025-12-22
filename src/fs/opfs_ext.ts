@@ -14,7 +14,6 @@ import { isDirectoryHandle, isFileHandle } from './guards.ts';
  * @param fileHandle - The file handle to move.
  * @param newPath - The new absolute path for the file.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
- * @internal
  */
 async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
     const newDirPath = dirname(newPath);
@@ -41,7 +40,6 @@ async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): As
  *
  * @param srcFileHandle - The source file handle to process.
  * @param destFilePath - The destination file path.
- * @internal
  */
 type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
 
@@ -60,7 +58,6 @@ type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
  * @param handler - The function to handle file transfer (copy or move).
  * @param overwrite - Whether to overwrite existing files. Default: `true`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
- * @internal
  */
 async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
     assertAbsolutePath(destPath);
