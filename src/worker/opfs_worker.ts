@@ -220,7 +220,7 @@ async function runWorkerLoop(): Promise<void> {
         try {
             await respondToMainFromWorker(messenger, async (data) => {
                 // Decode the request: [operation, ...arguments]
-                const [op, ...args] = decodeFromBuffer(data) as [WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>];
+                const [op, ...args] = decodeFromBuffer<[WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>]>(data);
 
                 // Handle parameter deserialization for specific operations
                 // JSON.parse loses type info for some types, so we reconstruct them here

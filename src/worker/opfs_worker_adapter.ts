@@ -44,25 +44,27 @@ const messengerOnce = Once<SyncMessenger>();
 /**
  * Global timeout for synchronous I/O operations in milliseconds.
  */
-let globalOpTimeout = 1000;
+let globalSyncOpTimeout = 1000;
 
 /**
  * Blocks execution until a condition is met or timeout occurs.
  * Uses busy-waiting, which is necessary for synchronous operations.
  *
  * @param condition - A function that returns `true` when the wait should end.
- * @throws {Error} With name `'TimeoutError'` if the condition is not met within the timeout.
+ * @returns A `VoidIOResult` - `Ok` if condition met, `Err` with TimeoutError if timed out.
  */
-function sleepUntil(condition: () => boolean): void {
-    const start = Date.now();
+function sleepUntil(condition: () => boolean): VoidIOResult {
+    const start = performance.now();
     while (!condition()) {
-        if (Date.now() - start > globalOpTimeout) {
+        if (performance.now() - start > globalSyncOpTimeout) {
             const error = new Error('Operation timed out');
             error.name = TIMEOUT_ERROR;
 
-            throw error;
+            return Err(error);
         }
     }
+
+    return Ok();
 }
 
 /**
@@ -101,7 +103,7 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
     invariant(bufferLength > 16 && bufferLength % 4 === 0, () => 'bufferLength must be a multiple of 4');
     invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
 
-    globalOpTimeout = opTimeout;
+    globalSyncOpTimeout = opTimeout;
 
     const sab = new SharedArrayBuffer(bufferLength);
 
@@ -198,16 +200,15 @@ export function setSyncMessenger(syncMessenger: SyncMessenger): void {
  *
  * @param messenger - The `SyncMessenger` instance for communication.
  * @param data - The request data as a `Uint8Array`.
- * @returns The response data as a `Uint8Array`.
- * @throws {RangeError} If the request data exceeds the buffer's maximum capacity.
+ * @returns An `IOResult` containing the response data, or an error if the request is too large or times out.
  */
-function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Array {
+function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): IOResult<Uint8Array> {
     const { i32a, maxDataLength } = messenger;
     const requestLength = data.byteLength;
 
     // check whether request is too large
     if (requestLength > maxDataLength) {
-        throw new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`);
+        return Err(new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`));
     }
 
     // Lock main thread - signal that we're waiting for a response
@@ -223,13 +224,16 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): Uint8Ar
     Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_UNLOCKED);
 
     // Busy-wait for worker to finish processing and unlock main thread
-    sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
+    const waitResult = sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
+    if (waitResult.isErr()) {
+        return waitResult.asErr();
+    }
 
     // Worker has finished - read response data
     const responseLength = i32a[DATA_INDEX];
     const response = messenger.getPayload(responseLength);
 
-    return response;
+    return Ok(response);
 }
 
 /**
@@ -252,18 +256,13 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
     const request = [op, ...args];
     const requestData = encodeToBuffer(request);
 
-    try {
-        const response = callWorkerFromMain(messengerOnce.get().unwrap(), requestData);
-
-        // Deserialize response: [error, result] or [error] if failed
-        const decodedResponse = decodeFromBuffer(response) as [Error, T];
-        const err = decodedResponse[0];
-        const result: IOResult<T> = err ? Err(deserializeError(err)) : Ok((decodedResponse[1] ?? undefined) as T);
-
-        return result;
-    } catch (err) {
-        return Err(err as Error);
-    }
+    return callWorkerFromMain(messengerOnce.get().unwrap(), requestData)
+        .andThen(response => {
+            // Deserialize response: [error, result] or [error] if failed
+            const decodedResponse = decodeFromBuffer<[Error, T]>(response);
+            const err = decodedResponse[0];
+            return err ? Err(deserializeError(err)) : Ok(decodedResponse[1]);
+        });
 }
 
 /**

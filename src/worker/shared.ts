@@ -72,12 +72,12 @@ export const WORKER_UNLOCKED = MAIN_LOCKED;
  * Encodes data to a binary buffer for cross-thread communication.
  * Uses JSON serialization internally.
  *
- * @template T - The type of data to encode.
  * @param data - The data to encode.
  * @returns A `Uint8Array` containing the encoded data.
  * @internal
  */
-export function encodeToBuffer<T>(data: T): Uint8Array {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function encodeToBuffer(data: any): Uint8Array {
     const str = JSON.stringify(data);
     return textEncode(str);
 }
