@@ -67,9 +67,6 @@
  * @packageDocumentation
  */
 
-// Assertions and validations
-export * from './fs/assertions.ts';
-
 // Constants
 export * from './fs/constants.ts';
 

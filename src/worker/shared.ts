@@ -30,35 +30,41 @@ export const enum WorkerAsyncOp {
 /**
  * Main thread lock index in the Int32Array view of SharedArrayBuffer.
  * Used to synchronize main thread state.
+ * @internal
  */
 export const MAIN_LOCK_INDEX = 0;
 
 /**
  * Worker thread lock index in the Int32Array view of SharedArrayBuffer.
  * Used to synchronize worker thread state.
+ * @internal
  */
 export const WORKER_LOCK_INDEX = 1;
 
 /**
  * Data length index in the Int32Array view of SharedArrayBuffer.
  * Stores the byte length of the current payload.
+ * @internal
  */
 export const DATA_INDEX = 2;
 
 /**
  * Main thread locked value (waiting for response).
+ * @internal
  */
 export const MAIN_LOCKED = 1;
 
 /**
  * Main thread unlocked value (response ready or idle).
  * This is the default/initial state.
+ * @internal
  */
 export const MAIN_UNLOCKED = 0;
 
 /**
  * Worker thread unlocked value (request ready to process).
  * Intentionally equals MAIN_LOCKED to simplify state machine.
+ * @internal
  */
 export const WORKER_UNLOCKED = MAIN_LOCKED;
 
@@ -69,10 +75,7 @@ export const WORKER_UNLOCKED = MAIN_LOCKED;
  * @template T - The type of data to encode.
  * @param data - The data to encode.
  * @returns A `Uint8Array` containing the encoded data.
- * @example
- * ```typescript
- * const buffer = encodeToBuffer({ op: 'read', path: '/file.txt' });
- * ```
+ * @internal
  */
 export function encodeToBuffer<T>(data: T): Uint8Array {
     const str = JSON.stringify(data);
@@ -86,10 +89,7 @@ export function encodeToBuffer<T>(data: T): Uint8Array {
  * @template T - The expected type of the decoded data.
  * @param data - The binary data to decode.
  * @returns The decoded data.
- * @example
- * ```typescript
- * const result = decodeFromBuffer<{ op: string; path: string }>(buffer);
- * ```
+ * @internal
  */
 export function decodeFromBuffer<T>(data: Uint8Array): T {
     const str = textDecode(data);

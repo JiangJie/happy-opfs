@@ -7,6 +7,7 @@ import { isValidUrl } from './url.ts';
  *
  * @param path - The file path to validate.
  * @throws Will throw an error if the path is not an absolute path.
+ * @internal
  */
 export function assertAbsolutePath(path: string): void {
     invariant(typeof path === 'string', () => `Path must be a string but received ${ path }`);
@@ -18,6 +19,7 @@ export function assertAbsolutePath(path: string): void {
  *
  * @param fileUrl - The file URL to validate.
  * @throws Will throw an error if the URL is not a valid file URL.
+ * @internal
  */
 export function assertFileUrl(fileUrl: string | URL): void {
     if (fileUrl instanceof URL) {

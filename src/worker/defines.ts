@@ -15,6 +15,7 @@
  * - Deserialized back to `File` via `deserializeFile()` on the main thread
  *
  * @see {@link File} - The native browser File API
+ * @internal
  */
 export interface FileLike {
     /**
@@ -61,6 +62,7 @@ export interface FileLike {
  * - Allows sync API to return proper `Err(error)` results
  *
  * @see {@link Error} - The native JavaScript Error
+ * @internal
  */
 export interface ErrorLike {
     /**

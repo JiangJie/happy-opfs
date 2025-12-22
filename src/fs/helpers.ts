@@ -13,11 +13,7 @@ const fsRoot = LazyAsync(() => navigator.storage.getDirectory());
  *
  * @param path - The path to check.
  * @returns `true` if the path equals `'/'`, otherwise `false`.
- * @example
- * ```typescript
- * isRootPath('/');      // true
- * isRootPath('/foo');   // false
- * ```
+ * @internal
  */
 export function isRootPath(path: string): boolean {
     return path === ROOT_DIR;
@@ -80,6 +76,7 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName
  * @param dirPath - The absolute path of the directory to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create intermediate directories).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
+ * @internal
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     // Start from root
@@ -132,6 +129,7 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  * @param filePath - The absolute path of the file to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create the file if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
+ * @internal
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const isCreate = options?.create ?? false;
@@ -155,13 +153,7 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
  *
  * @param err - The error to check.
  * @returns `true` if the error's name is `'NotFoundError'`, otherwise `false`.
- * @example
- * ```typescript
- * const result = await stat('/nonexistent');
- * if (result.isErr() && isNotFoundError(result.unwrapErr())) {
- *     console.log('File not found');
- * }
- * ```
+ * @internal
  */
 export function isNotFoundError(err: Error): boolean {
     return err.name === NOT_FOUND_ERROR;
