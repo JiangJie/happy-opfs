@@ -1,5 +1,6 @@
 import type { IOResult } from 'happy-rusty';
 import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
+import { isFileHandle } from '../fs/guards.ts';
 import { createFile, mkdir, readDir, remove, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/opfs_ext.ts';
 import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
@@ -17,8 +18,8 @@ import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_UNL
 async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<FileSystemHandleLike> {
     const { name, kind } = handle;
 
-    if (handle.kind === 'file') {
-        const file = await (handle as FileSystemFileHandle).getFile();
+    if (isFileHandle(handle)) {
+        const file = await handle.getFile();
         const { size, lastModified, type } = file;
 
         const fileHandle: FileSystemFileHandleLike = {
