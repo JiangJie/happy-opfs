@@ -6,7 +6,8 @@ import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit, ZipOptions } from './defines.ts';
 import { readDir, stat, writeFile } from './opfs_core.ts';
-import { getFileDataByHandle, isFileHandle } from './utils.ts';
+import { isFileHandle } from './guards.ts';
+import { getFileDataByHandle } from './helpers.ts';
 
 /**
  * Zip a zippable data then write to the target path.

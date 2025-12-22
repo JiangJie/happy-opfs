@@ -168,6 +168,12 @@ describe('OPFS Sync Operations', () => {
 
             expect(fs.isFileHandleLike(handleLike)).toBe(true);
             expect(handleLike.name).toBe('sync-stat-file.txt');
+
+            // Test FileSystemFileHandleLike properties
+            if (fs.isFileHandleLike(handleLike)) {
+                expect(handleLike.size).toBe(7); // 'content'.length
+                expect(handleLike.lastModified).toBeGreaterThan(0);
+            }
         });
 
         it('should return handle like for directory', () => {

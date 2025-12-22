@@ -5,7 +5,7 @@ import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { DownloadFileTempResponse, FsRequestInit } from './defines.ts';
 import { createAbortError } from './helpers.ts';
 import { writeFile } from './opfs_core.ts';
-import { generateTempPath } from './utils.ts';
+import { generateTempPath } from './opfs_tmp.ts';
 
 /**
  * Extracts the file extension from a URL, excluding query parameters and hash.

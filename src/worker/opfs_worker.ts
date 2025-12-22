@@ -5,7 +5,7 @@ import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/op
 import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
 import { unzip } from '../fs/opfs_unzip.ts';
 import { zip } from '../fs/opfs_zip.ts';
-import { toFileSystemHandleLike } from '../fs/utils.ts';
+import { toFileSystemHandleLike } from './helpers.ts';
 import { serializeError, serializeFile } from './helpers.ts';
 import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 

@@ -94,13 +94,13 @@ async function runExample(): Promise<void> {
     const statResult = await fs.stat('/example/data/renamed.txt');
     if (statResult.isOk()) {
         const handle = statResult.unwrap();
-        const handleLike = await fs.toFileSystemHandleLike(handle);
         log(`✓ renamed.txt stats:`);
-        log(`  - name: ${handleLike.name}`);
-        log(`  - kind: ${handleLike.kind}`);
-        if (fs.isFileHandleLike(handleLike)) {
-            log(`  - size: ${handleLike.size} bytes`);
-            log(`  - type: ${handleLike.type}`);
+        log(`  - name: ${handle.name}`);
+        log(`  - kind: ${handle.kind}`);
+        if (fs.isFileHandle(handle)) {
+            const file = await handle.getFile();
+            log(`  - size: ${file.size} bytes`);
+            log(`  - type: ${file.type}`);
         }
     } else {
         log(`✗ Failed to get stats: ${statResult.unwrapErr().message}`, true);

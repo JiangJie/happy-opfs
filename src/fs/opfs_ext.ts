@@ -5,7 +5,7 @@ import { assertAbsolutePath } from './assertions.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
 import { getDirHandle, getFinalResult, isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
-import { isDirectoryHandle, isFileHandle } from './utils.ts';
+import { isDirectoryHandle, isFileHandle } from './guards.ts';
 
 /**
  * Moves a file handle to a new path using the FileSystemFileHandle.move() method.

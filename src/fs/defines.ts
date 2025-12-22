@@ -119,8 +119,20 @@ export interface DirEntry {
 }
 
 /**
- * An entry returned by `readDirSync`.
- * Similar to `ReadDirEntry` but uses serializable `FileSystemHandleLike`.
+ * Serializable version of `DirEntry`.
+ *
+ * Unlike `DirEntry` which contains a native `FileSystemHandle`, this interface
+ * uses `FileSystemHandleLike` which can be serialized to JSON for cross-thread
+ * communication via `SharedArrayBuffer`.
+ *
+ * **Why this type exists:**
+ * Native `FileSystemHandle` objects cannot be transferred between the main thread
+ * and Web Workers through JSON serialization. This type provides a plain object
+ * alternative that preserves the essential information.
+ *
+ * **When it's used:**
+ * - Returned by `readDirSync()` in the sync API
+ * - Internally used when worker sends directory entries back to main thread
  */
 export interface DirEntryLike {
     /**
@@ -136,8 +148,20 @@ export interface DirEntryLike {
 }
 
 /**
- * A serializable representation of a file or directory handle.
- * Returned by `statSync` and used in `ReadDirEntrySync`.
+ * Serializable version of `FileSystemHandle`.
+ *
+ * Contains only the basic properties (`name`, `kind`) that identify a file system entry.
+ * For file entries, use `FileSystemFileHandleLike` which includes additional metadata.
+ *
+ * **Why this type exists:**
+ * Native `FileSystemHandle` is a browser API object with methods like `getFile()`,
+ * `createWritable()`, etc. These methods and internal state cannot be serialized.
+ * This type extracts only the serializable properties for cross-thread communication.
+ *
+ * **When it's used:**
+ * - Returned by `statSync()` for directory entries
+ * - Used as the `handle` property in `DirEntryLike`
+ * - Internally converted from `FileSystemHandle` via `toFileSystemHandleLike()`
  */
 export interface FileSystemHandleLike {
     /**
@@ -152,8 +176,20 @@ export interface FileSystemHandleLike {
 }
 
 /**
- * A serializable representation of a file handle with additional metadata.
- * Extends `FileSystemHandleLike` with file-specific properties.
+ * Serializable version of `FileSystemFileHandle` with file metadata.
+ *
+ * Extends `FileSystemHandleLike` with file-specific properties that are normally
+ * obtained by calling `handle.getFile()` on a native `FileSystemFileHandle`.
+ *
+ * **Why this type exists:**
+ * To provide file metadata (size, type, lastModified) without requiring async
+ * operations. The native API requires `await handle.getFile()` to access these
+ * properties, but this type pre-fetches and stores them.
+ *
+ * **When it's used:**
+ * - Returned by `statSync()` for file entries
+ * - Used in `DirEntryLike.handle` when the entry is a file
+ * - Use `isFileHandleLike()` to narrow from `FileSystemHandleLike`
  */
 export interface FileSystemFileHandleLike extends FileSystemHandleLike {
     /**

@@ -199,3 +199,16 @@ export function createAbortError(): Error {
 
     return error;
 }
+
+/**
+ * Reads the binary data from a file handle.
+ *
+ * @param handle - The `FileSystemFileHandle` to read from.
+ * @returns A promise that resolves to the file content as a `Uint8Array`.
+ * @internal
+ */
+export async function getFileDataByHandle(handle: FileSystemFileHandle): Promise<Uint8Array> {
+    const file = await handle.getFile();
+    const ab = await file.arrayBuffer();
+    return new Uint8Array(ab);
+}

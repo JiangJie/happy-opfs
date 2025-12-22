@@ -85,7 +85,7 @@ export * from './fs/opfs_download.ts';
 // Extended operations: copy, move, exists, emptyDir, appendFile, readTextFile, readJsonFile, etc.
 export * from './fs/opfs_ext.ts';
 
-// Temporary file operations: mkTemp, deleteTemp, pruneTemp
+// Temporary file operations: mkTemp, deleteTemp, pruneTemp, generateTempPath, isTempPath
 export * from './fs/opfs_tmp.ts';
 
 // Unzip operations: unzip, unzipFromUrl
@@ -100,8 +100,8 @@ export * from './fs/opfs_zip.ts';
 // Browser support detection
 export * from './fs/support.ts';
 
-// Utility functions and type guards
-export * from './fs/utils.ts';
+// Type guards for FileSystemHandle
+export * from './fs/guards.ts';
 
 // Worker sync agent (for worker thread)
 export * from './worker/opfs_worker.ts';

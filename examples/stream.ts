@@ -69,9 +69,10 @@ async function runExample(): Promise<void> {
     // Check file size
     const statResult = await fs.stat(filePath);
     if (statResult.isOk()) {
-        const handleLike = await fs.toFileSystemHandleLike(statResult.unwrap());
-        if (fs.isFileHandleLike(handleLike)) {
-            log(`✓ Total file size: ${handleLike.size} bytes`, 'success');
+        const handle = statResult.unwrap();
+        if (fs.isFileHandle(handle)) {
+            const file = await handle.getFile();
+            log(`✓ Total file size: ${file.size} bytes`, 'success');
         }
     }
 

@@ -77,12 +77,13 @@ async function runDownloadExample(): Promise<void> {
         updateProgress(100);
         log('✓ Download complete!', 'success');
 
-        // Verify the downloaded file using toFileSystemHandleLike for size info
+        // Verify the downloaded file
         const statResult = await fs.stat(destPath);
         if (statResult.isOk()) {
-            const handleLike = await fs.toFileSystemHandleLike(statResult.unwrap());
-            if (fs.isFileHandleLike(handleLike)) {
-                log(`✓ File size: ${handleLike.size} bytes`, 'success');
+            const handle = statResult.unwrap();
+            if (fs.isFileHandle(handle)) {
+                const file = await handle.getFile();
+                log(`✓ File size: ${file.size} bytes`, 'success');
             }
         }
 

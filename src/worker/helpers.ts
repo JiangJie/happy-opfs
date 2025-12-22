@@ -1,5 +1,39 @@
 import { TIMEOUT_ERROR } from '../fs/constants.ts';
+import type { FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
 import type { ErrorLike, FileLike } from './defines.ts';
+
+/**
+ * Serialize a `FileSystemHandle` to plain object.
+ *
+ * @param handle - `FileSystemHandle` object.
+ * @returns Serializable version of FileSystemHandle that is FileSystemHandleLike.
+ * @internal
+ */
+export async function toFileSystemHandleLike(handle: FileSystemHandle): Promise<FileSystemHandleLike> {
+    const { name, kind } = handle;
+
+    if (handle.kind === 'file') {
+        const file = await (handle as FileSystemFileHandle).getFile();
+        const { size, lastModified, type } = file;
+
+        const fileHandle: FileSystemFileHandleLike = {
+            name,
+            kind,
+            type,
+            size,
+            lastModified,
+        };
+
+        return fileHandle;
+    }
+
+    const handleLike: FileSystemHandleLike = {
+        name,
+        kind,
+    };
+
+    return handleLike;
+}
 
 /**
  * Serializes an `Error` object to a plain object for cross-thread communication.
@@ -45,7 +79,7 @@ export function deserializeError(error: ErrorLike): Error {
  * @example
  * ```typescript
  * const fileLike = await serializeFile(file);
- * // { name: 'file.txt', type: 'text/plain', lastModified: 1234567890, size: 100, data: ArrayBuffer }
+ * // { name: 'file.txt', type: 'text/plain', lastModified: 1234567890, size: 100, data: [72, 101, ...] }
  * ```
  */
 export async function serializeFile(file: File): Promise<FileLike> {

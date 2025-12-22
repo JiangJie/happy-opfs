@@ -5,7 +5,7 @@ import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR, NOT_FOUND_ERROR } from './constants.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './helpers.ts';
-import { isDirectoryHandle } from './utils.ts';
+import { isDirectoryHandle } from './guards.ts';
 
 /**
  * Creates a new empty file at the specified path, similar to the `touch` command.

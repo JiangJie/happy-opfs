@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { TIMEOUT_ERROR } from '../src/mod.ts';
 import type { ErrorLike, FileLike } from '../src/worker/defines.ts';
-import { deserializeError, deserializeFile, serializeError, serializeFile, setGlobalOpTimeout, sleepUntil } from '../src/worker/helpers.ts';
+import { deserializeError, deserializeFile, serializeError, serializeFile, setGlobalOpTimeout, sleepUntil, toFileSystemHandleLike } from '../src/worker/helpers.ts';
 
 describe('Worker Helpers Direct Tests', () => {
     describe('serializeError', () => {
@@ -251,6 +251,68 @@ describe('Worker Helpers Direct Tests', () => {
             } finally {
                 setGlobalOpTimeout(5000);
             }
+        });
+    });
+
+    describe('toFileSystemHandleLike', () => {
+        it('should convert FileSystemFileHandle to FileSystemFileHandleLike', async () => {
+            // Create a file in OPFS to get a real FileSystemFileHandle
+            const root = await navigator.storage.getDirectory();
+            const fileHandle = await root.getFileHandle('test-handle-convert.txt', { create: true });
+
+            // Write some content to set size
+            const writable = await fileHandle.createWritable();
+            await writable.write('test content');
+            await writable.close();
+
+            const handleLike = await toFileSystemHandleLike(fileHandle);
+
+            expect(handleLike.name).toBe('test-handle-convert.txt');
+            expect(handleLike.kind).toBe('file');
+            expect('size' in handleLike).toBe(true);
+            expect('lastModified' in handleLike).toBe(true);
+            expect('type' in handleLike).toBe(true);
+
+            if (handleLike.kind === 'file') {
+                expect((handleLike as unknown as { size: number; }).size).toBe(12); // 'test content'.length
+            }
+
+            // Cleanup
+            await root.removeEntry('test-handle-convert.txt');
+        });
+
+        it('should convert FileSystemDirectoryHandle to FileSystemHandleLike', async () => {
+            const root = await navigator.storage.getDirectory();
+            const dirHandle = await root.getDirectoryHandle('test-dir-convert', { create: true });
+
+            const handleLike = await toFileSystemHandleLike(dirHandle);
+
+            expect(handleLike.name).toBe('test-dir-convert');
+            expect(handleLike.kind).toBe('directory');
+            // Directory handles should not have file-specific properties
+            expect('size' in handleLike).toBe(false);
+            expect('lastModified' in handleLike).toBe(false);
+
+            // Cleanup
+            await root.removeEntry('test-dir-convert');
+        });
+
+        it('should include correct MIME type for file', async () => {
+            const root = await navigator.storage.getDirectory();
+            const fileHandle = await root.getFileHandle('test.json', { create: true });
+
+            const writable = await fileHandle.createWritable();
+            await writable.write('{}');
+            await writable.close();
+
+            const handleLike = await toFileSystemHandleLike(fileHandle);
+
+            expect(handleLike.kind).toBe('file');
+            // Note: OPFS doesn't automatically detect MIME type, it depends on the browser
+            expect('type' in handleLike).toBe(true);
+
+            // Cleanup
+            await root.removeEntry('test.json');
         });
     });
 });

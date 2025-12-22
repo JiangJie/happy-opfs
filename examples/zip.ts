@@ -66,9 +66,10 @@ async function runExample(): Promise<void> {
     // Check zip file size
     const zipStat = await fs.stat('/zip-example/archive.zip');
     if (zipStat.isOk()) {
-        const handleLike = await fs.toFileSystemHandleLike(zipStat.unwrap());
-        if (fs.isFileHandleLike(handleLike)) {
-            log(`✓ Zip file size: ${handleLike.size} bytes`, 'success');
+        const handle = zipStat.unwrap();
+        if (fs.isFileHandle(handle)) {
+            const file = await handle.getFile();
+            log(`✓ Zip file size: ${file.size} bytes`, 'success');
         }
     }
 
@@ -121,9 +122,10 @@ async function listDirectory(path: string, indent: string): Promise<void> {
                 const stat = await fs.stat(`${path}/${entry.path}`);
                 let size = '';
                 if (stat.isOk()) {
-                    const handleLike = await fs.toFileSystemHandleLike(stat.unwrap());
-                    if (fs.isFileHandleLike(handleLike)) {
-                        size = ` (${handleLike.size} bytes)`;
+                    const handle = stat.unwrap();
+                    if (fs.isFileHandle(handle)) {
+                        const file = await handle.getFile();
+                        size = ` (${file.size} bytes)`;
                     }
                 }
                 log(`${indent}📄 ${entry.path}${size}`, 'success');
