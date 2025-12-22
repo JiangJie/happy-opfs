@@ -118,6 +118,19 @@ describe('OPFS Download/Upload Operations', () => {
             await fs.remove(tempFilePath);
         });
 
+        it('should accept URL object', async () => {
+            const url = new URL(`${mockServer}/files/data.json`);
+            const task = fs.downloadFile(url);
+
+            const result = await task.response;
+            expect(result.isOk()).toBe(true);
+
+            const { tempFilePath } = result.unwrap();
+            expect(tempFilePath.endsWith('.json')).toBe(true);
+
+            await fs.remove(tempFilePath);
+        });
+
         it('should be abortable', async () => {
             const task = fs.downloadFile(`${mockServer}/api/slow`, '/aborted.json', {
                 timeout: 30000,
