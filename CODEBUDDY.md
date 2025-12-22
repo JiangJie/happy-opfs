@@ -181,8 +181,12 @@ Common error constants exported from `src/fs/constants.ts`:
 
 - **Vite** (vite.config.ts): Builds library with CJS and ESM outputs
   - Input: `src/mod.ts`
-  - Outputs: `dist/main.cjs`, `dist/main.mjs`, `dist/types.d.ts`
+  - Outputs: `dist/main.cjs`, `dist/main.mjs`
   - `copyPublicDir: false` to prevent test files in dist
+
+- **Rollup** (rollup.config.ts): Generates bundled type declarations
+  - Uses `rollup-plugin-dts` for `.d.ts` bundling
+  - Output: `dist/types.d.ts`
 
 - **Vitest** (configured in vite.config.ts): Browser-based testing
   - Uses Playwright Chromium in headless mode
