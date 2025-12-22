@@ -7,6 +7,8 @@ export default defineConfig({
         mkcert(),
     ],
     server: {
+        // @ts-expect-error: https is not defined in vite types
+        https: true,
         headers: {
             // Required for SharedArrayBuffer (sync API)
             'Cross-Origin-Opener-Policy': 'same-origin',
