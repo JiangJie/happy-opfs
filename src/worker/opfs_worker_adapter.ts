@@ -322,6 +322,11 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  * Synchronous version of `readDir`.
  * Reads the contents of a directory.
  *
+ * **Note:** Returns `DirEntryLike[]` instead of `AsyncIterableIterator<DirEntry>` because:
+ * 1. Sync API cannot return async iterators
+ * 2. Native `FileSystemHandle` objects cannot be serialized across threads;
+ *    `DirEntryLike` uses `FileSystemHandleLike` which is JSON-serializable
+ *
  * @param dirPath - The absolute path of the directory to read.
  * @param options - Optional read options (e.g., recursive).
  * @returns An `IOResult` containing an array of directory entries.
@@ -435,6 +440,12 @@ export function removeSync(path: string): VoidIOResult {
 /**
  * Synchronous version of `stat`.
  * Retrieves metadata about a file or directory.
+ *
+ * **Note:** Returns `FileSystemHandleLike` instead of `FileSystemHandle` because
+ * native `FileSystemHandle` objects cannot be serialized across threads.
+ * `FileSystemHandleLike` is a plain object with `name` and `kind` properties.
+ * For file entries, it also includes `size`, `type`, and `lastModified` -
+ * use `isFileHandleLike()` to check and narrow the type.
  *
  * @param path - The absolute path to get status for.
  * @returns An `IOResult` containing a `FileSystemHandleLike` object.
