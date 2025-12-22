@@ -366,11 +366,11 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
 function serializeWriteContents(contents: WriteSyncFileContent): number[] | string {
     if (contents instanceof ArrayBuffer) {
         // ArrayBuffer -> number[]
-        return [...new Uint8Array(contents)];
+        return Array.from(new Uint8Array(contents));
     }
     if (ArrayBuffer.isView(contents)) {
         // TypedArray -> number[] (handle potential byteOffset)
-        return [...new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength)];
+        return Array.from(new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength));
     }
     // String passes through unchanged
     return contents;

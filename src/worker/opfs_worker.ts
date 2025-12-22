@@ -200,7 +200,7 @@ async function runWorkerLoop(): Promise<void> {
                             rawResponse = {
                                 ...fileLike,
                                 // ArrayBuffer becomes number[] for JSON serialization
-                                data: [...new Uint8Array(fileLike.data)],
+                                data: Array.from(new Uint8Array(fileLike.data)),
                             };
                         } else if (op === WorkerAsyncOp.readDir) {
                             // Async iterator needs full materialization to array
@@ -227,7 +227,7 @@ async function runWorkerLoop(): Promise<void> {
                             // Uint8Array becomes number[] for JSON serialization
                             const data: Uint8Array | undefined = res.unwrap();
 
-                            rawResponse = data instanceof Uint8Array ? [...data] : data;
+                            rawResponse = data instanceof Uint8Array ? Array.from(data) : data;
                         } else {
                             // Other operations return boolean or void (undefined)
                             rawResponse = res.unwrap();
