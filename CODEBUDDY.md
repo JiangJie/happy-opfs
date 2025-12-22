@@ -94,17 +94,18 @@ src/
 │   ├── opfs_download.ts       # File download operations
 │   ├── opfs_upload.ts         # File upload operations
 │   ├── helpers.ts             # Internal helper functions for handle management
-│   ├── utils.ts               # Utility functions (path normalization, type guards)
+│   ├── guards.ts              # Type guard functions (isAbsolutePath, etc.)
 │   ├── assertions.ts          # Path and URL validation assertions
 │   ├── constants.ts           # Constants (ROOT_DIR, TMP_DIR, error names)
 │   ├── defines.ts             # TypeScript type definitions
 │   ├── codec.ts               # Text encoding/decoding utilities (cached TextEncoder/TextDecoder)
+│   ├── url.ts                 # URL utilities (getUrlPathname, etc.) - @internal
 │   └── support.ts             # OPFS feature detection
 └── worker/                     # Synchronous API implementation via Web Workers
     ├── opfs_worker.ts         # Worker-side: Listens for requests, executes async operations
     ├── opfs_worker_adapter.ts # Main thread-side: Sends requests to worker, provides sync APIs
     ├── shared.ts              # Shared communication protocol (SyncMessenger, lock mechanism)
-    └── helpers.ts             # Serialization helpers for Worker communication
+    └── defines.ts             # Worker-specific type definitions (FileLike, ErrorLike)
 ```
 
 ### Key Architectural Patterns
