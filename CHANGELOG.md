@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2025-12-22
+
+### Changed
+
+- **Build:** Switch from vite-plugin-dts to rollup-plugin-dts for type declaration bundling
+- **Refactor:** Rename `ReadDirEntry` to `DirEntry`, simplify `readDirSync` return type
+- **Refactor:** Extract URL utilities into dedicated `url.ts` module (marked as `@internal`)
+- **Refactor:** Split `utils.ts` into `guards.ts` and relocate assertion functions
+- **Refactor:** Use `happy-rusty` Lazy, LazyAsync, Once for initialization patterns
+- **Refactor:** Improve worker adapter error handling with Result types
+- **Docs:** Add `@example` JSDoc to all public APIs, use `inspect()` pattern instead of `isOk()` + `unwrap()`
+- **Docs:** Add notes explaining why sync API returns `*Like` types (serialization constraints)
+
+### Removed
+
+- **Breaking:** Remove `assertAbsolutePath`, `assertValidUrl` from public exports (now `@internal`)
+
+### Fixed
+
+- Fix `readDir` recursive iteration to use existing handle directly
+
 ## [1.11.0] - 2025-12-20
 
 ### Added
@@ -424,7 +445,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
-[1.11.0]: https://github.com/JiangJie/happy-opfs/compare/v1.10.0...HEAD
+[1.12.0]: https://github.com/JiangJie/happy-opfs/compare/v1.11.0...v1.12.0
+[1.11.0]: https://github.com/JiangJie/happy-opfs/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/JiangJie/happy-opfs/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/JiangJie/happy-opfs/compare/v1.8.7...v1.9.0
 [1.8.7]: https://github.com/JiangJie/happy-opfs/compare/v1.8.6...v1.8.7
