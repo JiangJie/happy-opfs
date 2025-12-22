@@ -1,22 +1,18 @@
 /**
- * Worker file that tests calling connectSyncAgent from worker thread
- * This should throw "Only can use in main thread" error
+ * Worker that attempts to call connectSyncAgent (which should fail).
+ * Used to test the "Only can use in main thread" error.
  */
 import { connectSyncAgent } from '../src/worker/opfs_worker_adapter.ts';
 
-// Try to call connectSyncAgent from worker - this should throw
-try {
-    connectSyncAgent({
-        worker: '',
-    });
-    // If no error, post failure
-    postMessage({ success: false, error: 'Expected error was not thrown' });
-} catch (error) {
-    // Expected error
-    const err = error as Error;
-    postMessage({
-        success: true,
-        errorName: err.name,
-        errorMessage: err.message,
-    });
-}
+self.addEventListener('message', async () => {
+    try {
+        await connectSyncAgent({
+            worker: self as unknown as Worker,
+            bufferLength: 1024,
+            opTimeout: 1000,
+        });
+        self.postMessage({ error: null });
+    } catch (error) {
+        self.postMessage({ error: (error as Error).message });
+    }
+});

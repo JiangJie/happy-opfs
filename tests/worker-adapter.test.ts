@@ -260,19 +260,20 @@ describe('Worker Adapter Edge Cases', () => {
                 type: 'module',
             });
 
-            const result = await new Promise<{ success: boolean; errorMessage?: string; }>((resolve) => {
+            const result = await new Promise<{ error: string | null; }>((resolve) => {
                 worker.addEventListener('message', (event) => {
                     resolve(event.data);
                     worker.terminate();
                 });
                 worker.addEventListener('error', (event) => {
-                    resolve({ success: false, errorMessage: event.message });
+                    resolve({ error: event.message });
                     worker.terminate();
                 });
+                // Trigger the worker to start the test
+                worker.postMessage('start');
             });
 
-            expect(result.success).toBe(true);
-            expect(result.errorMessage).toBe('Only can use in main thread');
+            expect(result.error).toBe('Only can use in main thread');
         });
     });
 
