@@ -49,10 +49,8 @@ function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoid
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @example
  * ```typescript
- * const result = await unzip('/downloads/archive.zip', '/extracted');
- * if (result.isOk()) {
- *     console.log('Unzipped successfully');
- * }
+ * (await unzip('/downloads/archive.zip', '/extracted'))
+ *     .inspect(() => console.log('Unzipped successfully'));
  * ```
  */
 export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
@@ -76,10 +74,8 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @example
  * ```typescript
- * const result = await unzipFromUrl('https://example.com/archive.zip', '/extracted');
- * if (result.isOk()) {
- *     console.log('Remote zip file unzipped successfully');
- * }
+ * (await unzipFromUrl('https://example.com/archive.zip', '/extracted'))
+ *     .inspect(() => console.log('Remote zip file unzipped successfully'));
  * ```
  */
 export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string, requestInit?: FsRequestInit): AsyncVoidIOResult {

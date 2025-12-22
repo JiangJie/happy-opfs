@@ -58,16 +58,14 @@ export function isTempPath(path: string): boolean {
  * @example
  * ```typescript
  * // Create a temporary file
- * const result = await mkTemp();
- * if (result.isOk()) {
- *     console.log(result.unwrap()); // '/tmp/tmp-550e8400-e29b-41d4-a716-446655440000'
- * }
+ * (await mkTemp())
+ *     .inspect(path => console.log(path)); // '/tmp/tmp-550e8400-e29b-41d4-a716-446655440000'
  *
  * // Create a temporary directory
- * const dirResult = await mkTemp({ isDirectory: true });
+ * await mkTemp({ isDirectory: true });
  *
  * // Create with custom basename and extension
- * const customResult = await mkTemp({ basename: 'cache', extname: '.json' });
+ * await mkTemp({ basename: 'cache', extname: '.json' });
  * ```
  */
 export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
@@ -87,10 +85,8 @@ export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @example
  * ```typescript
- * const result = await deleteTemp();
- * if (result.isOk()) {
- *     console.log('Temporary directory deleted');
- * }
+ * (await deleteTemp())
+ *     .inspect(() => console.log('Temporary directory deleted'));
  * ```
  */
 export function deleteTemp(): AsyncVoidIOResult {

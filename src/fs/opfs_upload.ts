@@ -16,10 +16,8 @@ import { readBlobFile } from './opfs_ext.ts';
  * @example
  * ```typescript
  * const task = uploadFile('/documents/report.pdf', 'https://example.com/upload');
- * const result = await task.response;
- * if (result.isOk()) {
- *     console.log('File uploaded successfully');
- * }
+ * (await task.response)
+ *     .inspect(() => console.log('File uploaded successfully'));
  *
  * // Abort the upload
  * task.abort();

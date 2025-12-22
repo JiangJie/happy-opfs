@@ -7,10 +7,8 @@ import type { FileSystemFileHandleLike, FileSystemHandleLike } from './defines.t
  * @returns `true` if the handle is a `FileSystemFileHandle`, otherwise `false`.
  * @example
  * ```typescript
- * const handle = await stat('/path/to/file');
- * if (handle.isOk() && isFileHandle(handle.unwrap())) {
- *     console.log('This is a file');
- * }
+ * (await stat('/path/to/file'))
+ *     .inspect(handle => isFileHandle(handle) && console.log('This is a file'));
  * ```
  */
 export function isFileHandle(handle: FileSystemHandle): handle is FileSystemFileHandle {
@@ -24,10 +22,8 @@ export function isFileHandle(handle: FileSystemHandle): handle is FileSystemFile
  * @returns `true` if the handle is a `FileSystemDirectoryHandle`, otherwise `false`.
  * @example
  * ```typescript
- * const handle = await stat('/path/to/dir');
- * if (handle.isOk() && isDirectoryHandle(handle.unwrap())) {
- *     console.log('This is a directory');
- * }
+ * (await stat('/path/to/dir'))
+ *     .inspect(handle => isDirectoryHandle(handle) && console.log('This is a directory'));
  * ```
  */
 export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSystemDirectoryHandle {
@@ -41,10 +37,8 @@ export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSyste
  * @returns `true` if the handle-like object represents a file, otherwise `false`.
  * @example
  * ```typescript
- * const handleLike = statSync('/path/to/file').unwrap();
- * if (isFileHandleLike(handleLike)) {
- *     console.log(`File size: ${handleLike.size}`);
- * }
+ * statSync('/path/to/file')
+ *     .inspect(handle => isFileHandleLike(handle) && console.log(`File size: ${handle.size}`));
  * ```
  */
 export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSystemFileHandleLike {

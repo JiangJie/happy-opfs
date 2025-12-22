@@ -16,10 +16,8 @@ import { isDirectoryHandle } from './guards.ts';
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @example
  * ```typescript
- * const result = await createFile('/path/to/file.txt');
- * if (result.isOk()) {
- *     console.log('File created successfully');
- * }
+ * (await createFile('/path/to/file.txt'))
+ *     .inspect(() => console.log('File created successfully'));
  * ```
  */
 export async function createFile(filePath: string): AsyncVoidIOResult {
@@ -40,10 +38,8 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @example
  * ```typescript
- * const result = await mkdir('/path/to/new/directory');
- * if (result.isOk()) {
- *     console.log('Directory created successfully');
- * }
+ * (await mkdir('/path/to/new/directory'))
+ *     .inspect(() => console.log('Directory created successfully'));
  * ```
  */
 export async function mkdir(dirPath: string): AsyncVoidIOResult {
@@ -62,6 +58,19 @@ export async function mkdir(dirPath: string): AsyncVoidIOResult {
  * @param dirPath - The path of the directory to read.
  * @param options - Options of readdir.
  * @returns A promise that resolves to an `AsyncIOResult` containing an async iterable iterator over the entries of the directory.
+ * @example
+ * ```typescript
+ * // List directory contents
+ * (await readDir('/documents'))
+ *     .inspect(async entries => {
+ *         for await (const entry of entries) {
+ *             console.log(entry.path, entry.handle.kind);
+ *         }
+ *     });
+ *
+ * // List recursively
+ * await readDir('/documents', { recursive: true });
+ * ```
  */
 export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<DirEntry>> {
     assertAbsolutePath(dirPath);
@@ -94,6 +103,11 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
  * @param filePath - The path of the file to read.
  * @param options - Read options specifying the 'blob' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a File.
+ * @example
+ * ```typescript
+ * (await readFile('/path/to/file.txt', { encoding: 'blob' }))
+ *     .inspect(file => console.log(file.name, file.size, file.type));
+ * ```
  */
 export function readFile(filePath: string, options: ReadOptions & {
     encoding: 'blob';
@@ -105,6 +119,11 @@ export function readFile(filePath: string, options: ReadOptions & {
  * @param filePath - The path of the file to read.
  * @param options - Read options specifying the 'utf8' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a string.
+ * @example
+ * ```typescript
+ * (await readFile('/path/to/file.txt', { encoding: 'utf8' }))
+ *     .inspect(content => console.log(content));
+ * ```
  */
 export function readFile(filePath: string, options: ReadOptions & {
     encoding: 'utf8';
@@ -116,6 +135,11 @@ export function readFile(filePath: string, options: ReadOptions & {
  * @param filePath - The path of the file to read.
  * @param options - Read options specifying the 'binary' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
+ * @example
+ * ```typescript
+ * (await readFile('/path/to/file.bin'))
+ *     .inspect(buffer => console.log('File size:', buffer.byteLength));
+ * ```
  */
 export function readFile(filePath: string, options?: ReadOptions & {
     encoding: 'binary';
@@ -160,10 +184,8 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @example
  * ```typescript
- * const result = await remove('/path/to/file-or-directory');
- * if (result.isOk()) {
- *     console.log('Removed successfully');
- * }
+ * (await remove('/path/to/file-or-directory'))
+ *     .inspect(() => console.log('Removed successfully'));
  * ```
  */
 export async function remove(path: string): AsyncVoidIOResult {
@@ -208,11 +230,8 @@ export async function remove(path: string): AsyncVoidIOResult {
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
  * @example
  * ```typescript
- * const result = await stat('/path/to/entry');
- * if (result.isOk()) {
- *     const handle = result.unwrap();
- *     console.log(`Kind: ${handle.kind}, Name: ${handle.name}`);
- * }
+ * (await stat('/path/to/entry'))
+ *     .inspect(handle => console.log(`Kind: ${handle.kind}, Name: ${handle.name}`));
  * ```
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
@@ -356,17 +375,15 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
  * @returns A promise that resolves to an `AsyncIOResult` containing a `ReadableStream<Uint8Array>`.
  * @example
  * ```typescript
- * const result = await readFileStream('/path/to/large-file.bin');
- * if (result.isOk()) {
- *     const stream = result.unwrap();
- *     const reader = stream.getReader();
- *     while (true) {
- *         const { done, value } = await reader.read();
- *         if (done) break;
- *         // Process chunk
- *         console.log('Received chunk:', value.length, 'bytes');
- *     }
- * }
+ * (await readFileStream('/path/to/large-file.bin'))
+ *     .inspect(async stream => {
+ *         const reader = stream.getReader();
+ *         while (true) {
+ *             const { done, value } = await reader.read();
+ *             if (done) break;
+ *             console.log('Received chunk:', value.length, 'bytes');
+ *         }
+ *     });
  * ```
  */
 export async function readFileStream(filePath: string): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>> {
@@ -390,16 +407,15 @@ export async function readFileStream(filePath: string): AsyncIOResult<ReadableSt
  * @returns A promise that resolves to an `AsyncIOResult` containing a `FileSystemWritableFileStream`.
  * @example
  * ```typescript
- * const result = await writeFileStream('/path/to/large-file.bin');
- * if (result.isOk()) {
- *     const stream = result.unwrap();
- *     try {
- *         await stream.write(new Uint8Array([1, 2, 3]));
- *         await stream.write(new Uint8Array([4, 5, 6]));
- *     } finally {
- *         await stream.close();
- *     }
- * }
+ * (await writeFileStream('/path/to/large-file.bin'))
+ *     .inspect(async stream => {
+ *         try {
+ *             await stream.write(new Uint8Array([1, 2, 3]));
+ *             await stream.write(new Uint8Array([4, 5, 6]));
+ *         } finally {
+ *             await stream.close();
+ *         }
+ *     });
  * ```
  */
 export async function writeFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {

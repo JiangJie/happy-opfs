@@ -19,11 +19,8 @@ import { getUrlPathname } from './url.ts';
  * ```typescript
  * // Download to a temporary file
  * const task = downloadFile('https://example.com/file.pdf');
- * const result = await task.response;
- * if (result.isOk()) {
- *     const { tempFilePath, rawResponse } = result.unwrap();
- *     console.log(`File downloaded to: ${tempFilePath}`);
- * }
+ * (await task.response)
+ *     .inspect(({ tempFilePath }) => console.log(`File downloaded to: ${tempFilePath}`));
  * ```
  */
 export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit): FetchTask<DownloadFileTempResponse>;
@@ -38,10 +35,8 @@ export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit)
  * ```typescript
  * // Download to a specific path
  * const task = downloadFile('https://example.com/file.pdf', '/downloads/file.pdf');
- * const result = await task.response;
- * if (result.isOk()) {
- *     console.log('File downloaded successfully');
- * }
+ * (await task.response)
+ *     .inspect(() => console.log('File downloaded successfully'));
  *
  * // Abort the download
  * task.abort();

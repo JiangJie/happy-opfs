@@ -151,10 +151,10 @@ export function isSyncAgentConnected(): boolean {
  * ```typescript
  * // In main page: connect and share messenger to iframe
  * await connectSyncAgent({ worker: new URL('./worker.js', import.meta.url) });
- * const messengerOpt = getSyncMessenger();
- * if (messengerOpt.isSome()) {
- *     iframe.contentWindow.postMessage({ type: 'sync-messenger', messenger: messengerOpt.unwrap() }, '*');
- * }
+ * getSyncMessenger()
+ *     .inspect(messenger => {
+ *         iframe.contentWindow.postMessage({ type: 'sync-messenger', messenger }, '*');
+ *     });
  * ```
  */
 export function getSyncMessenger(): Option<SyncMessenger> {
@@ -272,6 +272,11 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
  * @param filePath - The absolute path of the file to create.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link createFile} for the async version.
+ * @example
+ * ```typescript
+ * createFileSync('/path/to/file.txt')
+ *     .inspect(() => console.log('File created'));
+ * ```
  */
 export function createFileSync(filePath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.createFile, filePath);
@@ -284,6 +289,11 @@ export function createFileSync(filePath: string): VoidIOResult {
  * @param dirPath - The absolute path of the directory to create.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link mkdir} for the async version.
+ * @example
+ * ```typescript
+ * mkdirSync('/path/to/directory')
+ *     .inspect(() => console.log('Directory created'));
+ * ```
  */
 export function mkdirSync(dirPath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.mkdir, dirPath);
@@ -298,6 +308,11 @@ export function mkdirSync(dirPath: string): VoidIOResult {
  * @param options - Optional move options.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link move} for the async version.
+ * @example
+ * ```typescript
+ * moveSync('/old/path/file.txt', '/new/path/file.txt')
+ *     .inspect(() => console.log('File moved'));
+ * ```
  */
 export function moveSync(srcPath: string, destPath: string, options?: MoveOptions): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.move, srcPath, destPath, options);
@@ -311,6 +326,11 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  * @param options - Optional read options (e.g., recursive).
  * @returns An `IOResult` containing an array of directory entries.
  * @see {@link readDir} for the async version.
+ * @example
+ * ```typescript
+ * readDirSync('/documents')
+ *     .inspect(entries => entries.forEach(e => console.log(e.path, e.handle.kind)));
+ * ```
  */
 export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult<DirEntryLike[]> {
     return callWorkerOp(WorkerAsyncOp.readDir, dirPath, options);
@@ -323,6 +343,11 @@ export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult
  * @param filePath - The absolute path of the file to read.
  * @param options - Read options with 'blob' encoding.
  * @returns An `IOResult` containing a `FileLike` object.
+ * @example
+ * ```typescript
+ * readFileSync('/path/to/file.txt', { encoding: 'blob' })
+ *     .inspect(file => console.log(file.name, file.size));
+ * ```
  */
 export function readFileSync(filePath: string, options: ReadOptions & {
     encoding: 'blob';
@@ -334,6 +359,11 @@ export function readFileSync(filePath: string, options: ReadOptions & {
  * @param filePath - The absolute path of the file to read.
  * @param options - Read options with 'utf8' encoding.
  * @returns An `IOResult` containing the file content as a string.
+ * @example
+ * ```typescript
+ * readFileSync('/path/to/file.txt', { encoding: 'utf8' })
+ *     .inspect(content => console.log(content));
+ * ```
  */
 export function readFileSync(filePath: string, options: ReadOptions & {
     encoding: 'utf8';
@@ -345,6 +375,11 @@ export function readFileSync(filePath: string, options: ReadOptions & {
  * @param filePath - The absolute path of the file to read.
  * @param options - Optional read options with 'binary' encoding.
  * @returns An `IOResult` containing the file content as an ArrayBuffer.
+ * @example
+ * ```typescript
+ * readFileSync('/path/to/file.bin')
+ *     .inspect(buffer => console.log('Size:', buffer.byteLength));
+ * ```
  */
 export function readFileSync(filePath: string, options?: ReadOptions & {
     encoding: 'binary';
@@ -387,6 +422,11 @@ export function readFileSync<T extends ReadFileContent>(filePath: string, option
  * @param path - The absolute path of the file or directory to remove.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link remove} for the async version.
+ * @example
+ * ```typescript
+ * removeSync('/path/to/file-or-directory')
+ *     .inspect(() => console.log('Removed successfully'));
+ * ```
  */
 export function removeSync(path: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.remove, path);
@@ -399,6 +439,11 @@ export function removeSync(path: string): VoidIOResult {
  * @param path - The absolute path to get status for.
  * @returns An `IOResult` containing a `FileSystemHandleLike` object.
  * @see {@link stat} for the async version.
+ * @example
+ * ```typescript
+ * statSync('/path/to/entry')
+ *     .inspect(handle => console.log(`Kind: ${handle.kind}, Name: ${handle.name}`));
+ * ```
  */
 export function statSync(path: string): IOResult<FileSystemHandleLike> {
     return callWorkerOp(WorkerAsyncOp.stat, path);
@@ -433,6 +478,14 @@ function serializeWriteContents(contents: WriteSyncFileContent): number[] | stri
  * @param options - Optional write options.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link writeFile} for the async version.
+ * @example
+ * ```typescript
+ * // Write string content
+ * writeFileSync('/path/to/file.txt', 'Hello, World!');
+ *
+ * // Write binary content
+ * writeFileSync('/path/to/file.bin', new Uint8Array([1, 2, 3]));
+ * ```
  */
 export function writeFileSync(filePath: string, contents: WriteSyncFileContent, options?: WriteOptions): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.writeFile, filePath, serializeWriteContents(contents), options);
@@ -446,6 +499,10 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  * @param contents - The content to append (ArrayBuffer, TypedArray, or string).
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link appendFile} for the async version.
+ * @example
+ * ```typescript
+ * appendFileSync('/path/to/log.txt', 'New log entry\n');
+ * ```
  */
 export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.appendFile, filePath, serializeWriteContents(contents));
@@ -460,6 +517,14 @@ export function appendFileSync(filePath: string, contents: WriteSyncFileContent)
  * @param options - Optional copy options.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link copy} for the async version.
+ * @example
+ * ```typescript
+ * // Copy a file
+ * copySync('/src/file.txt', '/dest/file.txt');
+ *
+ * // Copy without overwriting
+ * copySync('/src', '/dest', { overwrite: false });
+ * ```
  */
 export function copySync(srcPath: string, destPath: string, options?: CopyOptions): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.copy, srcPath, destPath, options);
@@ -472,6 +537,10 @@ export function copySync(srcPath: string, destPath: string, options?: CopyOption
  * @param dirPath - The absolute path of the directory to empty.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link emptyDir} for the async version.
+ * @example
+ * ```typescript
+ * emptyDirSync('/path/to/directory');
+ * ```
  */
 export function emptyDirSync(dirPath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.emptyDir, dirPath);
@@ -485,6 +554,11 @@ export function emptyDirSync(dirPath: string): VoidIOResult {
  * @param options - Optional existence options (e.g., isDirectory, isFile).
  * @returns An `IOResult` containing `true` if exists, `false` otherwise.
  * @see {@link exists} for the async version.
+ * @example
+ * ```typescript
+ * existsSync('/path/to/file')
+ *     .inspect(exists => exists && console.log('File exists'));
+ * ```
  */
 export function existsSync(path: string, options?: ExistsOptions): IOResult<boolean> {
     return callWorkerOp(WorkerAsyncOp.exists, path, options);
@@ -496,6 +570,10 @@ export function existsSync(path: string, options?: ExistsOptions): IOResult<bool
  *
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link deleteTemp} for the async version.
+ * @example
+ * ```typescript
+ * deleteTempSync();
+ * ```
  */
 export function deleteTempSync(): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.deleteTemp);
@@ -508,6 +586,11 @@ export function deleteTempSync(): VoidIOResult {
  * @param options - Optional temp options (e.g., isDirectory, basename, extname).
  * @returns An `IOResult` containing the temporary path.
  * @see {@link mkTemp} for the async version.
+ * @example
+ * ```typescript
+ * mkTempSync({ extname: '.txt' })
+ *     .inspect(path => console.log('Temp file:', path));
+ * ```
  */
 export function mkTempSync(options?: TempOptions): IOResult<string> {
     return callWorkerOp(WorkerAsyncOp.mkTemp, options);
@@ -520,6 +603,12 @@ export function mkTempSync(options?: TempOptions): IOResult<string> {
  * @param expired - Files with lastModified before this date will be removed.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link pruneTemp} for the async version.
+ * @example
+ * ```typescript
+ * // Remove files older than 24 hours
+ * const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+ * pruneTempSync(yesterday);
+ * ```
  */
 export function pruneTempSync(expired: Date): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.pruneTemp, expired);
@@ -532,6 +621,11 @@ export function pruneTempSync(expired: Date): VoidIOResult {
  * @param filePath - The absolute path of the file to read.
  * @returns An `IOResult` containing a `FileLike` object.
  * @see {@link readBlobFile} for the async version.
+ * @example
+ * ```typescript
+ * readBlobFileSync('/path/to/file.txt')
+ *     .inspect(file => console.log(file.name, file.size, file.type));
+ * ```
  */
 export function readBlobFileSync(filePath: string): IOResult<File> {
     return readFileSync(filePath, {
@@ -547,6 +641,12 @@ export function readBlobFileSync(filePath: string): IOResult<File> {
  * @param filePath - The absolute path of the JSON file to read.
  * @returns An `IOResult` containing the parsed JSON object.
  * @see {@link readJsonFile} for the async version.
+ * @example
+ * ```typescript
+ * interface Config { name: string; version: number }
+ * readJsonFileSync<Config>('/config.json')
+ *     .inspect(config => console.log(config.name));
+ * ```
  */
 export function readJsonFileSync<T>(filePath: string): IOResult<T> {
     return readTextFileSync(filePath).andThen(contents => {
@@ -565,6 +665,11 @@ export function readJsonFileSync<T>(filePath: string): IOResult<T> {
  * @param filePath - The absolute path of the file to read.
  * @returns An `IOResult` containing the file content as a string.
  * @see {@link readTextFile} for the async version.
+ * @example
+ * ```typescript
+ * readTextFileSync('/path/to/file.txt')
+ *     .inspect(content => console.log(content));
+ * ```
  */
 export function readTextFileSync(filePath: string): IOResult<string> {
     return readFileSync(filePath, {
@@ -581,6 +686,11 @@ export function readTextFileSync(filePath: string): IOResult<string> {
  * @param data - The object to serialize and write.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link writeJsonFile} for the async version.
+ * @example
+ * ```typescript
+ * const config = { name: 'app', version: 1 };
+ * writeJsonFileSync('/config.json', config);
+ * ```
  */
 export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
     try {
@@ -599,6 +709,10 @@ export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
  * @param targetPath - The directory to extract to.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link unzip} for the async version.
+ * @example
+ * ```typescript
+ * unzipSync('/downloads/archive.zip', '/extracted');
+ * ```
  */
 export function unzipSync(zipFilePath: string, targetPath: string): VoidIOResult {
     return callWorkerOp(WorkerAsyncOp.unzip, zipFilePath, targetPath);
@@ -612,6 +726,10 @@ export function unzipSync(zipFilePath: string, targetPath: string): VoidIOResult
  * @param zipFilePath - The destination zip file path.
  * @param options - Optional zip options.
  * @returns A `VoidIOResult` indicating success or failure.
+ * @example
+ * ```typescript
+ * zipSync('/documents', '/backups/documents.zip');
+ * ```
  */
 export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOptions): VoidIOResult;
 /**
@@ -621,6 +739,11 @@ export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOp
  * @param sourcePath - The path to zip.
  * @param options - Optional zip options.
  * @returns An `IOResult` containing the zip data as `Uint8Array`.
+ * @example
+ * ```typescript
+ * zipSync('/documents')
+ *     .inspect(data => console.log('Zip size:', data.byteLength));
+ * ```
  */
 export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint8Array>;
 /**

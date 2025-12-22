@@ -278,11 +278,8 @@ export async function move(srcPath: string, destPath: string, options?: MoveOpti
  * @returns A promise that resolves to an `AsyncIOResult` containing the `File` object.
  * @example
  * ```typescript
- * const result = await readBlobFile('/path/to/file.txt');
- * if (result.isOk()) {
- *     const file = result.unwrap();
- *     console.log(file.name, file.size, file.type);
- * }
+ * (await readBlobFile('/path/to/file.txt'))
+ *     .inspect(file => console.log(file.name, file.size, file.type));
  * ```
  */
 export function readBlobFile(filePath: string): AsyncIOResult<File> {
@@ -303,10 +300,8 @@ export function readBlobFile(filePath: string): AsyncIOResult<File> {
  *     name: string;
  *     version: number;
  * }
- * const result = await readJsonFile<Config>('/config.json');
- * if (result.isOk()) {
- *     console.log(result.unwrap().name);
- * }
+ * (await readJsonFile<Config>('/config.json'))
+ *     .inspect(config => console.log(config.name));
  * ```
  */
 export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
@@ -326,10 +321,8 @@ export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a string.
  * @example
  * ```typescript
- * const result = await readTextFile('/path/to/file.txt');
- * if (result.isOk()) {
- *     console.log(result.unwrap());
- * }
+ * (await readTextFile('/path/to/file.txt'))
+ *     .inspect(content => console.log(content));
  * ```
  */
 export function readTextFile(filePath: string): AsyncIOResult<string> {
@@ -348,10 +341,8 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
  * @example
  * ```typescript
  * const config = { name: 'app', version: 1 };
- * const result = await writeJsonFile('/config.json', config);
- * if (result.isOk()) {
- *     console.log('Config saved');
- * }
+ * (await writeJsonFile('/config.json', config))
+ *     .inspect(() => console.log('Config saved'));
  * ```
  */
 export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {

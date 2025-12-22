@@ -23,10 +23,8 @@
  * await writeFile('/data/config.json', JSON.stringify({ key: 'value' }));
  *
  * // Read a file
- * const result = await readFile('/data/config.json', { encoding: 'utf8' });
- * if (result.isOk()) {
- *     console.log(result.unwrap());
- * }
+ * (await readFile('/data/config.json', { encoding: 'utf8' }))
+ *     .inspect(content => console.log(content));
  * ```
  *
  * ### Sync API (Optional)
@@ -55,13 +53,15 @@
  * All operations return `Result` types from `happy-rusty`:
  *
  * ```typescript
- * const result = await readFile('/path/to/file');
- * if (result.isOk()) {
- *     const content = result.unwrap();
- * } else {
- *     const error = result.unwrapErr();
- *     console.error(error.message);
- * }
+ * (await readFile('/path/to/file'))
+ *     .inspect(content => {
+ *         // Handle success
+ *         console.log(content);
+ *     })
+ *     .inspectErr(error => {
+ *         // Handle error
+ *         console.error(error.message);
+ *     });
  * ```
  *
  * @packageDocumentation

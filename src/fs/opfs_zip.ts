@@ -50,10 +50,8 @@ async function zipTo<T>(zippable: fflate.AsyncZippable, zipFilePath?: string): A
  * @example
  * ```typescript
  * // Zip a directory to a file
- * const result = await zip('/documents', '/backups/documents.zip');
- * if (result.isOk()) {
- *     console.log('Directory zipped successfully');
- * }
+ * (await zip('/documents', '/backups/documents.zip'))
+ *     .inspect(() => console.log('Directory zipped successfully'));
  * ```
  */
 export async function zip(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult;
@@ -69,11 +67,8 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
  * @example
  * ```typescript
  * // Zip a directory and get the data
- * const result = await zip('/documents');
- * if (result.isOk()) {
- *     const zipData = result.unwrap();
- *     console.log(`Zip size: ${zipData.byteLength} bytes`);
- * }
+ * (await zip('/documents'))
+ *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
  * ```
  */
 export async function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array>;
@@ -140,10 +135,8 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
  * @example
  * ```typescript
  * // Zip a remote file to a local zip file
- * const result = await zipFromUrl('https://example.com/file.txt', '/backups/file.zip');
- * if (result.isOk()) {
- *     console.log('Remote file zipped successfully');
- * }
+ * (await zipFromUrl('https://example.com/file.txt', '/backups/file.zip'))
+ *     .inspect(() => console.log('Remote file zipped successfully'));
  * ```
  */
 export async function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, requestInit?: FsRequestInit): AsyncVoidIOResult;
@@ -158,11 +151,8 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, r
  * @example
  * ```typescript
  * // Zip a remote file and get the data
- * const result = await zipFromUrl('https://example.com/file.txt');
- * if (result.isOk()) {
- *     const zipData = result.unwrap();
- *     console.log(`Zip size: ${zipData.byteLength} bytes`);
- * }
+ * (await zipFromUrl('https://example.com/file.txt'))
+ *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
  * ```
  */
 export async function zipFromUrl(sourceUrl: string | URL, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array>;
