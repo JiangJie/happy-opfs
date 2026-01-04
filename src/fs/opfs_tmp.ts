@@ -1,5 +1,5 @@
 import { join, SEPARATOR } from '@std/path/posix';
-import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { TMP_DIR } from './constants.ts';
 import type { TempOptions } from './defines.ts';
@@ -134,11 +134,7 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
         }
 
         if (tasks.length > 0) {
-            try {
-                await Promise.all(tasks);
-            } catch (e) {
-                return Err(e as DOMException);
-            }
+            return (await tryAsyncResult(() => Promise.all(tasks))).andThen(() => RESULT_VOID);
         }
 
         return RESULT_VOID;

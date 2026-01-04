@@ -1,5 +1,5 @@
 import { basename, dirname, join } from '@std/path/posix';
-import { Err, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR, NOT_FOUND_ERROR } from './constants.ts';
@@ -196,26 +196,20 @@ export async function remove(path: string): AsyncVoidIOResult {
 
     const dirHandleRes = await getDirHandle(dirPath);
 
-    return (await dirHandleRes.andThenAsync(async (dirHandle): AsyncVoidIOResult => {
-        try {
-            // root
-            if (isRootPath(dirPath) && isRootPath(childName)) {
-                // TODO ts not support yet
-                await (dirHandle as FileSystemDirectoryHandle & {
-                    remove(options?: FileSystemRemoveOptions): Promise<void>;
-                }).remove({
-                    recursive: true,
-                });
-            } else {
-                await dirHandle.removeEntry(childName, {
-                    recursive: true,
-                });
-            }
-        } catch (e) {
-            return Err(e as DOMException);
+    return (await dirHandleRes.andThenAsync((dirHandle): AsyncVoidIOResult => {
+        // root
+        if (isRootPath(dirPath) && isRootPath(childName)) {
+            // TODO ts not support yet
+            return tryAsyncResult(() => (dirHandle as FileSystemDirectoryHandle & {
+                remove(options?: FileSystemRemoveOptions): Promise<void>;
+            }).remove({
+                recursive: true,
+            }));
+        } else {
+            return tryAsyncResult(() => dirHandle.removeEntry(childName, {
+                recursive: true,
+            }));
         }
-
-        return RESULT_VOID;
     })).orElse<Error>(err => {
         // not found as success
         return isNotFoundError(err) ? RESULT_VOID : Err(err);

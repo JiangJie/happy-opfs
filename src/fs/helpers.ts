@@ -1,5 +1,5 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
-import { Err, LazyAsync, Ok, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { ABORT_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
@@ -28,17 +28,12 @@ export function isRootPath(path: string): boolean {
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  */
 async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    try {
-        const handle = await dirHandle.getDirectoryHandle(dirName, options);
-
-        return Ok(handle);
-    } catch (e) {
-        const err = e as DOMException;
-        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
-        error.name = err.name;
-
-        return Err(error);
-    }
+    return (await tryAsyncResult(dirHandle.getDirectoryHandle(dirName, options)))
+        .mapErr(err => {
+            const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+            error.name = err.name;
+            return error;
+        });
 }
 
 /**
@@ -50,17 +45,12 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: 
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
 async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    try {
-        const handle = await dirHandle.getFileHandle(fileName, options);
-
-        return Ok(handle);
-    } catch (e) {
-        const err = e as DOMException;
-        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
-        error.name = err.name;
-
-        return Err(error);
-    }
+    return (await tryAsyncResult(dirHandle.getFileHandle(fileName, options)))
+        .mapErr(err => {
+            const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+            error.name = err.name;
+            return error;
+        });
 }
 
 /**
@@ -80,7 +70,9 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     // Start from root
-    let dirHandle = await fsRoot.force();
+    let dirHandle = fsRoot.isInitialized()
+        ? fsRoot.get().unwrap()
+        : await fsRoot.force();
 
     if (isRootPath(dirPath)) {
         // Root is already a handle, no traversal needed
@@ -193,11 +185,13 @@ export function createAbortError(): Error {
  * Reads the binary data from a file handle.
  *
  * @param handle - The `FileSystemFileHandle` to read from.
- * @returns A promise that resolves to the file content as a `Uint8Array`.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a `Uint8Array`.
  * @internal
  */
-export async function getFileDataByHandle(handle: FileSystemFileHandle): Promise<Uint8Array> {
-    const file = await handle.getFile();
-    const ab = await file.arrayBuffer();
-    return new Uint8Array(ab);
+export function getFileDataByHandle(handle: FileSystemFileHandle): AsyncIOResult<Uint8Array> {
+    return tryAsyncResult(async () => {
+        const file = await handle.getFile();
+        const ab = await file.arrayBuffer();
+        return new Uint8Array(ab);
+    });
 }

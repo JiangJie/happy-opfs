@@ -88,8 +88,11 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
 
         if (isFileHandle(handle)) {
             // file
-            const data = await getFileDataByHandle(handle);
-            zippable[sourceName] = data;
+            const dataRes = await getFileDataByHandle(handle);
+            if (dataRes.isErr()) {
+                return dataRes.asErr();
+            }
+            zippable[sourceName] = dataRes.unwrap();
         } else {
             // directory
             const readDirRes = await readDir(sourcePath, {
@@ -101,22 +104,32 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
 
             // default to preserve root
             const preserveRoot = options?.preserveRoot ?? true;
-            const tasks: Promise<void>[] = [];
+            const tasks: Promise<IOResult<{
+                entryName: string;
+                data: Uint8Array;
+            }>>[] = [];
 
             for await (const { path, handle } of readDirRes.unwrap()) {
                 if (!isFileHandle(handle)) {
                     continue;
                 }
 
-                tasks.push((async () => {
-                    const entryName = preserveRoot ? join(sourceName, path) : path;
-                    const data = await getFileDataByHandle(handle);
-                    zippable[entryName] = data;
-                })());
+                const entryName = preserveRoot ? join(sourceName, path) : path;
+                tasks.push(getFileDataByHandle(handle).then(res => res.map(data => ({
+                    entryName,
+                    data,
+                }))));
             }
 
             if (tasks.length > 0) {
-                await Promise.all(tasks);
+                const results = await Promise.all(tasks);
+                for (const res of results) {
+                    if (res.isErr()) {
+                        return res.asErr();
+                    }
+                    const { entryName, data } = res.unwrap();
+                    zippable[entryName] = data;
+                }
             }
         }
 

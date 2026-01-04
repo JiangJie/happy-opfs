@@ -1,3 +1,5 @@
+import { tryOption } from 'happy-rusty';
+
 /**
  * Checks if a string is a valid URL.
  *
@@ -10,12 +12,7 @@ export function isValidUrl(url: string): boolean {
         return URL.canParse(url);
     }
     // Fallback for older browsers
-    try {
-        new URL(url);
-        return true;
-    } catch {
-        return false;
-    }
+    return tryOption(() => new URL(url)).isSome();
 }
 
 /**

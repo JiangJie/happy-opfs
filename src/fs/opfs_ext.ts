@@ -1,5 +1,5 @@
 import { basename, dirname, join } from '@std/path/posix';
-import { Err, Ok, RESULT_FALSE, RESULT_VOID, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
@@ -20,18 +20,13 @@ async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): As
 
     return (await getDirHandle(newDirPath, {
         create: true,
-    })).andThenAsync(async newDirHandle => {
+    })).andThenAsync(newDirHandle => {
         const newName = basename(newPath);
 
-        try {
-            // TODO ts not support yet
-            await (fileHandle as FileSystemFileHandle & {
-                move(newParent: FileSystemDirectoryHandle, newName: string): Promise<void>;
-            }).move(newDirHandle, newName);
-            return RESULT_VOID;
-        } catch (e) {
-            return Err(e as DOMException);
-        }
+        // TODO ts not support yet
+        return tryAsyncResult(() => (fileHandle as FileSystemFileHandle & {
+            move(newParent: FileSystemDirectoryHandle, newName: string): Promise<void>;
+        }).move(newDirHandle, newName));
     });
 }
 
@@ -306,11 +301,7 @@ export function readBlobFile(filePath: string): AsyncIOResult<File> {
  */
 export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
     return (await readTextFile(filePath)).andThen(contents => {
-        try {
-            return Ok(JSON.parse(contents));
-        } catch (e) {
-            return Err(e as Error);
-        }
+        return tryResult(JSON.parse, contents) as IOResult<T>;
     });
 }
 
@@ -346,10 +337,9 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
  * ```
  */
 export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
-    try {
-        const contents = JSON.stringify(data);
-        return writeFile(filePath, contents);
-    } catch (e) {
-        return Promise.resolve(Err(e as Error));
+    const result = tryResult(JSON.stringify, data);
+    if (result.isErr()) {
+        return Promise.resolve(result.asErr());
     }
+    return writeFile(filePath, result.unwrap());
 }

@@ -1,4 +1,4 @@
-import { Err, Ok, Once, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
+import { Err, Ok, Once, tryResult, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import { textDecode } from '../fs/codec.ts';
@@ -661,11 +661,7 @@ export function readBlobFileSync(filePath: string): IOResult<File> {
  */
 export function readJsonFileSync<T>(filePath: string): IOResult<T> {
     return readTextFileSync(filePath).andThen(contents => {
-        try {
-            return Ok(JSON.parse(contents));
-        } catch (e) {
-            return Err(e as Error);
-        }
+        return tryResult(JSON.parse, contents) as IOResult<T>;
     });
 }
 
@@ -704,12 +700,8 @@ export function readTextFileSync(filePath: string): IOResult<string> {
  * ```
  */
 export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
-    try {
-        const contents = JSON.stringify(data);
-        return writeFileSync(filePath, contents);
-    } catch (e) {
-        return Err(e as Error);
-    }
+    return tryResult(JSON.stringify, data)
+        .andThen(contents => writeFileSync(filePath, contents));
 }
 
 /**
