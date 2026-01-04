@@ -8,9 +8,13 @@
 [![JSR Version](https://jsr.io/badges/@happy-js/happy-opfs)](https://jsr.io/@happy-js/happy-opfs)
 [![JSR Score](https://jsr.io/badges/@happy-js/happy-opfs/score)](https://jsr.io/@happy-js/happy-opfs/score)
 
+A browser file system module based on [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system), providing [Deno](https://deno.land/api#File_System)-style APIs.
+
+---
+
 [中文](README.cn.md) | [API Documentation](https://jiangjie.github.io/happy-opfs/)
 
-A browser file system module based on [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system), providing [Deno](https://deno.land/api#File_System)-style APIs.
+---
 
 ## Why happy-opfs
 

@@ -8,9 +8,13 @@
 [![JSR Version](https://jsr.io/badges/@happy-js/happy-opfs)](https://jsr.io/@happy-js/happy-opfs)
 [![JSR Score](https://jsr.io/badges/@happy-js/happy-opfs/score)](https://jsr.io/@happy-js/happy-opfs/score)
 
+基于 [OPFS](https://developer.mozilla.org/zh-CN/docs/Web/API/File_System_API/Origin_private_file_system) 的浏览器文件系统模块，提供 [Deno](https://deno.land/api#File_System) 风格的 API。
+
+---
+
 [English](README.md) | [API 文档](https://jiangjie.github.io/happy-opfs/)
 
-基于 [OPFS](https://developer.mozilla.org/zh-CN/docs/Web/API/File_System_API/Origin_private_file_system) 的浏览器文件系统模块，提供 [Deno](https://deno.land/api#File_System) 风格的 API。
+---
 
 ## 为什么选择 happy-opfs
 
