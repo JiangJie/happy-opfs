@@ -2,7 +2,7 @@ import { basename, dirname, join } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { textEncode } from './codec.ts';
-import { NO_STRATEGY_ERROR, NOT_FOUND_ERROR } from './constants.ts';
+import { NO_STRATEGY_ERROR } from './constants.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { isDirectoryHandle } from './guards.ts';
 import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './helpers.ts';
@@ -182,24 +182,24 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 
     const fileHandleRes = await getFileHandle(filePath);
 
-    return fileHandleRes.andThenAsync(async fileHandle => {
-        const file = await fileHandle.getFile();
-        switch (options?.encoding) {
-            case 'blob': {
-                return Ok(file as unknown as T);
+    return fileHandleRes.andThenAsync(fileHandle => {
+        return tryAsyncResult(async () => {
+            const file = await fileHandle.getFile();
+            switch (options?.encoding) {
+                case 'blob': {
+                    return file as unknown as T;
+                }
+                case 'utf8': {
+                    return await file.text() as unknown as T;
+                }
+                case 'stream': {
+                    return file.stream() as unknown as T;
+                }
+                default: {
+                    return await file.arrayBuffer() as unknown as T;
+                }
             }
-            case 'utf8': {
-                const text = await file.text();
-                return Ok(text as unknown as T);
-            }
-            case 'stream': {
-                return Ok(file.stream() as unknown as T);
-            }
-            default: {
-                const data = await file.arrayBuffer();
-                return Ok(data as unknown as T);
-            }
-        }
+        });
     });
 }
 
@@ -223,21 +223,22 @@ export async function remove(path: string): AsyncVoidIOResult {
 
     const dirHandleRes = await getDirHandle(dirPath);
 
-    return (await dirHandleRes.andThenAsync((dirHandle): AsyncVoidIOResult => {
+    const removeRes = await dirHandleRes.andThenAsync((dirHandle) => {
+        const options: FileSystemRemoveOptions = {
+            recursive: true,
+        };
         // root
         if (isRootPath(dirPath) && isRootPath(childName)) {
             // TODO ts not support yet
-            return tryAsyncResult(() => (dirHandle as FileSystemDirectoryHandle & {
+            return tryAsyncResult((dirHandle as FileSystemDirectoryHandle & {
                 remove(options?: FileSystemRemoveOptions): Promise<void>;
-            }).remove({
-                recursive: true,
-            }));
+            }).remove(options));
         } else {
-            return tryAsyncResult(() => dirHandle.removeEntry(childName, {
-                recursive: true,
-            }));
+            return tryAsyncResult(dirHandle.removeEntry(childName, options));
         }
-    })).orElse<Error>(err => {
+    });
+
+    return removeRes.orElse(err => {
         // not found as success
         return isNotFoundError(err) ? RESULT_VOID : Err(err);
     });
@@ -270,22 +271,19 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     return dirHandleRes.andThenAsync(async dirHandle => {
         // Try to get the handle directly instead of iterating
         // First try as file, then as directory
-        try {
-            const fileHandle = await dirHandle.getFileHandle(childName);
-            return Ok(fileHandle);
-        } catch {
-            // Not a file, try as directory
+        let res = await tryAsyncResult<FileSystemHandle>(dirHandle.getFileHandle(childName));
+        if (res.isOk()) {
+            return res;
         }
 
-        try {
-            const dirChildHandle = await dirHandle.getDirectoryHandle(childName);
-            return Ok(dirChildHandle);
-        } catch (e) {
-            const err = new Error(`${ NOT_FOUND_ERROR }: '${ childName }' does not exist. Full path is '${ path }'`);
-            err.name = (e as DOMException).name;
+        // Not a file, try as directory
+        res = await tryAsyncResult<FileSystemHandle>(dirHandle.getDirectoryHandle(childName));
 
-            return Err(err);
-        }
+        return res.mapErr(err => {
+            const error = new Error(`${ err.name }: '${ childName }' does not exist. Full path is '${ path }'`);
+            error.name = err.name;
+            return error;
+        });
     });
 }
 
@@ -321,29 +319,25 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
         create,
     });
 
-    if (fileHandleRes.isErr()) {
-        return fileHandleRes.asErr();
-    }
-
-    const fileHandle = fileHandleRes.unwrap();
-
-    if (typeof fileHandle.createWritable === 'function') {
-        // Main thread strategy
-        const writePromise = isBinaryReadableStream(contents)
-            ? writeStreamViaWritable(fileHandle, contents, append)
-            : writeDataViaWritable(fileHandle, contents, append);
-        return tryAsyncResult(writePromise);
-    } else if (typeof fileHandle.createSyncAccessHandle === 'function') {
-        // Worker strategy
-        const writePromise = isBinaryReadableStream(contents)
-            ? writeStreamViaSyncAccess(fileHandle, contents, append)
-            : writeDataViaSyncAccess(fileHandle, contents, append);
-        return tryAsyncResult(writePromise);
-    } else {
-        const error = new Error('No file write strategy available');
-        error.name = NO_STRATEGY_ERROR;
-        return Err(error);
-    }
+    return fileHandleRes.andThenAsync(fileHandle => {
+        if (typeof fileHandle.createWritable === 'function') {
+            // Main thread strategy
+            const writePromise = isBinaryReadableStream(contents)
+                ? writeStreamViaWritable(fileHandle, contents, append)
+                : writeDataViaWritable(fileHandle, contents, append);
+            return tryAsyncResult(writePromise);
+        } else if (typeof fileHandle.createSyncAccessHandle === 'function') {
+            // Worker strategy
+            const writePromise = isBinaryReadableStream(contents)
+                ? writeStreamViaSyncAccess(fileHandle, contents, append)
+                : writeDataViaSyncAccess(fileHandle, contents, append);
+            return tryAsyncResult(writePromise);
+        } else {
+            const error = new Error('No file write strategy available');
+            error.name = NO_STRATEGY_ERROR;
+            return Err(error);
+        }
+    });
 }
 
 /**
@@ -386,7 +380,6 @@ async function writeStreamViaWritable(
             });
         }
     } finally {
-        reader.releaseLock();
         await writable.close();
     }
 }
@@ -447,7 +440,6 @@ async function writeStreamViaSyncAccess(
             position = writeBytesWithRetry(accessHandle, value, position);
         }
     } finally {
-        reader.releaseLock();
         accessHandle.close();
     }
 }
@@ -540,7 +532,7 @@ function writeBytesWithRetry(
  *     });
  * ```
  */
-export async function readFileStream(filePath: string): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>> {
+export function readFileStream(filePath: string): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>> {
     return readFile(filePath, { encoding: 'stream' });
 }
 
@@ -574,18 +566,20 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
         create,
     });
 
-    return fileHandleRes.andThenAsync(async fileHandle => {
-        const writable = await fileHandle.createWritable({
-            keepExistingData: append,
+    return fileHandleRes.andThenAsync(fileHandle => {
+        return tryAsyncResult(async () => {
+            const writable = await fileHandle.createWritable({
+                keepExistingData: append,
+            });
+
+            // If appending, seek to end
+            if (append) {
+                const { size } = await fileHandle.getFile();
+                await writable.seek(size);
+            }
+
+            return writable;
         });
-
-        // If appending, seek to end
-        if (append) {
-            const { size } = await fileHandle.getFile();
-            await writable.seek(size);
-        }
-
-        return Ok(writable);
     });
 }
 
@@ -613,6 +607,6 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
  *     });
  * ```
  */
-export async function writeFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
+export function writeFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
     return openWritableFileStream(filePath, options);
 }

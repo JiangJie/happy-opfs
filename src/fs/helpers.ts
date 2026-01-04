@@ -124,18 +124,18 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  * @internal
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    const isCreate = options?.create ?? false;
+    const create = options?.create ?? false;
 
     const dirPath = dirname(filePath);
     const fileName = basename(filePath);
 
     const dirHandleRes = await getDirHandle(dirPath, {
-        create: isCreate,
+        create,
     });
 
     return dirHandleRes.andThenAsync(dirHandle => {
         return getChildFileHandle(dirHandle, fileName, {
-            create: isCreate,
+            create,
         });
     });
 }
