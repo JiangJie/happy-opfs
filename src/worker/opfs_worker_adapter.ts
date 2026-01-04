@@ -400,6 +400,11 @@ export function readFileSync(filePath: string, options?: ReadOptions & {
  * @see {@link readFile} for the async version.
  */
 export function readFileSync<T extends ReadFileContent>(filePath: string, options?: ReadOptions): IOResult<T> {
+    // Runtime guard: sync API cannot return a ReadableStream
+    if (options?.encoding === 'stream') {
+        return Err(new Error(`readFileSync does not support 'stream' encoding`));
+    }
+
     const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
 
     return res.map(file => {

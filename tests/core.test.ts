@@ -115,6 +115,42 @@ describe('OPFS Core Operations', () => {
             expect(result.unwrap()).toBe('Hello World');
         });
 
+        it('should overwrite (truncate) existing file when writing ReadableStream', async () => {
+            await fs.writeFile('/test-file.txt', 'THIS IS LONGER');
+
+            const enc = new TextEncoder();
+            const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                start(controller) {
+                    controller.enqueue(enc.encode('Short') as Uint8Array<ArrayBuffer>);
+                    controller.close();
+                },
+            });
+
+            const writeResult = await fs.writeFile('/test-file.txt', stream);
+            expect(writeResult.isOk()).toBe(true);
+
+            const readResult = await fs.readTextFile('/test-file.txt');
+            expect(readResult.unwrap()).toBe('Short');
+        });
+
+        it('should append when writing ReadableStream with { append: true }', async () => {
+            await fs.writeFile('/test-file.txt', 'Hello');
+
+            const enc = new TextEncoder();
+            const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                start(controller) {
+                    controller.enqueue(enc.encode(' World') as Uint8Array<ArrayBuffer>);
+                    controller.close();
+                },
+            });
+
+            const writeResult = await fs.writeFile('/test-file.txt', stream, { append: true });
+            expect(writeResult.isOk()).toBe(true);
+
+            const readResult = await fs.readTextFile('/test-file.txt');
+            expect(readResult.unwrap()).toBe('Hello World');
+        });
+
         it('should fail to write when create is false and file does not exist', async () => {
             const result = await fs.writeFile('/non-existent.txt', 'content', { create: false });
             expect(result.isErr()).toBe(true);

@@ -54,6 +54,19 @@ describe('Error Handling', () => {
             const result = await fs.writeFileStream('/error-test/non-existent.txt', { create: false });
             expect(result.isErr()).toBe(true);
         });
+
+        it('should fail writeFile(ReadbleStream) when create is false and file does not exist', async () => {
+            const enc = new TextEncoder();
+            const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                start(controller) {
+                    controller.enqueue(enc.encode('content') as Uint8Array<ArrayBuffer>);
+                    controller.close();
+                },
+            });
+
+            const result = await fs.writeFile('/error-test/non-existent.txt', stream, { create: false });
+            expect(result.isErr()).toBe(true);
+        });
     });
 
     describe('Stat operations', () => {

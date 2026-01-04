@@ -2,9 +2,9 @@ import type { FetchInit } from '@happy-ts/fetch-t';
 
 /**
  * Represents the possible content types that can be written to a file asynchronously.
- * Includes `BufferSource` (ArrayBuffer or TypedArray), `Blob`, or `string`.
+ * Includes `BufferSource` (ArrayBuffer or TypedArray), `Blob`, `string`, or a binary `ReadableStream`.
  */
-export type WriteFileContent = BufferSource | Blob | string;
+export type WriteFileContent = BufferSource | Blob | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Represents the possible content types that can be written to a file synchronously.
@@ -18,8 +18,9 @@ export type WriteSyncFileContent = BufferSource | string;
  * - `'binary'`: `ArrayBuffer`
  * - `'utf8'`: `string`
  * - `'blob'`: `File`
+ * - `'stream'`: `ReadableStream<Uint8Array>`
  */
-export type ReadFileContent = ArrayBuffer | File | string;
+export type ReadFileContent = ArrayBuffer | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Options for reading files with specified encoding.
@@ -71,8 +72,9 @@ export interface ExistsOptions {
  * - `'binary'`: Returns raw `ArrayBuffer`
  * - `'utf8'`: Returns decoded `string`
  * - `'blob'`: Returns `File` object with metadata
+ * - `'stream'`: Returns `ReadableStream<Uint8Array>` for streaming reads
  */
-export type FileEncoding = 'binary' | 'utf8' | 'blob';
+export type FileEncoding = 'binary' | 'utf8' | 'blob' | 'stream';
 
 /**
  * fetch-t options for download and upload.

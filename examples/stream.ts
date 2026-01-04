@@ -38,7 +38,7 @@ async function runExample(): Promise<void> {
     log('\n=== Writing File with Stream ===', 'info');
 
     const filePath = '/stream-example/large-file.txt';
-    const streamResult = await fs.writeFileStream(filePath);
+    const streamResult = await fs.openWritableFileStream(filePath);
 
     if (streamResult.isErr()) {
         log(`✗ Failed to open write stream: ${streamResult.unwrapErr().message}`, 'error');
@@ -79,7 +79,7 @@ async function runExample(): Promise<void> {
     // 2. Read file using stream
     log('\n=== Reading File with Stream ===', 'info');
 
-    const readStreamResult = await fs.readFileStream(filePath);
+    const readStreamResult = await fs.readFile(filePath, { encoding: 'stream' });
 
     if (readStreamResult.isErr()) {
         log(`✗ Failed to open read stream: ${readStreamResult.unwrapErr().message}`, 'error');
@@ -119,7 +119,7 @@ async function runExample(): Promise<void> {
     // 4. Demonstrate append mode
     log('\n=== Appending with Stream ===', 'info');
 
-    const appendStreamResult = await fs.writeFileStream(filePath, { append: true });
+    const appendStreamResult = await fs.openWritableFileStream(filePath, { append: true });
 
     if (appendStreamResult.isOk()) {
         const appendWritable = appendStreamResult.unwrap();
