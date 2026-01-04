@@ -16,7 +16,6 @@
     "include": [
       "LICENSE",
       "README.md",
-      "README.cn.md",
       "CHANGELOG.md",
       "src"
     ]
