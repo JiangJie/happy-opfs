@@ -80,10 +80,10 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "@happy-ts/fetch-t": "^1.4.1",
+    "@happy-ts/fetch-t": "^1.5.0",
     "@std/path": "npm:@jsr/std__path@^1.1.4",
     "fflate": "^0.8.2",
-    "happy-rusty": "^1.6.2",
+    "happy-rusty": "^1.8.0",
     "tiny-future": "^1.2.0",
     "tiny-invariant": "^1.3.3"
   },
