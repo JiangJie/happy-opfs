@@ -3,9 +3,9 @@ import { Err, Ok, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type Asy
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
+import { isDirectoryHandle, isFileHandle } from './guards.ts';
 import { getDirHandle, getFinalResult, isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
-import { isDirectoryHandle, isFileHandle } from './guards.ts';
 
 /**
  * Moves a file handle to a new path using the FileSystemFileHandle.move() method.
@@ -18,15 +18,17 @@ import { isDirectoryHandle, isFileHandle } from './guards.ts';
 async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
     const newDirPath = dirname(newPath);
 
-    return (await getDirHandle(newDirPath, {
+    const dirRes = await getDirHandle(newDirPath, {
         create: true,
-    })).andThenAsync(newDirHandle => {
+    });
+
+    return dirRes.andTryAsync(newDirHandle => {
         const newName = basename(newPath);
 
         // TODO ts not support yet
-        return tryAsyncResult(() => (fileHandle as FileSystemFileHandle & {
+        return (fileHandle as FileSystemFileHandle & {
             move(newParent: FileSystemDirectoryHandle, newName: string): Promise<void>;
-        }).move(newDirHandle, newName));
+        }).move(newDirHandle, newName);
     });
 }
 
@@ -57,7 +59,9 @@ type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
 async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
     assertAbsolutePath(destPath);
 
-    return (await stat(srcPath)).andThenAsync(async srcHandle => {
+    const statRes = await stat(srcPath);
+
+    return statRes.andThenAsync(async srcHandle => {
         // Track whether destination already exists (needed for overwrite logic)
         let destExists = false;
         const destHandleRes = await stat(destPath);
@@ -111,7 +115,7 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleS
 
                     // For files: apply handler; for directories: just create them
                     return isFileHandle(handle)
-                        ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : Promise.resolve(RESULT_VOID))
+                        ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : RESULT_VOID)
                         : mkdir(newEntryPath);
                 })());
             }
@@ -161,13 +165,15 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncV
  * await copy('/src', '/dest', { overwrite: false });
  * ```
  */
-export async function copy(srcPath: string, destPath: string, options?: CopyOptions): AsyncVoidIOResult {
+export function copy(srcPath: string, destPath: string, options?: CopyOptions): AsyncVoidIOResult {
     const {
         overwrite = true,
     } = options ?? {};
 
     return mkDestFromSrc(srcPath, destPath, async (srcHandle, destPath) => {
-        return await writeFile(destPath, await srcHandle.getFile());
+        // write file to new path
+        const fileRes = await tryAsyncResult(srcHandle.getFile());
+        return fileRes.andThenAsync(file => writeFile(destPath, file));
     }, overwrite);
 }
 
@@ -301,7 +307,7 @@ export function readBlobFile(filePath: string): AsyncIOResult<File> {
  */
 export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
     return (await readTextFile(filePath)).andThen(contents => {
-        return tryResult(JSON.parse, contents) as IOResult<T>;
+        return tryResult<T, Error, [string]>(JSON.parse, contents);
     });
 }
 
@@ -338,8 +344,5 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
  */
 export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
     const result = tryResult(JSON.stringify, data);
-    if (result.isErr()) {
-        return Promise.resolve(result.asErr());
-    }
-    return writeFile(filePath, result.unwrap());
+    return result.andThenAsync(text => writeFile(filePath, text));
 }

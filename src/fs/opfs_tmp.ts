@@ -1,5 +1,5 @@
 import { join, SEPARATOR } from '@std/path/posix';
-import { Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { Ok, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { TMP_DIR } from './constants.ts';
 import type { TempOptions } from './defines.ts';
@@ -115,7 +115,7 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
         recursive: true,
     });
 
-    return readDirRes.andThenAsync(async entries => {
+    return readDirRes.andTryAsync(async entries => {
         const tasks: Promise<void>[] = [];
 
         for await (const { handle } of entries) {
@@ -134,9 +134,7 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
         }
 
         if (tasks.length > 0) {
-            return (await tryAsyncResult(() => Promise.all(tasks))).andThen(() => RESULT_VOID);
+            await Promise.all(tasks);
         }
-
-        return RESULT_VOID;
     });
 }

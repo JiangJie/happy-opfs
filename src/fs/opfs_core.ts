@@ -182,24 +182,22 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 
     const fileHandleRes = await getFileHandle(filePath);
 
-    return fileHandleRes.andThenAsync(fileHandle => {
-        return tryAsyncResult(async () => {
-            const file = await fileHandle.getFile();
-            switch (options?.encoding) {
-                case 'blob': {
-                    return file as unknown as T;
-                }
-                case 'utf8': {
-                    return await file.text() as unknown as T;
-                }
-                case 'stream': {
-                    return file.stream() as unknown as T;
-                }
-                default: {
-                    return await file.arrayBuffer() as unknown as T;
-                }
+    return fileHandleRes.andTryAsync(async fileHandle => {
+        const file = await fileHandle.getFile();
+        switch (options?.encoding) {
+            case 'blob': {
+                return file as unknown as T;
             }
-        });
+            case 'utf8': {
+                return await file.text() as unknown as T;
+            }
+            case 'stream': {
+                return file.stream() as unknown as T;
+            }
+            default: {
+                return await file.arrayBuffer() as unknown as T;
+            }
+        }
     });
 }
 
@@ -223,18 +221,18 @@ export async function remove(path: string): AsyncVoidIOResult {
 
     const dirHandleRes = await getDirHandle(dirPath);
 
-    const removeRes = await dirHandleRes.andThenAsync((dirHandle) => {
+    const removeRes = await dirHandleRes.andTryAsync(async dirHandle => {
         const options: FileSystemRemoveOptions = {
             recursive: true,
         };
         // root
         if (isRootPath(dirPath) && isRootPath(childName)) {
             // TODO ts not support yet
-            return tryAsyncResult((dirHandle as FileSystemDirectoryHandle & {
+            await (dirHandle as FileSystemDirectoryHandle & {
                 remove(options?: FileSystemRemoveOptions): Promise<void>;
-            }).remove(options));
+            }).remove(options);
         } else {
-            return tryAsyncResult(dirHandle.removeEntry(childName, options));
+            await dirHandle.removeEntry(childName, options);
         }
     });
 
@@ -319,23 +317,22 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
         create,
     });
 
-    return fileHandleRes.andThenAsync(fileHandle => {
+    return fileHandleRes.andTryAsync(fileHandle => {
         if (typeof fileHandle.createWritable === 'function') {
             // Main thread strategy
-            const writePromise = isBinaryReadableStream(contents)
+            return isBinaryReadableStream(contents)
                 ? writeStreamViaWritable(fileHandle, contents, append)
                 : writeDataViaWritable(fileHandle, contents, append);
-            return tryAsyncResult(writePromise);
         } else if (typeof fileHandle.createSyncAccessHandle === 'function') {
             // Worker strategy
-            const writePromise = isBinaryReadableStream(contents)
+            return isBinaryReadableStream(contents)
                 ? writeStreamViaSyncAccess(fileHandle, contents, append)
                 : writeDataViaSyncAccess(fileHandle, contents, append);
-            return tryAsyncResult(writePromise);
         } else {
             const error = new Error('No file write strategy available');
             error.name = NO_STRATEGY_ERROR;
-            return Err(error);
+
+            throw error;
         }
     });
 }
@@ -566,20 +563,23 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
         create,
     });
 
-    return fileHandleRes.andThenAsync(fileHandle => {
-        return tryAsyncResult(async () => {
-            const writable = await fileHandle.createWritable({
-                keepExistingData: append,
-            });
+    return fileHandleRes.andTryAsync(async fileHandle => {
+        const writable = await fileHandle.createWritable({
+            keepExistingData: append,
+        });
 
-            // If appending, seek to end
-            if (append) {
+        // If appending, seek to end
+        if (append) {
+            try {
                 const { size } = await fileHandle.getFile();
                 await writable.seek(size);
+            } catch (err) {
+                await writable.close();
+                throw err;
             }
+        }
 
-            return writable;
-        });
+        return writable;
     });
 }
 

@@ -54,7 +54,7 @@ async function zipTo<T>(zippable: fflate.AsyncZippable, zipFilePath?: string): A
  *     .inspect(() => console.log('Directory zipped successfully'));
  * ```
  */
-export async function zip(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult;
+export function zip(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult;
 
 /**
  * Zip a file or directory and return the zip file data.
@@ -71,7 +71,7 @@ export async function zip(sourcePath: string, zipFilePath: string, options?: Zip
  *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
  * ```
  */
-export async function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array>;
+export function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array>;
 export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): AsyncIOResult<T> {
     if (typeof zipFilePath === 'string') {
         assertAbsolutePath(zipFilePath);
@@ -152,7 +152,7 @@ export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptio
  *     .inspect(() => console.log('Remote file zipped successfully'));
  * ```
  */
-export async function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, requestInit?: FsRequestInit): AsyncVoidIOResult;
+export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, requestInit?: FsRequestInit): AsyncVoidIOResult;
 
 /**
  * Zip a remote file and return the zip file data.
@@ -168,7 +168,7 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, r
  *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
  * ```
  */
-export async function zipFromUrl(sourceUrl: string | URL, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array>;
+export function zipFromUrl(sourceUrl: string | URL, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array>;
 export async function zipFromUrl<T>(sourceUrl: string | URL, zipFilePath?: string | FsRequestInit, requestInit?: FsRequestInit): AsyncIOResult<T> {
     assertFileUrl(sourceUrl);
 

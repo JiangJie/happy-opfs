@@ -666,7 +666,7 @@ export function readBlobFileSync(filePath: string): IOResult<File> {
  */
 export function readJsonFileSync<T>(filePath: string): IOResult<T> {
     return readTextFileSync(filePath).andThen(contents => {
-        return tryResult(JSON.parse, contents) as IOResult<T>;
+        return tryResult<T, Error, [string]>(JSON.parse, contents);
     });
 }
 
@@ -706,7 +706,7 @@ export function readTextFileSync(filePath: string): IOResult<string> {
  */
 export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
     return tryResult(JSON.stringify, data)
-        .andThen(contents => writeFileSync(filePath, contents));
+        .andThen(text => writeFileSync(filePath, text));
 }
 
 /**
