@@ -71,14 +71,13 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
         const responseRes = await fetchTask.response;
 
         return responseRes.andThenAsync(async response => {
-            const blob = await response.blob();
-
             // maybe aborted
             if (aborted) {
                 return Err(createAbortError());
             }
 
-            const writeRes = await writeFile(filePath, blob);
+            // Use stream to avoid loading entire file into memory
+            const writeRes = await writeFile(filePath, response.body as ReadableStream<Uint8Array<ArrayBuffer>>);
 
             return writeRes.and(Ok(response));
         });
