@@ -21,7 +21,7 @@ import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './help
  * ```
  */
 export async function createFile(filePath: string): AsyncVoidIOResult {
-    assertAbsolutePath(filePath);
+    filePath = assertAbsolutePath(filePath);
 
     const fileHandleRes = await getFileHandle(filePath, {
         create: true,
@@ -43,7 +43,7 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
  * ```
  */
 export async function mkdir(dirPath: string): AsyncVoidIOResult {
-    assertAbsolutePath(dirPath);
+    dirPath = assertAbsolutePath(dirPath);
 
     const dirHandleRes = await getDirHandle(dirPath, {
         create: true,
@@ -73,7 +73,7 @@ export async function mkdir(dirPath: string): AsyncVoidIOResult {
  * ```
  */
 export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<DirEntry>> {
-    assertAbsolutePath(dirPath);
+    dirPath = assertAbsolutePath(dirPath);
 
     const dirHandleRes = await getDirHandle(dirPath);
 
@@ -178,7 +178,7 @@ export function readFile(filePath: string, options?: ReadOptions & {
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content.
  */
 export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): AsyncIOResult<T> {
-    assertAbsolutePath(filePath);
+    filePath = assertAbsolutePath(filePath);
 
     const fileHandleRes = await getFileHandle(filePath);
 
@@ -214,7 +214,7 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
  * ```
  */
 export async function remove(path: string): AsyncVoidIOResult {
-    assertAbsolutePath(path);
+    path = assertAbsolutePath(path);
 
     const dirPath = dirname(path);
     const childName = basename(path);
@@ -255,7 +255,7 @@ export async function remove(path: string): AsyncVoidIOResult {
  * ```
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
-    assertAbsolutePath(path);
+    path = assertAbsolutePath(path);
 
     const dirPath = dirname(path);
     const childName = basename(path);
@@ -308,7 +308,7 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
  * ```
  */
 export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncVoidIOResult {
-    assertAbsolutePath(filePath);
+    filePath = assertAbsolutePath(filePath);
 
     // create as default
     const { append = false, create = true } = options ?? {};
@@ -555,7 +555,7 @@ export function readFileStream(filePath: string): AsyncIOResult<ReadableStream<U
  * ```
  */
 export async function openWritableFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
-    assertAbsolutePath(filePath);
+    filePath = assertAbsolutePath(filePath);
 
     const { append = false, create = true } = options ?? {};
 

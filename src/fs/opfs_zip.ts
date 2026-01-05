@@ -74,7 +74,7 @@ export function zip(sourcePath: string, zipFilePath: string, options?: ZipOption
 export function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array>;
 export async function zip<T>(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): AsyncIOResult<T> {
     if (typeof zipFilePath === 'string') {
-        assertAbsolutePath(zipFilePath);
+        zipFilePath = assertAbsolutePath(zipFilePath);
     } else {
         options = zipFilePath;
         zipFilePath = undefined;
@@ -173,7 +173,7 @@ export async function zipFromUrl<T>(sourceUrl: string | URL, zipFilePath?: strin
     assertFileUrl(sourceUrl);
 
     if (typeof zipFilePath === 'string') {
-        assertAbsolutePath(zipFilePath);
+        zipFilePath = assertAbsolutePath(zipFilePath);
     } else {
         requestInit = zipFilePath;
         zipFilePath = undefined;

@@ -49,7 +49,7 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
     let saveToTemp = false;
 
     if (typeof filePath === 'string') {
-        assertAbsolutePath(filePath);
+        filePath = assertAbsolutePath(filePath);
     } else {
         requestInit = filePath;
         // save to a temporary file, preserve the extension from URL

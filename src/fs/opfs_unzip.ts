@@ -54,7 +54,7 @@ function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoid
  * ```
  */
 export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
-    assertAbsolutePath(targetPath);
+    targetPath = assertAbsolutePath(targetPath);
 
     const fileRes = await readFile(zipFilePath);
 
@@ -80,7 +80,7 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
  */
 export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
     assertFileUrl(zipFileUrl);
-    assertAbsolutePath(targetPath);
+    targetPath = assertAbsolutePath(targetPath);
 
     const fetchRes = await fetchT(zipFileUrl, {
         redirect: 'follow',

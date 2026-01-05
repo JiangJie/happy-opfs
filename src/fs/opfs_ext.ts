@@ -57,7 +57,7 @@ type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
 async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
-    assertAbsolutePath(destPath);
+    destPath = assertAbsolutePath(destPath);
 
     const statRes = await stat(srcPath);
 
