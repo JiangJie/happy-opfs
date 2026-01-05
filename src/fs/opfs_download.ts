@@ -59,52 +59,47 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
         saveToTemp = true;
     }
 
-    let aborted = false;
-
     const fetchTask = fetchT(fileUrl, {
         redirect: 'follow',
         ...requestInit,
         abortable: true,
     });
 
-    const response = (async (): FetchResponse<Response> => {
+    const response = (async (): FetchResponse<Response | DownloadFileTempResponse> => {
         const responseRes = await fetchTask.response;
 
-        return responseRes.andThenAsync(async response => {
+        return responseRes.andThenAsync(async rawResponse => {
             // maybe aborted
-            if (aborted) {
+            if (fetchTask.aborted) {
                 return Err(createAbortError());
             }
 
             // Use stream to avoid loading entire file into memory
-            const writeRes = await writeFile(filePath, response.body as ReadableStream<Uint8Array<ArrayBuffer>>);
+            const writeRes = await writeFile(filePath, rawResponse.body as ReadableStream<Uint8Array<ArrayBuffer>>);
 
-            return writeRes.and(Ok(response));
+            return writeRes.and(Ok(
+                saveToTemp
+                    ? {
+                        tempFilePath: filePath,
+                        rawResponse,
+                    }
+                    : rawResponse,
+            ));
         });
     })();
 
     return {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abort(reason?: any): void {
-            aborted = true;
             fetchTask.abort(reason);
         },
 
         get aborted(): boolean {
-            return aborted;
+            return fetchTask.aborted;
         },
 
         get response(): FetchResponse<Response | DownloadFileTempResponse> {
-            return saveToTemp
-                ? response.then(res => {
-                    return res.map<DownloadFileTempResponse>(rawResponse => {
-                        return {
-                            tempFilePath: filePath,
-                            rawResponse,
-                        };
-                    });
-                })
-                : response;
+            return response;
         },
     };
 }
