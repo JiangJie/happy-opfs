@@ -79,29 +79,10 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
         return Ok(dirHandle);
     }
 
-    // Remove leading '/' and start traversing
-    let childDirPath = dirPath.slice(1);
-
     // Iterate through each path segment
-    while (childDirPath) {
-        let childDirName = '';
-        const index = childDirPath.indexOf(SEPARATOR);
-
-        if (index === -1) {
-            // Last segment
-            childDirName = childDirPath;
-            childDirPath = '';
-        } else {
-            // Extract current segment and remaining path
-            childDirName = childDirPath.slice(0, index);
-            childDirPath = childDirPath.slice(index + 1);
-
-            // Skip empty segments (handles '//' in path)
-            if (index === 0) {
-                continue;
-            }
-        }
-
+    // Path is already normalized by assertAbsolutePath, no empty segments
+    // Remove leading '/' and start traversing
+    for (const childDirName of dirPath.slice(1).split(SEPARATOR)) {
         // Get or create child directory
         const dirHandleRes = await getChildDirHandle(dirHandle, childDirName, options);
         if (dirHandleRes.isErr()) {
