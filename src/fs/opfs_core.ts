@@ -5,7 +5,7 @@ import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR } from './constants.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { isDirectoryHandle } from './guards.ts';
-import { getDirHandle, getFileHandle, isNotFoundError, isRootPath } from './helpers.ts';
+import { getDirHandle, getFileHandle, isNotFoundError, isRootDir } from './helpers.ts';
 
 /**
  * Creates a new empty file at the specified path, similar to the `touch` command.
@@ -217,8 +217,6 @@ export async function remove(path: string): AsyncVoidIOResult {
     path = assertAbsolutePath(path);
 
     const dirPath = dirname(path);
-    const childName = basename(path);
-
     const dirHandleRes = await getDirHandle(dirPath);
 
     const removeRes = await dirHandleRes.andTryAsync(dirHandle => {
@@ -226,12 +224,13 @@ export async function remove(path: string): AsyncVoidIOResult {
             recursive: true,
         };
         // root
-        if (isRootPath(dirPath) && isRootPath(childName)) {
+        if (isRootDir(path)) {
             // TODO ts not support yet
             return (dirHandle as FileSystemDirectoryHandle & {
                 remove(options?: FileSystemRemoveOptions): Promise<void>;
             }).remove(options);
         } else {
+            const childName = basename(path);
             return dirHandle.removeEntry(childName, options);
         }
     });
@@ -258,13 +257,14 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     path = assertAbsolutePath(path);
 
     const dirPath = dirname(path);
-    const childName = basename(path);
 
     const dirHandleRes = await getDirHandle(dirPath);
-    if (!childName || isRootPath(childName)) {
+    if (isRootDir(path)) {
         // root
         return dirHandleRes;
     }
+
+    const childName = basename(path);
 
     return dirHandleRes.andThenAsync(async dirHandle => {
         // Try to get the handle directly instead of iterating

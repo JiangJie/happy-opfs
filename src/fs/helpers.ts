@@ -15,7 +15,7 @@ const fsRoot = LazyAsync(() => navigator.storage.getDirectory());
  * @returns `true` if the path equals `'/'`, otherwise `false`.
  * @internal
  */
-export function isRootPath(path: string): boolean {
+export function isRootDir(path: string): boolean {
     return path === ROOT_DIR;
 }
 
@@ -74,7 +74,7 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
         ? fsRoot.get().unwrap()
         : await fsRoot.force();
 
-    if (isRootPath(dirPath)) {
+    if (isRootDir(dirPath)) {
         // Root is already a handle, no traversal needed
         return Ok(dirHandle);
     }
