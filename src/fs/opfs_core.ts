@@ -264,11 +264,10 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
         return dirHandleRes;
     }
 
-    const childName = basename(path);
-
     return dirHandleRes.andThenAsync(async dirHandle => {
         // Try to get the handle directly instead of iterating
         // First try as file, then as directory
+        const childName = basename(path);
         let res = await tryAsyncResult<FileSystemHandle>(dirHandle.getFileHandle(childName));
         if (res.isOk()) {
             return res;

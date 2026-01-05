@@ -125,11 +125,10 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const dirPath = dirname(filePath);
-    const fileName = basename(filePath);
-
     const dirHandleRes = await getDirHandle(dirPath, options);
 
     return dirHandleRes.andThenAsync(dirHandle => {
+        const fileName = basename(filePath);
         return getChildFileHandle(dirHandle, fileName, options);
     });
 }
