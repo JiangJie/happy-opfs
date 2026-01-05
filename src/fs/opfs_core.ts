@@ -461,7 +461,7 @@ async function writeDataViaSyncAccess(
             accessHandle.truncate(0);
         }
 
-        const position = append ? accessHandle.getSize() : undefined;
+        const position = append ? accessHandle.getSize() : 0;
         writeBytesWithRetry(accessHandle, data as Uint8Array<ArrayBuffer>, position);
     } finally {
         accessHandle.close();
@@ -475,10 +475,10 @@ async function writeDataViaSyncAccess(
 function writeBytesWithRetry(
     accessHandle: FileSystemSyncAccessHandle,
     data: Uint8Array<ArrayBuffer>,
-    position?: number,
+    position: number,
 ): number {
     let remaining = data;
-    let currentPosition = position ?? 0;
+    let currentPosition = position;
 
     while (remaining.byteLength > 0) {
         const written = accessHandle.write(remaining, {
