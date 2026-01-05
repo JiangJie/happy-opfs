@@ -14,7 +14,12 @@ import { isValidUrl } from './url.ts';
 export function assertAbsolutePath(path: string): string {
     invariant(typeof path === 'string', () => `Path must be a string but received ${ path }`);
     invariant(path[0] === ROOT_DIR, () => `Path must start with / but received ${ path }`);
-    return normalize(path);
+
+    const normalized = normalize(path);
+    // Remove trailing slash except for root
+    return normalized.length > 1 && normalized[normalized.length - 1] === ROOT_DIR
+        ? normalized.slice(0, -1)
+        : normalized;
 }
 
 /**

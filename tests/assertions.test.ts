@@ -45,6 +45,56 @@ describe('Assertions', () => {
             expect(() => assertAbsolutePath('/file.multiple.dots.txt')).not.toThrow();
             expect(() => assertAbsolutePath('/中文文件.txt')).not.toThrow();
         });
+
+        it('should normalize and return canonical paths', () => {
+            // Root paths
+            expect(assertAbsolutePath('/')).toBe('/');
+            expect(assertAbsolutePath('//')).toBe('/');
+            expect(assertAbsolutePath('///')).toBe('/');
+            expect(assertAbsolutePath('////')).toBe('/');
+
+            // Trailing slashes should be removed (except root)
+            expect(assertAbsolutePath('/a/')).toBe('/a');
+            expect(assertAbsolutePath('/a/b/')).toBe('/a/b');
+            expect(assertAbsolutePath('/a/b/c/')).toBe('/a/b/c');
+
+            // Multiple slashes should be collapsed
+            expect(assertAbsolutePath('//a')).toBe('/a');
+            expect(assertAbsolutePath('/a//b')).toBe('/a/b');
+            expect(assertAbsolutePath('/a///b')).toBe('/a/b');
+            expect(assertAbsolutePath('///a//b//c///')).toBe('/a/b/c');
+
+            // Dot segments should be resolved
+            expect(assertAbsolutePath('/a/./b')).toBe('/a/b');
+            expect(assertAbsolutePath('/a/b/./c')).toBe('/a/b/c');
+            expect(assertAbsolutePath('/./a/./b/.')).toBe('/a/b');
+
+            // Parent directory segments should be resolved
+            expect(assertAbsolutePath('/a/../b')).toBe('/b');
+            expect(assertAbsolutePath('/a/b/../c')).toBe('/a/c');
+            expect(assertAbsolutePath('/a/b/c/../../d')).toBe('/a/d');
+            expect(assertAbsolutePath('/a/b/../../../c')).toBe('/c');
+
+            // Mixed cases
+            expect(assertAbsolutePath('//a/./b/../c//')).toBe('/a/c');
+            expect(assertAbsolutePath('///foo//bar///')).toBe('/foo/bar');
+            expect(assertAbsolutePath('/a/b/./c/../d/')).toBe('/a/b/d');
+        });
+
+        it('should handle edge cases for path normalization', () => {
+            // Going above root should stay at root
+            expect(assertAbsolutePath('/../')).toBe('/');
+            expect(assertAbsolutePath('/../../')).toBe('/');
+            expect(assertAbsolutePath('/../a')).toBe('/a');
+
+            // Single segment paths
+            expect(assertAbsolutePath('/a')).toBe('/a');
+            expect(assertAbsolutePath('/a/')).toBe('/a');
+            expect(assertAbsolutePath('//a//')).toBe('/a');
+
+            // Complex nested paths
+            expect(assertAbsolutePath('/a/b/c/d/e/../../../f/g')).toBe('/a/b/f/g');
+        });
     });
 
     describe('assertFileUrl', () => {
