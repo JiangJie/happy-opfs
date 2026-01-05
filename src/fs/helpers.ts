@@ -97,6 +97,18 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
 }
 
 /**
+ * Gets the directory handle for the parent directory of the given path.
+ *
+ * @param path - The absolute path whose parent directory handle is to be retrieved.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create intermediate directories).
+ * @returns A promise that resolves to an `AsyncIOResult` containing the parent `FileSystemDirectoryHandle`.
+ * @internal
+ */
+export function getParentDirHandle(path: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
+    return getDirHandle(dirname(path), options);
+}
+
+/**
  * Retrieves a file handle given a file path.
  *
  * @param filePath - The absolute path of the file to retrieve.
@@ -105,8 +117,7 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  * @internal
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    const dirPath = dirname(filePath);
-    const dirHandleRes = await getDirHandle(dirPath, options);
+    const dirHandleRes = await getParentDirHandle(filePath, options);
 
     return dirHandleRes.andThenAsync(dirHandle => {
         const fileName = basename(filePath);

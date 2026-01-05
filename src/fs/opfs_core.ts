@@ -1,11 +1,11 @@
-import { basename, dirname, join } from '@std/path/posix';
+import { basename, join } from '@std/path/posix';
 import { Err, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR } from './constants.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { isDirectoryHandle } from './guards.ts';
-import { getDirHandle, getFileHandle, isNotFoundError, isRootDir } from './helpers.ts';
+import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRootDir } from './helpers.ts';
 
 /**
  * Creates a new empty file at the specified path, similar to the `touch` command.
@@ -216,8 +216,7 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 export async function remove(path: string): AsyncVoidIOResult {
     path = assertAbsolutePath(path);
 
-    const dirPath = dirname(path);
-    const dirHandleRes = await getDirHandle(dirPath);
+    const dirHandleRes = await getParentDirHandle(path);
 
     const removeRes = await dirHandleRes.andTryAsync(dirHandle => {
         const options: FileSystemRemoveOptions = {
@@ -256,9 +255,7 @@ export async function remove(path: string): AsyncVoidIOResult {
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
     path = assertAbsolutePath(path);
 
-    const dirPath = dirname(path);
-
-    const dirHandleRes = await getDirHandle(dirPath);
+    const dirHandleRes = await getParentDirHandle(path);
     if (isRootDir(path)) {
         // root
         return dirHandleRes;

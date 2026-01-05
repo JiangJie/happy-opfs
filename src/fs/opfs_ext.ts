@@ -1,10 +1,10 @@
-import { basename, dirname, join } from '@std/path/posix';
+import { basename, join } from '@std/path/posix';
 import { Err, Ok, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
 import { isDirectoryHandle, isFileHandle } from './guards.ts';
-import { aggregateResults, getDirHandle, isNotFoundError } from './helpers.ts';
+import { aggregateResults, getParentDirHandle, isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -16,9 +16,7 @@ import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.t
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
 async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
-    const newDirPath = dirname(newPath);
-
-    const dirRes = await getDirHandle(newDirPath, {
+    const dirRes = await getParentDirHandle(newPath, {
         create: true,
     });
 
