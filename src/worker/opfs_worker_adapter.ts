@@ -100,7 +100,9 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
 
     // check parameters
     invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be Worker or valid URL(string)');
-    invariant(bufferLength > 16 && bufferLength % 4 === 0, () => 'bufferLength must be a multiple of 4');
+    // Minimum buffer size: 16 bytes header + ~131 bytes for largest error response = 147 bytes
+    // Using 256 (power of 2) for better memory alignment
+    invariant(bufferLength >= 256 && bufferLength % 4 === 0, () => 'bufferLength must be at least 256 and a multiple of 4');
     invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
 
     globalSyncOpTimeout = opTimeout;
@@ -393,13 +395,12 @@ export function readFileSync(filePath: string, options?: ReadOptions & {
  * Synchronous version of `readFile`.
  * Reads the content of a file with the specified encoding.
  *
- * @template T - The expected content type based on encoding.
  * @param filePath - The absolute path of the file to read.
  * @param options - Optional read options.
  * @returns An `IOResult` containing the file content.
  * @see {@link readFile} for the async version.
  */
-export function readFileSync<T extends ReadFileContent>(filePath: string, options?: ReadOptions): IOResult<T> {
+export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ReadFileContent> {
     // Runtime guard: sync API cannot return a ReadableStream
     if (options?.encoding === 'stream') {
         return Err(new Error(`readFileSync does not support 'stream' encoding`));
@@ -411,15 +412,15 @@ export function readFileSync<T extends ReadFileContent>(filePath: string, option
         switch (options?.encoding) {
             case 'blob': {
                 // File
-                return deserializeFile(file) as unknown as T;
+                return deserializeFile(file);
             }
             case 'utf8': {
                 // string
-                return textDecode(new Uint8Array(file.data)) as unknown as T;
+                return textDecode(new Uint8Array(file.data));
             }
             default: {
                 // ArrayBuffer
-                return new Uint8Array(file.data).buffer as unknown as T;
+                return new Uint8Array(file.data).buffer;
             }
         }
     });
@@ -758,18 +759,17 @@ export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint
  * Synchronous version of `zip`.
  * Zips a file or directory.
  *
- * @template T - The return type (void when writing to file, Uint8Array when returning data).
  * @param sourcePath - The path to zip.
  * @param zipFilePath - Optional destination zip file path or options.
  * @param options - Optional zip options.
  * @returns An `IOResult` containing the result.
  * @see {@link zip} for the async version.
  */
-export function zipSync<T>(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<T> {
+export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array> | VoidIOResult {
     const res = callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options) as IOResult<number[]> | VoidIOResult;
 
     return res.map(data => {
         // Data was serialized as number[] for JSON transport, convert back to Uint8Array if present
-        return (data ? new Uint8Array(data) : data) as T;
-    });
+        return data ? new Uint8Array(data) : data;
+    }) as IOResult<Uint8Array> | VoidIOResult;
 }

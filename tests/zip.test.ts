@@ -81,6 +81,24 @@ describe('OPFS Zip Operations', () => {
             const result = await fs.zip('/non-existent-path', '/test.zip');
             expect(result.isErr()).toBe(true);
         });
+
+        it('should zip an empty directory', async () => {
+            await fs.mkdir('/empty-dir');
+
+            const result = await fs.zip('/empty-dir', '/empty.zip');
+            expect(result.isOk()).toBe(true);
+
+            // Empty zip should still be created
+            expect((await fs.exists('/empty.zip')).unwrap()).toBe(true);
+
+            // Verify it's a valid but minimal zip file
+            const zipData = (await fs.readFile('/empty.zip')).unwrap();
+            expect(zipData.byteLength).toBeGreaterThan(0);
+
+            // Clean up
+            await fs.remove('/empty-dir');
+            await fs.remove('/empty.zip');
+        });
     });
 
     describe('unzip', () => {

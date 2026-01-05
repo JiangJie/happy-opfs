@@ -1,5 +1,5 @@
 import { basename, join } from '@std/path/posix';
-import { Err, Ok, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
+import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
@@ -15,7 +15,7 @@ import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.t
  * @param newPath - The new absolute path for the file.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
-async function moveHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
+async function moveFileHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
     const dirRes = await getParentDirHandle(newPath, {
         create: true,
     });
@@ -54,74 +54,87 @@ type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
  * @param overwrite - Whether to overwrite existing files. Default: `true`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
-async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleSrcFileToDest, overwrite = true): AsyncVoidIOResult {
+async function mkDestFromSrc(
+    srcPath: string,
+    destPath: string,
+    handler: HandleSrcFileToDest,
+    overwrite = true,
+): AsyncVoidIOResult {
     destPath = assertAbsolutePath(destPath);
 
     const statRes = await stat(srcPath);
+    if (statRes.isErr()) {
+        return statRes.asErr();
+    }
 
-    return statRes.andThenAsync(async srcHandle => {
-        // Track whether destination already exists (needed for overwrite logic)
-        let destExists = false;
-        const destHandleRes = await stat(destPath);
+    const srcHandle = statRes.unwrap();
+    // Track whether destination already exists (needed for overwrite logic)
+    let destExists = false;
 
-        if (destHandleRes.isErr()) {
-            // Destination doesn't exist - that's OK unless it's an unexpected error
-            if (!isNotFoundError(destHandleRes.unwrapErr())) {
-                return destHandleRes.asErr();
-            }
-        } else {
-            destExists = true;
-            // Validate type compatibility: both must be files OR both must be directories
-            const destHandle = destHandleRes.unwrap();
-            if (!((isFileHandle(srcHandle) && isFileHandle(destHandle))
-                || (isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle)))) {
-                return Err(new Error(`Both 'srcPath' and 'destPath' must both be a file or directory`));
-            }
+    const destHandleRes = await stat(destPath);
+    if (destHandleRes.isErr()) {
+        // Destination doesn't exist - that's OK unless it's an unexpected error
+        if (!isNotFoundError(destHandleRes.unwrapErr())) {
+            return destHandleRes.asErr();
         }
-
-        // Handle file source: apply handler directly
-        if (isFileHandle(srcHandle)) {
-            return (overwrite || !destExists) ? await handler(srcHandle, destPath) : RESULT_VOID;
+    } else {
+        destExists = true;
+        // Validate type compatibility: both must be files OR both must be directories
+        const destHandle = destHandleRes.unwrap();
+        if (
+            !(isFileHandle(srcHandle) && isFileHandle(destHandle))
+            && !(isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle))
+        ) {
+            return Err(new Error(`Both 'srcPath' and 'destPath' must both be a file or directory`));
         }
+    }
 
-        // Handle directory source: recursively process all entries
-        const readDirRes = await readDir(srcPath, {
-            recursive: true,
-        });
-        return readDirRes.andThenAsync(async entries => {
-            // Collect all tasks for parallel execution
-            const tasks: AsyncVoidIOResult[] = [
-                // Ensure destination directory exists first
-                mkdir(destPath),
-            ];
+    // Handle file source: apply handler directly
+    if (isFileHandle(srcHandle)) {
+        return (overwrite || !destExists) ? await handler(srcHandle, destPath) : RESULT_VOID;
+    }
 
-            for await (const { path, handle } of entries) {
-                const newEntryPath = join(destPath, path);
-                // Wrap each entry processing in an async IIFE for parallel execution
-                tasks.push((async (): AsyncVoidIOResult => {
-                    let newPathExists = false;
-
-                    if (destExists) {
-                        // Destination dir exists, need to check each file individually
-                        const existsRes = await exists(newEntryPath);
-                        if (existsRes.isErr()) {
-                            return existsRes.asErr();
-                        }
-
-                        newPathExists = existsRes.unwrap();
-                    }
-
-                    // For files: apply handler; for directories: just create them
-                    return isFileHandle(handle)
-                        ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : RESULT_VOID)
-                        : mkdir(newEntryPath);
-                })());
-            }
-
-            // Wait for all tasks and return first error if any
-            return aggregateResults(tasks);
-        });
+    // Handle directory source: recursively process all entries
+    const readDirRes = await readDir(srcPath, {
+        recursive: true,
     });
+    if (readDirRes.isErr()) {
+        return readDirRes.asErr();
+    }
+
+    // Collect all tasks for parallel execution
+    const tasks: AsyncVoidIOResult[] = [];
+
+    if (!destExists) {
+        // Ensure destination directory exists first
+        tasks.push(mkdir(destPath));
+    }
+
+    for await (const { path, handle } of readDirRes.unwrap()) {
+        const newEntryPath = join(destPath, path);
+        // Wrap each entry processing in an async IIFE for parallel execution
+        tasks.push((async () => {
+            let newPathExists = false;
+
+            if (destExists) {
+                // Destination dir exists, need to check each file individually
+                const existsRes = await exists(newEntryPath);
+                if (existsRes.isErr()) {
+                    return existsRes.asErr();
+                }
+
+                newPathExists = existsRes.unwrap();
+            }
+
+            // For files: apply handler; for directories: just create them
+            return isFileHandle(handle)
+                ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : RESULT_VOID)
+                : mkdir(newEntryPath);
+        })());
+    }
+
+    // Wait for all tasks and return first error if any
+    return aggregateResults(tasks);
 }
 
 /**
@@ -164,9 +177,7 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncV
  * ```
  */
 export function copy(srcPath: string, destPath: string, options?: CopyOptions): AsyncVoidIOResult {
-    const {
-        overwrite = true,
-    } = options ?? {};
+    const { overwrite = true } = options ?? {};
 
     return mkDestFromSrc(srcPath, destPath, async (srcHandle, destPath) => {
         // write file to new path
@@ -230,13 +241,12 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
 
     const statRes = await stat(path);
 
-    return statRes.andThen(handle => {
+    return statRes.map(handle => {
         const notExist =
             (isDirectory && isFileHandle(handle))
             || (isFile && isDirectoryHandle(handle));
-
-        return Ok(!notExist);
-    }).orElse((err): IOResult<boolean> => {
+        return !notExist;
+    }).orElse(err => {
         return isNotFoundError(err) ? RESULT_FALSE : statRes.asErr();
     });
 }
@@ -260,14 +270,11 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
  * ```
  */
 export async function move(srcPath: string, destPath: string, options?: MoveOptions): AsyncVoidIOResult {
-    const {
-        overwrite = true,
-    } = options ?? {};
+    const { overwrite = true } = options ?? {};
 
-    return (await mkDestFromSrc(srcPath, destPath, moveHandle, overwrite)).andThenAsync(() => {
-        // finally remove src
-        return remove(srcPath);
-    });
+    const mkRes = await mkDestFromSrc(srcPath, destPath, moveFileHandle, overwrite);
+    // finally remove src
+    return mkRes.andThenAsync(() => remove(srcPath));
 }
 
 /**
@@ -304,9 +311,8 @@ export function readBlobFile(filePath: string): AsyncIOResult<File> {
  * ```
  */
 export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
-    return (await readTextFile(filePath)).andThen(contents => {
-        return tryResult<T, Error, [string]>(JSON.parse, contents);
-    });
+    const readRes = await readTextFile(filePath);
+    return readRes.andThen(text => tryResult<T, Error, [string]>(JSON.parse, text));
 }
 
 /**

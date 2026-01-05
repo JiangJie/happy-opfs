@@ -14,11 +14,9 @@ import { readFile, writeFile } from './opfs_core.ts';
  * @param targetPath - Target directory path.
  */
 function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoidIOResult {
-    const data = new Uint8Array(buffer);
-
     const future = new Future<VoidIOResult>();
 
-    fflate.unzip(data, async (err, unzipped) => {
+    fflate.unzip(new Uint8Array(buffer), async (err, unzipped) => {
         if (err) {
             future.resolve(Err(err));
             return;

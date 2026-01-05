@@ -154,7 +154,6 @@ export function startSyncAgent(): void {
  *
  * @param messenger - The `SyncMessenger` instance for communication.
  * @param transfer - Async function that processes request data and returns response data.
- * @throws {RangeError} If the response data exceeds the buffer's maximum capacity.
  */
 async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
     const { i32a, maxDataLength } = messenger;
@@ -167,37 +166,23 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
         }
     }
 
-    // because of `Atomics.notify` may not work
-    // const waitRes = Atomics.wait(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
-    // if (waitRes !== 'ok') {
-    //     throw new Error(`Unexpected Atomics.wait result: ${ waitRes }`);
-    // }
-
     // payload and length
     const requestLength = i32a[DATA_INDEX];
-    // console.log(`requestLength: ${ requestLength }`);
     const data = messenger.getPayload(requestLength);
 
     // call async I/O operation
     let response = await transfer(data);
-    const responseLength = response.byteLength;
 
     // check whether response is too large
-    if (responseLength > maxDataLength) {
-        const message = `Response is too large: ${ responseLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`;
+    if (response.byteLength > maxDataLength) {
+        const message = `Response is too large: ${ response.byteLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`;
 
+        // Error response is guaranteed to fit since bufferLength >= 256 bytes
+        // and error response is ~147 bytes (16 header + 131 payload)
         response = encodeToBuffer([{
             name: 'RangeError',
             message,
         }]);
-
-        // the error is too large?
-        if (response.byteLength > maxDataLength) {
-            // lock worker thread before throw
-            Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED);
-
-            throw new RangeError(message);
-        }
     }
 
     // write response data
@@ -212,97 +197,111 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
 }
 
 /**
+ * Deserializes request arguments based on operation type.
+ * JSON.parse loses type info for some types, so we reconstruct them here.
+ *
+ * @param op - The operation type.
+ * @param args - The arguments to deserialize.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
+    if (op === WorkerAsyncOp.writeFile || op === WorkerAsyncOp.appendFile) {
+        // Binary data was serialized as number[] for JSON transport, convert back to Uint8Array
+        if (Array.isArray(args[1])) {
+            args[1] = new Uint8Array(args[1]);
+        }
+    } else if (op === WorkerAsyncOp.pruneTemp) {
+        // Date was serialized as ISO string, reconstruct Date object
+        args[0] = new Date(args[0] as Date);
+    }
+}
+
+/**
+ * Serializes operation result based on operation type.
+ * Different operations return different types that need specific serialization.
+ *
+ * @param op - The operation type.
+ * @param result - The unwrapped result value.
+ * @returns Serializable response data.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function serializeResult(op: WorkerAsyncOp, result: any): Promise<any> {
+    switch (op) {
+        case WorkerAsyncOp.readBlobFile: {
+            // File object needs full serialization (name, type, size, lastModified, data)
+            // serializeFile already converts data to number[] for JSON serialization
+            return serializeFile(result as File);
+        }
+        case WorkerAsyncOp.readDir: {
+            // Async iterator needs full materialization to array
+            const iterator: AsyncIterableIterator<DirEntry> = result;
+            const entries: DirEntryLike[] = [];
+
+            for await (const { path, handle } of iterator) {
+                // Convert FileSystemHandle to serializable object
+                const handleLike = await serializeFileSystemHandle(handle);
+                entries.push({
+                    path,
+                    handle: handleLike,
+                });
+            }
+
+            return entries;
+        }
+        case WorkerAsyncOp.stat: {
+            // FileSystemHandle needs serialization to plain object
+            return serializeFileSystemHandle(result as FileSystemHandle);
+        }
+        case WorkerAsyncOp.zip: {
+            // Uint8Array becomes number[] for JSON serialization
+            return result instanceof Uint8Array ? Array.from(result) : result;
+        }
+        default: {
+            // Other operations return boolean or void (undefined)
+            return result;
+        }
+    }
+}
+
+/**
+ * Processes a single request from the main thread.
+ *
+ * @param data - The encoded request data.
+ * @returns The encoded response data.
+ */
+async function processRequest(data: Uint8Array): Promise<Uint8Array> {
+    try {
+        // Decode the request: [operation, ...arguments]
+        const [op, ...args] = decodeFromBuffer<[WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>]>(data);
+
+        deserializeArgs(op, args);
+
+        const handle = asyncOps[op];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const res: IOResult<any> = await (handle as any)(...args);
+
+        if (res.isErr()) {
+            // Operation failed - encode error only: [serializedError]
+            return encodeToBuffer([serializeError(res.unwrapErr())]);
+        }
+
+        // Operation succeeded - serialize and encode response: [null (no error), result]
+        const rawResponse = await serializeResult(op, res.unwrap());
+        return encodeToBuffer([null, rawResponse]);
+    } catch (e) {
+        return encodeToBuffer([serializeError(e as Error)]);
+    }
+}
+
+/**
  * Main loop that continuously processes requests from the main thread.
  * Runs indefinitely until the worker is terminated.
  */
 async function runWorkerLoop(): Promise<void> {
-    // loop forever
+    // No try-catch needed:
+    // - processRequest catches all exceptions and returns encoded error response
+    // - respondToMainFromWorker never throws (error response always fits in buffer >= 256 bytes)
     while (true) {
-        try {
-            await respondToMainFromWorker(messenger, async (data) => {
-                // Decode the request: [operation, ...arguments]
-                const [op, ...args] = decodeFromBuffer<[WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>]>(data);
-
-                // Handle parameter deserialization for specific operations
-                // JSON.parse loses type info for some types, so we reconstruct them here
-                if (op === WorkerAsyncOp.writeFile || op === WorkerAsyncOp.appendFile) {
-                    // Binary data was serialized as number[] for JSON transport, convert back to Uint8Array
-                    if (Array.isArray(args[1])) {
-                        args[1] = new Uint8Array(args[1]);
-                    }
-                } else if (op === WorkerAsyncOp.pruneTemp) {
-                    // Date was serialized as ISO string, reconstruct Date object
-                    args[0] = new Date(args[0] as Date);
-                }
-
-                let response: Uint8Array;
-
-                const handle = asyncOps[op];
-
-                try {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const res: IOResult<any> = await (handle as any)(...args);
-
-                    if (res.isErr()) {
-                        // Operation failed - encode error only: [serializedError]
-                        response = encodeToBuffer([serializeError(res.unwrapErr())]);
-                    } else {
-                        // Operation succeeded - serialize response based on operation type
-                        // Different operations return different types that need specific serialization
-                        let rawResponse;
-
-                        if (op === WorkerAsyncOp.readBlobFile) {
-                            // File object needs full serialization (name, type, size, lastModified, data)
-                            const file: File = res.unwrap();
-                            const fileLike = await serializeFile(file);
-
-                            rawResponse = {
-                                ...fileLike,
-                                // ArrayBuffer becomes number[] for JSON serialization
-                                data: Array.from(new Uint8Array(fileLike.data)),
-                            };
-                        } else if (op === WorkerAsyncOp.readDir) {
-                            // Async iterator needs full materialization to array
-                            const iterator: AsyncIterableIterator<DirEntry> = res.unwrap();
-                            const entries: DirEntryLike[] = [];
-
-                            for await (const { path, handle } of iterator) {
-                                // Convert FileSystemHandle to serializable object
-                                const handleLike = await serializeFileSystemHandle(handle);
-                                entries.push({
-                                    path,
-                                    handle: handleLike,
-                                });
-                            }
-
-                            rawResponse = entries;
-                        } else if (op === WorkerAsyncOp.stat) {
-                            // FileSystemHandle needs serialization to plain object
-                            const handle: FileSystemHandle = res.unwrap();
-                            const data = await serializeFileSystemHandle(handle);
-
-                            rawResponse = data;
-                        } else if (op === WorkerAsyncOp.zip) {
-                            // Uint8Array becomes number[] for JSON serialization
-                            const data: Uint8Array | undefined = res.unwrap();
-
-                            rawResponse = data instanceof Uint8Array ? Array.from(data) : data;
-                        } else {
-                            // Other operations return boolean or void (undefined)
-                            rawResponse = res.unwrap();
-                        }
-
-                        // Encode success response: [null (no error), result]
-                        response = encodeToBuffer([null, rawResponse]);
-                    }
-                } catch (e) {
-                    response = encodeToBuffer([serializeError(e as Error)]);
-                }
-
-                return response;
-            });
-        } catch (err) {
-            console.error(err instanceof Error ? err.stack : err);
-        }
+        await respondToMainFromWorker(messenger, processRequest);
     }
 }

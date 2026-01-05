@@ -1,7 +1,7 @@
 import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
 import { basename } from '@std/path/posix';
 import { Err } from 'happy-rusty';
-import { assertFileUrl } from './assertions.ts';
+import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { UploadRequestInit } from './defines.ts';
 import { createAbortError } from './helpers.ts';
 import { readBlobFile } from './opfs_ext.ts';
@@ -10,7 +10,7 @@ import { readBlobFile } from './opfs_ext.ts';
  * Uploads a file from the specified path to a URL.
  *
  * @param filePath - The path of the file to upload.
- * @param fileUrl - The URL where the file will be uploaded.
+ * @param uploadUrl - The URL where the file will be uploaded.
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the upload.
  * @example
@@ -23,13 +23,13 @@ import { readBlobFile } from './opfs_ext.ts';
  * task.abort();
  * ```
  */
-export function uploadFile(filePath: string, fileUrl: string | URL, requestInit?: UploadRequestInit): FetchTask<Response> {
+export function uploadFile(filePath: string, uploadUrl: string | URL, requestInit?: UploadRequestInit): FetchTask<Response> {
     type T = Response;
 
-    assertFileUrl(fileUrl);
+    filePath = assertAbsolutePath(filePath);
+    assertFileUrl(uploadUrl);
 
     let aborted = false;
-
     let fetchTask: FetchTask<T>;
 
     const response = (async (): FetchResponse<T> => {
@@ -50,7 +50,7 @@ export function uploadFile(filePath: string, fileUrl: string | URL, requestInit?
             const formData = new FormData();
             formData.append(filename, file, filename);
 
-            fetchTask = fetchT(fileUrl, {
+            fetchTask = fetchT(uploadUrl, {
                 method: 'POST',
                 ...rest,
                 abortable: true,

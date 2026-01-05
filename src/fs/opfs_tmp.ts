@@ -69,9 +69,7 @@ export function isTempPath(path: string): boolean {
  * ```
  */
 export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
-    const {
-        isDirectory = false,
-    } = options ?? {};
+    const { isDirectory = false } = options ?? {};
 
     const path = generateTempPath(options);
     const res = await (isDirectory ? mkdir : createFile)(path);
@@ -124,7 +122,8 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
             }
 
             tasks.push((async () => {
-                if ((await handle.getFile()).lastModified <= expired.getTime()) {
+                const file = await handle.getFile();
+                if (file.lastModified <= expired.getTime()) {
                     // TODO ts not support yet
                     await (handle as FileSystemFileHandle & {
                         remove(): Promise<void>;
