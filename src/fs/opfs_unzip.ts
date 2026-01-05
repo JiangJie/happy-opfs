@@ -5,7 +5,7 @@ import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit } from './defines.ts';
-import { getFinalResult } from './helpers.ts';
+import { aggregateResults } from './helpers.ts';
 import { readFile, writeFile } from './opfs_core.ts';
 
 /**
@@ -33,7 +33,7 @@ function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoid
             }
         }
 
-        future.resolve(getFinalResult(tasks));
+        future.resolve(aggregateResults(tasks));
     });
 
     return future.promise;

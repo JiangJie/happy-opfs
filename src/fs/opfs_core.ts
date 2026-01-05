@@ -1,5 +1,5 @@
 import { basename, dirname, join } from '@std/path/posix';
-import { Err, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { Err, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR } from './constants.ts';
@@ -94,7 +94,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         }
     }
 
-    return dirHandleRes.andThen(x => Ok(read(x, dirPath)));
+    return dirHandleRes.map(x => read(x, dirPath));
 }
 
 /**
@@ -221,18 +221,18 @@ export async function remove(path: string): AsyncVoidIOResult {
 
     const dirHandleRes = await getDirHandle(dirPath);
 
-    const removeRes = await dirHandleRes.andTryAsync(async dirHandle => {
+    const removeRes = await dirHandleRes.andTryAsync(dirHandle => {
         const options: FileSystemRemoveOptions = {
             recursive: true,
         };
         // root
         if (isRootPath(dirPath) && isRootPath(childName)) {
             // TODO ts not support yet
-            await (dirHandle as FileSystemDirectoryHandle & {
+            return (dirHandle as FileSystemDirectoryHandle & {
                 remove(options?: FileSystemRemoveOptions): Promise<void>;
             }).remove(options);
         } else {
-            await dirHandle.removeEntry(childName, options);
+            return dirHandle.removeEntry(childName, options);
         }
     });
 

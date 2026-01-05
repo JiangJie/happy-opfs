@@ -23,14 +23,14 @@ export function isRootPath(path: string): boolean {
  * Asynchronously obtains a handle to a child directory from the given parent directory handle.
  *
  * @param dirHandle - The handle to the parent directory.
- * @param dirName - The name of the child directory to retrieve.
+ * @param childDirName - The name of the child directory to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  */
-async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    return (await tryAsyncResult(dirHandle.getDirectoryHandle(dirName, options)))
+async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, childDirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
+    return (await tryAsyncResult<FileSystemDirectoryHandle, DOMException>(dirHandle.getDirectoryHandle(childDirName, options)))
         .mapErr(err => {
-            const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ dirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+            const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ childDirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
             error.name = err.name;
             return error;
         });
@@ -40,14 +40,14 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, dirName: 
  * Retrieves a file handle for a child file within a directory.
  *
  * @param dirHandle - The directory handle to search within.
- * @param fileName - The name of the file to retrieve.
+ * @param childFileName - The name of the file to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
-async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, fileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    return (await tryAsyncResult(dirHandle.getFileHandle(fileName, options)))
+async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
+    return (await tryAsyncResult<FileSystemFileHandle, DOMException>(dirHandle.getFileHandle(childFileName, options)))
         .mapErr(err => {
-            const error = new Error(`${ err.name }: ${ err.message } When get child file '${ fileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+            const error = new Error(`${ err.name }: ${ err.message } When get child file '${ childFileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
             error.name = err.name;
             return error;
         });
@@ -84,16 +84,16 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
 
     // Iterate through each path segment
     while (childDirPath) {
-        let dirName = '';
+        let childDirName = '';
         const index = childDirPath.indexOf(SEPARATOR);
 
         if (index === -1) {
             // Last segment
-            dirName = childDirPath;
+            childDirName = childDirPath;
             childDirPath = '';
         } else {
             // Extract current segment and remaining path
-            dirName = childDirPath.slice(0, index);
+            childDirName = childDirPath.slice(0, index);
             childDirPath = childDirPath.slice(index + 1);
 
             // Skip empty segments (handles '//' in path)
@@ -103,7 +103,7 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
         }
 
         // Get or create child directory
-        const dirHandleRes = await getChildDirHandle(dirHandle, dirName, options);
+        const dirHandleRes = await getChildDirHandle(dirHandle, childDirName, options);
         if (dirHandleRes.isErr()) {
             // Stop traversal on error
             return dirHandleRes;
@@ -124,19 +124,13 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  * @internal
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    const create = options?.create ?? false;
-
     const dirPath = dirname(filePath);
     const fileName = basename(filePath);
 
-    const dirHandleRes = await getDirHandle(dirPath, {
-        create,
-    });
+    const dirHandleRes = await getDirHandle(dirPath, options);
 
     return dirHandleRes.andThenAsync(dirHandle => {
-        return getChildFileHandle(dirHandle, fileName, {
-            create,
-        });
+        return getChildFileHandle(dirHandle, fileName, options);
     });
 }
 
@@ -153,18 +147,16 @@ export function isNotFoundError(err: Error): boolean {
 
 /**
  * Aggregates multiple async void I/O results into a single result.
- * Returns the first error encountered, or a void success result if all tasks succeed.
+ * Waits for all tasks to complete, then returns the first error encountered,
+ * or a void success result if all tasks succeed.
  *
  * @param tasks - The list of async void I/O result promises to aggregate.
  * @returns A promise that resolves to the first error result, or `RESULT_VOID` if all tasks succeed.
  * @internal
  */
-export async function getFinalResult(tasks: AsyncVoidIOResult[]): AsyncVoidIOResult {
+export async function aggregateResults(tasks: AsyncVoidIOResult[]): AsyncVoidIOResult {
     const allRes = await Promise.all(tasks);
-    // Return the first error if any task failed
-    const fail = allRes.find(x => x.isErr());
-
-    return fail ?? RESULT_VOID;
+    return allRes.find(x => x.isErr()) ?? RESULT_VOID;
 }
 
 /**
@@ -184,13 +176,13 @@ export function createAbortError(): Error {
 /**
  * Reads the binary data from a file handle.
  *
- * @param handle - The `FileSystemFileHandle` to read from.
+ * @param fileHandle - The `FileSystemFileHandle` to read from.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a `Uint8Array`.
  * @internal
  */
-export function getFileDataByHandle(handle: FileSystemFileHandle): AsyncIOResult<Uint8Array> {
+export function getFileDataByHandle(fileHandle: FileSystemFileHandle): AsyncIOResult<Uint8Array<ArrayBuffer>> {
     return tryAsyncResult(async () => {
-        const file = await handle.getFile();
+        const file = await fileHandle.getFile();
         const ab = await file.arrayBuffer();
         return new Uint8Array(ab);
     });

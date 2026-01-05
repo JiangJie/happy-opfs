@@ -4,7 +4,7 @@ import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
 import { isDirectoryHandle, isFileHandle } from './guards.ts';
-import { getDirHandle, getFinalResult, isNotFoundError } from './helpers.ts';
+import { aggregateResults, getDirHandle, isNotFoundError } from './helpers.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
@@ -121,7 +121,7 @@ async function mkDestFromSrc(srcPath: string, destPath: string, handler: HandleS
             }
 
             // Wait for all tasks and return first error if any
-            return getFinalResult(tasks);
+            return aggregateResults(tasks);
         });
     });
 }
@@ -202,7 +202,7 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
         tasks.push(remove(join(dirPath, path)));
     }
 
-    return getFinalResult(tasks);
+    return aggregateResults(tasks);
 }
 
 /**
