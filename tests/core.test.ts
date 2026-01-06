@@ -164,6 +164,24 @@ describe('OPFS Core Operations', () => {
             expect(readResult.unwrap()).toBe('Hello World');
         });
 
+        it('should return an empty ReadableStream for empty file when encoding is stream', async () => {
+            // Create an empty file
+            const createResult = await fs.createFile('/test-file.txt');
+            expect(createResult.isOk()).toBe(true);
+
+            const readResult = await fs.readFile('/test-file.txt', { encoding: 'stream' });
+            expect(readResult.isOk()).toBe(true);
+
+            const stream = readResult.unwrap();
+            expect(stream).toBeInstanceOf(ReadableStream);
+
+            const reader = stream.getReader();
+            const { done, value } = await reader.read();
+            expect(done).toBe(true);
+            expect(value).toBeUndefined();
+            reader.releaseLock();
+        });
+
         it('should fail to write when create is false and file does not exist', async () => {
             const result = await fs.writeFile('/non-existent.txt', 'content', { create: false });
             expect(result.isErr()).toBe(true);
