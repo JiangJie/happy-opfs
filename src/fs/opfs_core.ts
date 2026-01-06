@@ -376,21 +376,12 @@ async function writeStreamViaWritable(
         keepExistingData: append,
     });
 
-    try {
-        if (append) {
-            const { size } = await fileHandle.getFile();
-            await writable.seek(size);
-        }
-
-        for await (const chunk of stream) {
-            await writable.write({
-                type: 'write',
-                data: chunk,
-            });
-        }
-    } finally {
-        await writable.close();
+    if (append) {
+        const { size } = await fileHandle.getFile();
+        await writable.seek(size);
     }
+
+    return stream.pipeTo(writable);
 }
 
 /**
@@ -416,7 +407,7 @@ async function writeDataViaWritable(
             params.position = size;
         }
 
-        await writable.write(params);
+        return writable.write(params);
     } finally {
         await writable.close();
     }
