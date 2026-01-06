@@ -163,3 +163,38 @@ export function createAbortError(): Error {
 
     return error;
 }
+
+/**
+ * Extended FileSystemHandle interface with optional remove method.
+ * The remove() method is not supported in Firefox/iOS Safari.
+ */
+interface RemovableHandle extends FileSystemHandle {
+    remove?(options?: FileSystemRemoveOptions): Promise<void>;
+}
+
+/**
+ * Removes a file or directory with cross-browser compatibility.
+ * Accepts either a handle or a name string. When a handle is provided and
+ * `handle.remove()` is supported (Chrome/Edge), uses native removal.
+ * Otherwise falls back to `parentDirHandle.removeEntry()`.
+ *
+ * @param handleOrName - The handle to remove, or the name of the entry.
+ * @param parentDirHandle - The parent directory handle.
+ * @param options - Optional remove options (e.g., `{ recursive: true }`).
+ * @returns A promise that resolves when the entry is removed.
+ * @internal
+ */
+export function removeHandle(handleOrName: FileSystemHandle | string, parentDirHandle: FileSystemDirectoryHandle, options?: FileSystemRemoveOptions): Promise<void> {
+    if (typeof handleOrName === 'string') {
+        // Name string: use removeEntry directly
+        return parentDirHandle.removeEntry(handleOrName, options);
+    }
+
+    const removableHandle = handleOrName as RemovableHandle;
+
+    return typeof removableHandle.remove === 'function'
+        // Chrome/Edge: use native handle.remove()
+        ? removableHandle.remove(options)
+        // Firefox/Safari: fallback to removeEntry()
+        : parentDirHandle.removeEntry(handleOrName.name, options);
+}

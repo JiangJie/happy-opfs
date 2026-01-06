@@ -4,7 +4,8 @@ import invariant from 'tiny-invariant';
 import { TMP_DIR } from './constants.ts';
 import type { TempOptions } from './defines.ts';
 import { isFileHandle } from './guards.ts';
-import { createFile, mkdir, readDir, remove } from './opfs_core.ts';
+import { getDirHandle, removeHandle } from './helpers.ts';
+import { createFile, mkdir, remove } from './opfs_core.ts';
 
 /**
  * Generates a unique temporary file or directory path without creating it.
@@ -93,9 +94,10 @@ export function deleteTemp(): AsyncVoidIOResult {
 
 /**
  * Removes expired files from the temporary directory.
- * Only removes files whose `lastModified` time is before the specified date.
+ * Only removes direct children files whose `lastModified` time is before the specified date.
  *
- * **Note:** This function only removes files, not empty directories.
+ * **Note:** This function only removes files directly under `/tmp`, not subdirectories or their contents.
+ * Use `deleteTemp()` to remove the entire temporary directory including all nested content.
  *
  * @param expired - Files modified before this date will be deleted.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
@@ -109,14 +111,14 @@ export function deleteTemp(): AsyncVoidIOResult {
 export async function pruneTemp(expired: Date): AsyncVoidIOResult {
     invariant(expired instanceof Date, () => `Expired must be a Date but received ${ expired }`);
 
-    const readDirRes = await readDir(TMP_DIR, {
-        recursive: true,
-    });
+    // Get TMP_DIR handle to iterate and reuse for removal
+    const tmpDirHandleRes = await getDirHandle(TMP_DIR);
 
-    return readDirRes.andTryAsync(async entries => {
+    return tmpDirHandleRes.andTryAsync(async tmpDirHandle => {
         const tasks: Promise<void>[] = [];
 
-        for await (const { handle } of entries) {
+        // Only process direct children (no recursive), since mkTemp only creates top-level items
+        for await (const handle of tmpDirHandle.values()) {
             if (!isFileHandle(handle)) {
                 continue;
             }
@@ -124,10 +126,7 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
             tasks.push((async () => {
                 const file = await handle.getFile();
                 if (file.lastModified <= expired.getTime()) {
-                    // TODO ts not support yet
-                    await (handle as FileSystemFileHandle & {
-                        remove(): Promise<void>;
-                    }).remove();
+                    await removeHandle(handle, tmpDirHandle);
                 }
             })());
         }

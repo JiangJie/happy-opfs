@@ -5,12 +5,15 @@ import { textEncode } from './codec.ts';
 import { NO_STRATEGY_ERROR } from './constants.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { isDirectoryHandle } from './guards.ts';
-import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRootDir } from './helpers.ts';
+import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRootDir, removeHandle } from './helpers.ts';
 
 /**
  * Creates a new empty file at the specified path, similar to the `touch` command.
  * If the file already exists, this operation succeeds without modifying it.
  * Parent directories are created automatically if they don't exist.
+ *
+ * **Note:** For temporary files, use {@link mkTemp} instead, which provides
+ * automatic unique naming and integrates with {@link pruneTemp} for cleanup.
  *
  * @param filePath - The absolute path of the file to create.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
@@ -33,6 +36,9 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
 /**
  * Creates a new directory at the specified path, similar to `mkdir -p`.
  * Creates all necessary parent directories if they don't exist.
+ *
+ * **Note:** For temporary directories, use {@link mkTemp} with `{ isDirectory: true }` instead,
+ * which provides automatic unique naming and integrates with temporary file management.
  *
  * @param dirPath - The absolute path where the directory will be created.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
@@ -216,22 +222,15 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
 export async function remove(path: string): AsyncVoidIOResult {
     path = assertAbsolutePath(path);
 
-    const dirHandleRes = await getParentDirHandle(path);
+    const parentDirHandleRes = await getParentDirHandle(path);
 
-    const removeRes = await dirHandleRes.andTryAsync(dirHandle => {
-        const options: FileSystemRemoveOptions = {
+    const removeRes = await parentDirHandleRes.andTryAsync(parentDirHandle => {
+        // For root, parentDirHandle is the root itself
+        // For non-root, use basename as the entry name
+        const handleOrName = isRootDir(path) ? parentDirHandle : basename(path);
+        return removeHandle(handleOrName, parentDirHandle, {
             recursive: true,
-        };
-        // root
-        if (isRootDir(path)) {
-            // TODO ts not support yet
-            return (dirHandle as FileSystemDirectoryHandle & {
-                remove(options?: FileSystemRemoveOptions): Promise<void>;
-            }).remove(options);
-        } else {
-            const childName = basename(path);
-            return dirHandle.removeEntry(childName, options);
-        }
+        });
     });
 
     return removeRes.orElse(err => {
