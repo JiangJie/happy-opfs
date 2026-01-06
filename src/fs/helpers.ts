@@ -178,13 +178,20 @@ interface RemovableHandle extends FileSystemHandle {
  * `handle.remove()` is supported (Chrome/Edge), uses native removal.
  * Otherwise falls back to `parentDirHandle.removeEntry()`.
  *
+ * For root directory removal on Firefox/Safari (where `handle.remove()` is not supported),
+ * iterates through all children and removes them individually.
+ *
  * @param handleOrName - The handle to remove, or the name of the entry.
  * @param parentDirHandle - The parent directory handle.
  * @param options - Optional remove options (e.g., `{ recursive: true }`).
  * @returns A promise that resolves when the entry is removed.
  * @internal
  */
-export function removeHandle(handleOrName: FileSystemHandle | string, parentDirHandle: FileSystemDirectoryHandle, options?: FileSystemRemoveOptions): Promise<void> {
+export async function removeHandle(
+    handleOrName: FileSystemHandle | string,
+    parentDirHandle: FileSystemDirectoryHandle,
+    options?: FileSystemRemoveOptions,
+): Promise<void> {
     if (typeof handleOrName === 'string') {
         // Name string: use removeEntry directly
         return parentDirHandle.removeEntry(handleOrName, options);
@@ -192,9 +199,26 @@ export function removeHandle(handleOrName: FileSystemHandle | string, parentDirH
 
     const removableHandle = handleOrName as RemovableHandle;
 
-    return typeof removableHandle.remove === 'function'
+    if (typeof removableHandle.remove === 'function') {
         // Chrome/Edge: use native handle.remove()
-        ? removableHandle.remove(options)
-        // Firefox/Safari: fallback to removeEntry()
-        : parentDirHandle.removeEntry(handleOrName.name, options);
+        return removableHandle.remove(options);
+    }
+
+    // Firefox/Safari: fallback to removeEntry()
+    // Special case: root directory has empty name, cannot use removeEntry
+    // Instead, iterate and remove all children
+    if (!handleOrName.name) {
+        const dirHandle = handleOrName as FileSystemDirectoryHandle;
+        const tasks: Promise<void>[] = [];
+
+        for await (const childName of dirHandle.keys()) {
+            tasks.push(dirHandle.removeEntry(childName, options));
+        }
+
+        if (tasks.length > 0) {
+            await Promise.all(tasks);
+        }
+    } else {
+        return parentDirHandle.removeEntry(handleOrName.name, options);
+    }
 }
