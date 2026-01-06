@@ -16,21 +16,19 @@ import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRoo
  * automatic unique naming and integrates with {@link pruneTemp} for cleanup.
  *
  * @param filePath - The absolute path of the file to create.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  * @example
  * ```typescript
  * (await createFile('/path/to/file.txt'))
- *     .inspect(() => console.log('File created successfully'));
+ *     .inspect(handle => console.log('File created:', handle.name));
  * ```
  */
-export async function createFile(filePath: string): AsyncVoidIOResult {
+export function createFile(filePath: string): AsyncIOResult<FileSystemFileHandle> {
     filePath = assertAbsolutePath(filePath);
 
-    const fileHandleRes = await getFileHandle(filePath, {
+    return getFileHandle(filePath, {
         create: true,
     });
-
-    return fileHandleRes.and(RESULT_VOID);
 }
 
 /**
@@ -41,21 +39,19 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
  * which provides automatic unique naming and integrates with temporary file management.
  *
  * @param dirPath - The absolute path where the directory will be created.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  * @example
  * ```typescript
  * (await mkdir('/path/to/new/directory'))
- *     .inspect(() => console.log('Directory created successfully'));
+ *     .inspect(handle => console.log('Directory created:', handle.name));
  * ```
  */
-export async function mkdir(dirPath: string): AsyncVoidIOResult {
+export function mkdir(dirPath: string): AsyncIOResult<FileSystemDirectoryHandle> {
     dirPath = assertAbsolutePath(dirPath);
 
-    const dirHandleRes = await getDirHandle(dirPath, {
+    return getDirHandle(dirPath, {
         create: true,
     });
-
-    return dirHandleRes.and(RESULT_VOID);
 }
 
 /**
