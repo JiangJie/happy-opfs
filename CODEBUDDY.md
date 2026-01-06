@@ -11,9 +11,10 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 **Key Dependencies:**
 - `@std/path` from JSR - **Important:** Requires `.npmrc` configuration with `@jsr:registry=https://npm.jsr.io`
 - `happy-rusty` - Provides Rust-style `Result<T, E>` types for error handling
-- `fflate` - For zip/unzip operations
+- `fflate` - For zip/unzip operations (uses `fflate/browser` for browser-optimized build)
 - `@happy-ts/fetch-t` - For download/upload operations
 - `tiny-future` - For Promise-based future/deferred patterns
+- `tiny-invariant` - For runtime assertions
 
 ## Development Commands
 
@@ -70,6 +71,11 @@ Tests are located in `tests/` directory. The test environment:
 - Runs tests sequentially to avoid OPFS conflicts
 - Coverage reports via v8 provider
 - Uses MSW (Mock Service Worker) for download/upload API mocking
+
+**Worker helper files for tests:**
+- `tests/worker.ts` - Main worker for sync API tests
+- `tests/worker-check-connected.ts` - Worker for connection checking tests
+- `tests/worker-connect-error.ts` - Worker for connection error tests
 
 ### Mock Server (MSW)
 Download and upload tests use MSW instead of external APIs:
@@ -240,7 +246,7 @@ The `examples/` directory contains runnable examples for all major features:
 - `download-upload.ts` - File download and upload with progress
 - `stream.ts` - Readable/writable stream operations
 - `zip.ts` - Zip/unzip operations
-- `sync-api.ts` - Synchronous file operations via Web Worker
-- `shared-messenger.ts` - Sharing sync instance between iframe contexts
+- `sync-api.ts` + `sync-worker.ts` - Synchronous file operations via Web Worker
+- `shared-messenger.ts` + `shared-messenger-child.ts` - Sharing sync instance between iframe contexts
 
 Run examples with `pnpm eg` (requires HTTPS, Vite dev server handles this automatically).
