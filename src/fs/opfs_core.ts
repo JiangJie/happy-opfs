@@ -16,19 +16,21 @@ import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRoo
  * automatic unique naming and integrates with {@link pruneTemp} for cleanup.
  *
  * @param filePath - The absolute path of the file to create.
- * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @example
  * ```typescript
  * (await createFile('/path/to/file.txt'))
- *     .inspect(handle => console.log('File created:', handle.name));
+ *     .inspect(() => console.log('File created'));
  * ```
  */
-export function createFile(filePath: string): AsyncIOResult<FileSystemFileHandle> {
+export async function createFile(filePath: string): AsyncVoidIOResult {
     filePath = assertAbsolutePath(filePath);
 
-    return getFileHandle(filePath, {
+    const res = await getFileHandle(filePath, {
         create: true,
     });
+
+    return res.and(RESULT_VOID);
 }
 
 /**
@@ -39,19 +41,21 @@ export function createFile(filePath: string): AsyncIOResult<FileSystemFileHandle
  * which provides automatic unique naming and integrates with temporary file management.
  *
  * @param dirPath - The absolute path where the directory will be created.
- * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @example
  * ```typescript
  * (await mkdir('/path/to/new/directory'))
- *     .inspect(handle => console.log('Directory created:', handle.name));
+ *     .inspect(() => console.log('Directory created'));
  * ```
  */
-export function mkdir(dirPath: string): AsyncIOResult<FileSystemDirectoryHandle> {
+export async function mkdir(dirPath: string): AsyncVoidIOResult {
     dirPath = assertAbsolutePath(dirPath);
 
-    return getDirHandle(dirPath, {
+    const res = await getDirHandle(dirPath, {
         create: true,
     });
+
+    return res.and(RESULT_VOID);
 }
 
 /**
