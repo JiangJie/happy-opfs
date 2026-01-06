@@ -1,12 +1,11 @@
 import { fetchT } from '@happy-ts/fetch-t';
 import { basename, join } from '@std/path/posix';
 import * as fflate from 'fflate/browser';
-import { Err, Ok, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
+import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit, ZipOptions } from './defines.ts';
 import { isFileHandle } from './guards.ts';
-import { getFileDataByHandle } from './helpers.ts';
 import { readDir, stat, writeFile } from './opfs_core.ts';
 import { getUrlPathname } from './url.ts';
 
@@ -203,4 +202,18 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
     };
 
     return zipTo(zippable, zipFilePath);
+}
+
+/**
+ * Reads the binary data from a file handle.
+ *
+ * @param fileHandle - The `FileSystemFileHandle` to read from.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a `Uint8Array`.
+ */
+function getFileDataByHandle(fileHandle: FileSystemFileHandle): AsyncIOResult<Uint8Array<ArrayBuffer>> {
+    return tryAsyncResult(async () => {
+        const file = await fileHandle.getFile();
+        const ab = await file.arrayBuffer();
+        return new Uint8Array(ab);
+    });
 }
