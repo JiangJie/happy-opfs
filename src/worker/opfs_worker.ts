@@ -110,6 +110,12 @@ const asyncOps = {
 let messenger: SyncMessenger;
 
 /**
+ * Flag to track if startSyncAgent has been called.
+ * Used to prevent multiple event listeners from being registered.
+ */
+let isStarted = false;
+
+/**
  * Starts the sync agent in a Web Worker.
  * Listens for a SharedArrayBuffer from the main thread and begins processing requests.
  *
@@ -126,15 +132,19 @@ export function startSyncAgent(): void {
         throw new Error('Only can use in worker');
     }
 
-    if (messenger) {
+    if (isStarted) {
         throw new Error('Worker messenger already started');
     }
+
+    isStarted = true;
 
     addEventListener('message', (event: MessageEvent<SharedArrayBuffer>) => {
         // created at main thread and transfer to worker
         const sab = event.data;
 
         if (!(sab instanceof SharedArrayBuffer)) {
+            // Reset flag to allow retry on failure
+            isStarted = false;
             throw new TypeError('Only can post SharedArrayBuffer to Worker');
         }
 
@@ -145,6 +155,8 @@ export function startSyncAgent(): void {
 
         // start waiting for request
         runWorkerLoop();
+    }, {
+        once: true,
     });
 }
 
