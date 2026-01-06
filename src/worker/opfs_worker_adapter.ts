@@ -406,7 +406,7 @@ export function readFileSync(filePath: string, options?: ReadOptions & {
  */
 export function readFileSync(filePath: string, options: ReadOptions & {
     encoding: 'bytes';
-}): IOResult<Uint8Array>;
+}): IOResult<Uint8Array<ArrayBuffer>>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file with the specified encoding.

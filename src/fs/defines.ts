@@ -21,7 +21,7 @@ export type WriteSyncFileContent = BufferSource | string;
  * - `'blob'`: `File`
  * - `'stream'`: `ReadableStream<Uint8Array>`
  */
-export type ReadFileContent = ArrayBuffer | Uint8Array | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
+export type ReadFileContent = ArrayBuffer | Uint8Array<ArrayBuffer> | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Options for reading files with specified encoding.

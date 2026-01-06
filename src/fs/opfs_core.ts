@@ -156,6 +156,22 @@ export function readFile(filePath: string, options: ReadOptions & {
 }): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>>;
 
 /**
+ * Reads the content of a file at the specified path as a Uint8Array.
+ *
+ * @param filePath - The path of the file to read.
+ * @param options - Read options specifying the 'bytes' encoding.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Uint8Array.
+ * @example
+ * ```typescript
+ * (await readFile('/path/to/file.bin', { encoding: 'bytes' }))
+ *     .inspect(bytes => console.log('First byte:', bytes[0]));
+ * ```
+ */
+export function readFile(filePath: string, options: ReadOptions & {
+    encoding: 'bytes';
+}): AsyncIOResult<Uint8Array<ArrayBuffer>>;
+
+/**
  * Reads the content of a file at the specified path as an ArrayBuffer by default.
  *
  * @param filePath - The path of the file to read.
@@ -170,22 +186,6 @@ export function readFile(filePath: string, options: ReadOptions & {
 export function readFile(filePath: string, options?: ReadOptions & {
     encoding?: 'binary';
 }): AsyncIOResult<ArrayBuffer>;
-
-/**
- * Reads the content of a file at the specified path as a Uint8Array.
- *
- * @param filePath - The path of the file to read.
- * @param options - Read options specifying the 'bytes' encoding.
- * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Uint8Array.
- * @example
- * ```typescript
- * (await readFile('/path/to/file.bin', { encoding: 'bytes' }))
- *     .inspect(bytes => console.log('First byte:', bytes[0]));
- * ```
- */
-export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'bytes';
-}): AsyncIOResult<Uint8Array>;
 
 /**
  * Reads the content of a file at the specified path with the specified options.
