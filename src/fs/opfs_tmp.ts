@@ -126,7 +126,7 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
             tasks.push((async () => {
                 const file = await handle.getFile();
                 if (file.lastModified <= expired.getTime()) {
-                    await removeHandle(handle, tmpDirHandle);
+                    return removeHandle(handle, tmpDirHandle);
                 }
             })());
         }

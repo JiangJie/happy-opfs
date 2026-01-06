@@ -179,7 +179,7 @@ export function readFile(filePath: string, options?: ReadOptions & {
  * @param options - Optional read options.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content.
  */
-export async function readFile<T extends ReadFileContent>(filePath: string, options?: ReadOptions): AsyncIOResult<T> {
+export async function readFile(filePath: string, options?: ReadOptions): AsyncIOResult<ReadFileContent> {
     filePath = assertAbsolutePath(filePath);
 
     const fileHandleRes = await getFileHandle(filePath);
@@ -188,16 +188,16 @@ export async function readFile<T extends ReadFileContent>(filePath: string, opti
         const file = await fileHandle.getFile();
         switch (options?.encoding) {
             case 'blob': {
-                return file as unknown as T;
+                return file;
             }
             case 'utf8': {
-                return await file.text() as unknown as T;
+                return file.text();
             }
             case 'stream': {
-                return file.stream() as unknown as T;
+                return file.stream();
             }
             default: {
-                return await file.arrayBuffer() as unknown as T;
+                return file.arrayBuffer();
             }
         }
     });
