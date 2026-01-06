@@ -372,7 +372,6 @@ async function writeStreamViaWritable(
     stream: ReadableStream<Uint8Array<ArrayBuffer>>,
     append: boolean,
 ): Promise<void> {
-    const reader = stream.getReader();
     const writable = await fileHandle.createWritable({
         keepExistingData: append,
     });
@@ -383,15 +382,10 @@ async function writeStreamViaWritable(
             await writable.seek(size);
         }
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-
+        for await (const chunk of stream) {
             await writable.write({
                 type: 'write',
-                data: value,
+                data: chunk,
             });
         }
     } finally {
@@ -436,7 +430,6 @@ async function writeStreamViaSyncAccess(
     stream: ReadableStream<Uint8Array<ArrayBuffer>>,
     append: boolean,
 ): Promise<void> {
-    const reader = stream.getReader();
     const accessHandle = await fileHandle.createSyncAccessHandle();
 
     try {
@@ -446,13 +439,8 @@ async function writeStreamViaSyncAccess(
 
         let position = append ? accessHandle.getSize() : 0;
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-
-            position = writeBytesWithRetry(accessHandle, value, position);
+        for await (const chunk of stream) {
+            position = writeBytesWithRetry(accessHandle, chunk, position);
         }
     } finally {
         accessHandle.close();
