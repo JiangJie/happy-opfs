@@ -24,6 +24,12 @@ export type WriteSyncFileContent = BufferSource | string;
 export type ReadFileContent = ArrayBuffer | Uint8Array<ArrayBuffer> | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
+ * Represents the possible content types for synchronous file reads.
+ * Excludes `ReadableStream` since it cannot be returned synchronously.
+ */
+export type ReadSyncFileContent = Exclude<ReadFileContent, ReadableStream<Uint8Array<ArrayBuffer>>>;
+
+/**
  * Options for reading files with specified encoding.
  */
 export interface ReadOptions {

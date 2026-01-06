@@ -3,7 +3,7 @@ import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import { textDecode } from '../fs/codec.ts';
 import { TIMEOUT_ERROR } from '../fs/constants.ts';
-import type { CopyOptions, DirEntryLike, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirOptions, ReadFileContent, ReadOptions, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
+import type { CopyOptions, DirEntryLike, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirOptions, ReadOptions, ReadSyncFileContent, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
 import type { ErrorLike, FileLike } from './defines.ts';
 import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 
@@ -377,22 +377,6 @@ export function readFileSync(filePath: string, options: ReadOptions & {
 }): IOResult<string>;
 /**
  * Synchronous version of `readFile`.
- * Reads the content of a file as an ArrayBuffer (binary/default encoding).
- *
- * @param filePath - The absolute path of the file to read.
- * @param options - Optional read options with 'binary' encoding.
- * @returns An `IOResult` containing the file content as an ArrayBuffer.
- * @example
- * ```typescript
- * readFileSync('/path/to/file.bin')
- *     .inspect(buffer => console.log('Size:', buffer.byteLength));
- * ```
- */
-export function readFileSync(filePath: string, options?: ReadOptions & {
-    encoding?: 'binary';
-}): IOResult<ArrayBuffer>;
-/**
- * Synchronous version of `readFile`.
  * Reads the content of a file as a Uint8Array.
  *
  * @param filePath - The absolute path of the file to read.
@@ -409,6 +393,22 @@ export function readFileSync(filePath: string, options: ReadOptions & {
 }): IOResult<Uint8Array<ArrayBuffer>>;
 /**
  * Synchronous version of `readFile`.
+ * Reads the content of a file as an ArrayBuffer (binary/default encoding).
+ *
+ * @param filePath - The absolute path of the file to read.
+ * @param options - Optional read options with 'binary' encoding.
+ * @returns An `IOResult` containing the file content as an ArrayBuffer.
+ * @example
+ * ```typescript
+ * readFileSync('/path/to/file.bin')
+ *     .inspect(buffer => console.log('Size:', buffer.byteLength));
+ * ```
+ */
+export function readFileSync(filePath: string, options?: ReadOptions & {
+    encoding?: 'binary';
+}): IOResult<ArrayBuffer>;
+/**
+ * Synchronous version of `readFile`.
  * Reads the content of a file with the specified encoding.
  *
  * @param filePath - The absolute path of the file to read.
@@ -416,7 +416,7 @@ export function readFileSync(filePath: string, options: ReadOptions & {
  * @returns An `IOResult` containing the file content.
  * @see {@link readFile} for the async version.
  */
-export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ReadFileContent> {
+export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ReadSyncFileContent> {
     // Runtime guard: sync API cannot return a ReadableStream
     if (options?.encoding === 'stream') {
         return Err(new Error(`readFileSync does not support 'stream' encoding`));
