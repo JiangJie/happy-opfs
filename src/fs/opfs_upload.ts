@@ -9,6 +9,10 @@ import { readBlobFile } from './opfs_ext.ts';
 /**
  * Uploads a file from the specified path to a URL.
  *
+ * This API is built on `@happy-ts/fetch-t`.
+ * - Supports `timeout` and `onProgress` via {@link UploadRequestInit}
+ * - Returns an abortable {@link FetchTask}
+ *
  * @param filePath - The path of the file to upload.
  * @param uploadUrl - The URL where the file will be uploaded.
  * @param requestInit - Optional request initialization parameters.

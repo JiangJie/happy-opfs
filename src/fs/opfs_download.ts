@@ -12,6 +12,10 @@ import { getUrlPathname } from './url.ts';
  * Downloads a file from a URL and saves it to a temporary file.
  * The returned response will contain the temporary file path.
  *
+ * This API is built on `@happy-ts/fetch-t`.
+ * - Supports `timeout` and `onProgress` via {@link FsRequestInit}
+ * - Returns an abortable {@link FetchTask}
+ *
  * @param fileUrl - The URL of the file to download.
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the download.

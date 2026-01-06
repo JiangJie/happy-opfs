@@ -66,6 +66,10 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
  * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
+ *
+ * This API is built on `@happy-ts/fetch-t` for downloading the zip file.
+ * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
+ *
  * @param zipFileUrl - Zip file url.
  * @param targetPath - The directory to unzip to.
  * @param requestInit - Optional request initialization parameters.

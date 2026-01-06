@@ -85,12 +85,20 @@ export interface ExistsOptions {
 export type FileEncoding = 'binary' | 'bytes' | 'utf8' | 'blob' | 'stream';
 
 /**
- * fetch-t options for download and upload.
+ * Request init options for network-related APIs.
+ *
+ * This type is based on `@happy-ts/fetch-t` and is used by:
+ * - {@link downloadFile}
+ * - {@link uploadFile}
+ * - {@link zipFromUrl}
+ * - {@link unzipFromUrl}
+ *
+ * It supports `timeout` and `onProgress` (see fetch-t docs for exact semantics).
  */
 export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>;
 
 /**
- * fetch-t request options for uploading files.
+ * Request init options for {@link uploadFile}.
  */
 export interface UploadRequestInit extends FsRequestInit {
     /**

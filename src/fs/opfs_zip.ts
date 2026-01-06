@@ -146,6 +146,10 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
  * Zip a remote file and write to a zip file.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
+ *
+ * This API is built on `@happy-ts/fetch-t` for downloading the source.
+ * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
+ *
  * @param sourceUrl - The url to be zipped.
  * @param zipFilePath - The path to the zip file.
  * @param requestInit - Optional request initialization parameters.
@@ -163,6 +167,10 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  * Zip a remote file and return the zip file data.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
+ *
+ * This API is built on `@happy-ts/fetch-t` for downloading the source.
+ * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
+ *
  * @param sourceUrl - The url to be zipped.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
