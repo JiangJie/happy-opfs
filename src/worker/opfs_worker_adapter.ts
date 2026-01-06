@@ -389,8 +389,24 @@ export function readFileSync(filePath: string, options: ReadOptions & {
  * ```
  */
 export function readFileSync(filePath: string, options?: ReadOptions & {
-    encoding: 'binary';
+    encoding?: 'binary';
 }): IOResult<ArrayBuffer>;
+/**
+ * Synchronous version of `readFile`.
+ * Reads the content of a file as a Uint8Array.
+ *
+ * @param filePath - The absolute path of the file to read.
+ * @param options - Read options with 'bytes' encoding.
+ * @returns An `IOResult` containing the file content as a Uint8Array.
+ * @example
+ * ```typescript
+ * readFileSync('/path/to/file.bin', { encoding: 'bytes' })
+ *     .inspect(bytes => console.log('First byte:', bytes[0]));
+ * ```
+ */
+export function readFileSync(filePath: string, options: ReadOptions & {
+    encoding: 'bytes';
+}): IOResult<Uint8Array>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file with the specified encoding.
@@ -413,6 +429,10 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
             case 'blob': {
                 // File
                 return deserializeFile(file);
+            }
+            case 'bytes': {
+                // Uint8Array
+                return new Uint8Array(file.data);
             }
             case 'utf8': {
                 // string

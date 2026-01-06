@@ -107,7 +107,7 @@ async function mkDestFromSrc(
 
     if (!destExists) {
         // Ensure destination directory exists first
-        tasks.push(mkdir(destPath));
+        tasks.push(mkdir(destPath).then(res => res.and(RESULT_VOID)));
     }
 
     for await (const { path, handle } of readDirRes.unwrap()) {
@@ -129,7 +129,7 @@ async function mkDestFromSrc(
             // For files: apply handler; for directories: just create them
             return isFileHandle(handle)
                 ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : RESULT_VOID)
-                : mkdir(newEntryPath);
+                : (await mkdir(newEntryPath)).and(RESULT_VOID);
         })());
     }
 
@@ -202,7 +202,9 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
 
     if (readDirRes.isErr()) {
         // create if not exist
-        return isNotFoundError(readDirRes.unwrapErr()) ? mkdir(dirPath) : readDirRes.asErr();
+        return isNotFoundError(readDirRes.unwrapErr())
+            ? (await mkdir(dirPath)).and(RESULT_VOID)
+            : readDirRes.asErr();
     }
 
     const tasks: AsyncVoidIOResult[] = [];

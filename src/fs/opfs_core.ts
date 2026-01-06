@@ -168,8 +168,24 @@ export function readFile(filePath: string, options: ReadOptions & {
  * ```
  */
 export function readFile(filePath: string, options?: ReadOptions & {
-    encoding: 'binary';
+    encoding?: 'binary';
 }): AsyncIOResult<ArrayBuffer>;
+
+/**
+ * Reads the content of a file at the specified path as a Uint8Array.
+ *
+ * @param filePath - The path of the file to read.
+ * @param options - Read options specifying the 'bytes' encoding.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Uint8Array.
+ * @example
+ * ```typescript
+ * (await readFile('/path/to/file.bin', { encoding: 'bytes' }))
+ *     .inspect(bytes => console.log('First byte:', bytes[0]));
+ * ```
+ */
+export function readFile(filePath: string, options: ReadOptions & {
+    encoding: 'bytes';
+}): AsyncIOResult<Uint8Array>;
 
 /**
  * Reads the content of a file at the specified path with the specified options.
@@ -189,6 +205,13 @@ export async function readFile(filePath: string, options?: ReadOptions): AsyncIO
         switch (options?.encoding) {
             case 'blob': {
                 return file;
+            }
+            case 'bytes': {
+                // Use native bytes() if available, otherwise polyfill
+                if (typeof file.bytes === 'function') {
+                    return file.bytes();
+                }
+                return new Uint8Array(await file.arrayBuffer());
             }
             case 'utf8': {
                 return file.text();

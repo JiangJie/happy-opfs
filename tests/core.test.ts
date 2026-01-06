@@ -98,6 +98,19 @@ describe('OPFS Core Operations', () => {
             expect(new Uint8Array(buffer)[0]).toBe(1);
         });
 
+        it('should read file as Uint8Array with bytes encoding', async () => {
+            const data = new Uint8Array([10, 20, 30, 40, 50]);
+            await fs.writeFile('/test-file.txt', data);
+
+            const readResult = await fs.readFile('/test-file.txt', { encoding: 'bytes' });
+            expect(readResult.isOk()).toBe(true);
+            const bytes = readResult.unwrap();
+            expect(bytes).toBeInstanceOf(Uint8Array);
+            expect(bytes.length).toBe(5);
+            expect(bytes[0]).toBe(10);
+            expect(bytes[4]).toBe(50);
+        });
+
         it('should write and read Blob content', async () => {
             const blob = new Blob(['Blob content'], { type: 'text/plain' });
             await fs.writeFile('/test-file.txt', blob);

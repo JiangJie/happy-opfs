@@ -16,11 +16,12 @@ export type WriteSyncFileContent = BufferSource | string;
  * Represents the possible content types that can be read from a file.
  * The actual type depends on the `encoding` option:
  * - `'binary'`: `ArrayBuffer`
+ * - `'bytes'`: `Uint8Array`
  * - `'utf8'`: `string`
  * - `'blob'`: `File`
  * - `'stream'`: `ReadableStream<Uint8Array>`
  */
-export type ReadFileContent = ArrayBuffer | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
+export type ReadFileContent = ArrayBuffer | Uint8Array | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Options for reading files with specified encoding.
@@ -70,11 +71,12 @@ export interface ExistsOptions {
 /**
  * Supported file encodings for reading files.
  * - `'binary'`: Returns raw `ArrayBuffer`
+ * - `'bytes'`: Returns `Uint8Array`
  * - `'utf8'`: Returns decoded `string`
  * - `'blob'`: Returns `File` object with metadata
  * - `'stream'`: Returns `ReadableStream<Uint8Array>` for streaming reads
  */
-export type FileEncoding = 'binary' | 'utf8' | 'blob' | 'stream';
+export type FileEncoding = 'binary' | 'bytes' | 'utf8' | 'blob' | 'stream';
 
 /**
  * fetch-t options for download and upload.
