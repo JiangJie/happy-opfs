@@ -5,7 +5,7 @@ import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit } from './defines.ts';
-import { aggregateResults } from './helpers.ts';
+import { aggregateResults, createEmptyBodyError } from './helpers.ts';
 import { readFile, writeFile } from './opfs_core.ts';
 
 /**
@@ -92,6 +92,11 @@ export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string,
     });
 
     return fetchRes.andThenAsync(buffer => {
+        // body can be null for 204/304 responses or HEAD requests
+        if (buffer.byteLength === 0) {
+            return Err(createEmptyBodyError());
+        }
+
         return unzipBufferToTarget(buffer, targetPath);
     });
 }

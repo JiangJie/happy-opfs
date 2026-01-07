@@ -3,7 +3,7 @@ import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { DownloadFileTempResponse, FsRequestInit } from './defines.ts';
-import { createAbortError } from './helpers.ts';
+import { createAbortError, createEmptyBodyError } from './helpers.ts';
 import { writeFile } from './opfs_core.ts';
 import { generateTempPath } from './opfs_tmp.ts';
 import { getUrlPathname } from './url.ts';
@@ -78,8 +78,13 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
                 return Err(createAbortError());
             }
 
+            // body can be null for 204/304 responses or HEAD requests
+            if (!rawResponse.body) {
+                return Err(createEmptyBodyError());
+            }
+
             // Use stream to avoid loading entire file into memory
-            const writeRes = await writeFile(filePath, rawResponse.body as ReadableStream<Uint8Array<ArrayBuffer>>);
+            const writeRes = await writeFile(filePath, rawResponse.body);
 
             return writeRes.and(Ok(
                 saveToTemp

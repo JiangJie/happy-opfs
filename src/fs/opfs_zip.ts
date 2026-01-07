@@ -6,6 +6,7 @@ import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit, ZipOptions } from './defines.ts';
 import { isFileHandle } from './guards.ts';
+import { createEmptyBodyError } from './helpers.ts';
 import { readDir, stat, writeFile } from './opfs_core.ts';
 import { getUrlPathname } from './url.ts';
 
@@ -204,6 +205,12 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
     }
 
     const buffer = fetchRes.unwrap();
+
+    // body can be null for 204/304 responses or HEAD requests
+    if (buffer.byteLength === 0) {
+        return Err(createEmptyBodyError()) as ZipIOResult;
+    }
+
     const sourceName = basename(getUrlPathname(sourceUrl));
     const zippable: fflate.AsyncZippable = {
         [sourceName]: new Uint8Array(buffer),

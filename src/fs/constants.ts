@@ -12,6 +12,11 @@ export const NOT_FOUND_ERROR = 'NotFoundError' as const;
 export const NO_STRATEGY_ERROR = 'NoStrategyError' as const;
 
 /**
+ * Response body is empty (null), typically from 204/304 responses or HEAD requests.
+ */
+export const EMPTY_BODY_ERROR = 'EmptyBodyError' as const;
+
+/**
  * A constant representing the root directory path.
  */
 export const ROOT_DIR = '/' as const;

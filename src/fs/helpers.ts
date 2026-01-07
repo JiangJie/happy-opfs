@@ -1,6 +1,6 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { ABORT_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
+import { ABORT_ERROR, EMPTY_BODY_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
 
 /**
  * Lazily initialized root directory handle of the file system.
@@ -160,6 +160,20 @@ export async function aggregateResults(tasks: AsyncVoidIOResult[]): AsyncVoidIOR
 export function createAbortError(): Error {
     const error = new Error('Operation was aborted');
     error.name = ABORT_ERROR;
+
+    return error;
+}
+
+/**
+ * Creates an `EmptyBodyError` instance.
+ * Used to signal that a response body is empty (null).
+ *
+ * @returns An `Error` object with the name set to `'EmptyBodyError'`.
+ * @internal
+ */
+export function createEmptyBodyError(): Error {
+    const error = new Error('Response body is empty');
+    error.name = EMPTY_BODY_ERROR;
 
     return error;
 }
