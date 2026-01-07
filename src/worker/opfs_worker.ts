@@ -1,7 +1,7 @@
 import type { IOResult } from 'happy-rusty';
 import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
 import { isFileHandle } from '../fs/guards.ts';
-import { createFile, mkdir, readDir, remove, stat, writeFile } from '../fs/opfs_core.ts';
+import { createFile, mkdir, readDir, readFile, remove, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/opfs_ext.ts';
 import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
 import { unzip } from '../fs/opfs_unzip.ts';
@@ -126,6 +126,7 @@ const asyncOps = {
     [WorkerAsyncOp.mkdir]: mkdir,
     [WorkerAsyncOp.move]: move,
     [WorkerAsyncOp.readDir]: readDir,
+    [WorkerAsyncOp.readFile]: readFile,
     [WorkerAsyncOp.remove]: remove,
     [WorkerAsyncOp.stat]: stat,
     [WorkerAsyncOp.writeFile]: writeFile,
@@ -277,8 +278,19 @@ function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
  * @returns Serializable response data.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function serializeResult(op: WorkerAsyncOp, result: any): Promise<any> {
+async function serializeResult(op: WorkerAsyncOp, result: unknown): Promise<any> {
     switch (op) {
+        case WorkerAsyncOp.readFile: {
+            // ArrayBuffer or Uint8Array needs to be converted to number[] for JSON serialization
+            // string (utf8) can be returned as-is
+            if (result instanceof ArrayBuffer) {
+                return Array.from(new Uint8Array(result));
+            }
+            if (result instanceof Uint8Array) {
+                return Array.from(result);
+            }
+            return result;
+        }
         case WorkerAsyncOp.readBlobFile: {
             // File object needs full serialization (name, type, size, lastModified, data)
             // serializeFile already converts data to number[] for JSON serialization
@@ -286,7 +298,7 @@ async function serializeResult(op: WorkerAsyncOp, result: any): Promise<any> {
         }
         case WorkerAsyncOp.readDir: {
             // Async iterator needs full materialization to array
-            const iterator: AsyncIterableIterator<DirEntry> = result;
+            const iterator = result as AsyncIterableIterator<DirEntry>;
             const entries: DirEntryLike[] = [];
 
             for await (const { path, handle } of iterator) {

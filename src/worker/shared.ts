@@ -11,6 +11,7 @@ export const enum WorkerAsyncOp {
     mkdir,
     move,
     readDir,
+    readFile,
     remove,
     stat,
     writeFile,

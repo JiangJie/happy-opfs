@@ -1,7 +1,6 @@
 import { Err, None, Ok, Some, tryResult, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
-import { textDecode } from '../fs/codec.ts';
 import { TIMEOUT_ERROR } from '../fs/constants.ts';
 import type { CopyOptions, DirEntryLike, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirOptions, ReadOptions, ReadSyncFileContent, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
 import type { ErrorLike, FileLike } from './defines.ts';
@@ -435,32 +434,31 @@ export function readFileSync(filePath: string, options?: ReadOptions & {
  * @see {@link readFile} for the async version.
  */
 export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ReadSyncFileContent> {
+    const encoding = options?.encoding;
+
     // Runtime guard: sync API cannot return a ReadableStream
-    if (options?.encoding === 'stream') {
+    if (encoding === 'stream') {
         return Err(new Error(`readFileSync does not support 'stream' encoding`));
     }
 
-    const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
+    // blob encoding: use readBlobFile for File object with metadata
+    if (encoding === 'blob') {
+        const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
+        return res.map(deserializeFile);
+    }
 
-    return res.map(file => {
-        switch (options?.encoding) {
-            case 'blob': {
-                // File
-                return deserializeFile(file);
-            }
-            case 'bytes': {
-                // Uint8Array
-                return new Uint8Array(file.data);
-            }
-            case 'utf8': {
-                // string
-                return textDecode(new Uint8Array(file.data));
-            }
-            default: {
-                // ArrayBuffer
-                return new Uint8Array(file.data).buffer;
-            }
+    // binary/bytes/utf8: use readFile with sync access optimization
+    const res: IOResult<number[] | string> = callWorkerOp(WorkerAsyncOp.readFile, filePath, options);
+
+    return res.map(data => {
+        // string (utf8) is returned as-is
+        if (typeof data === 'string') {
+            return data;
         }
+
+        // number[] needs to be converted back
+        const bytes = new Uint8Array(data);
+        return encoding === 'bytes' ? bytes : bytes.buffer;
     });
 }
 
