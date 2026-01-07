@@ -196,7 +196,7 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
     const fetchRes = await fetchT(sourceUrl, {
         redirect: 'follow',
         ...requestInit,
-        responseType: 'arraybuffer',
+        responseType: 'bytes',
         abortable: false,
     });
 
@@ -213,7 +213,7 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
 
     const sourceName = basename(getUrlPathname(sourceUrl));
     const zippable: fflate.AsyncZippable = {
-        [sourceName]: new Uint8Array(buffer),
+        [sourceName]: buffer,
     };
 
     return zipTo(zippable, zipFilePath);

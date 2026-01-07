@@ -10,13 +10,13 @@ import { readFile, writeFile } from './opfs_core.ts';
 
 /**
  * Unzip a buffer then write to the target path.
- * @param buffer - Zipped ArrayBuffer.
+ * @param buffer - Zipped Uint8Array.
  * @param targetPath - Target directory path.
  */
-function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoidIOResult {
+function unzipBufferToTarget(buffer: Uint8Array, targetPath: string): AsyncVoidIOResult {
     const future = new Future<VoidIOResult>();
 
-    fflate.unzip(new Uint8Array(buffer), async (err, unzipped) => {
+    fflate.unzip(buffer, async (err, unzipped) => {
         if (err) {
             future.resolve(Err(err));
             return;
@@ -54,7 +54,9 @@ function unzipBufferToTarget(buffer: ArrayBuffer, targetPath: string): AsyncVoid
 export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
     targetPath = assertAbsolutePath(targetPath);
 
-    const fileRes = await readFile(zipFilePath);
+    const fileRes = await readFile(zipFilePath, {
+        encoding: 'bytes',
+    });
 
     return fileRes.andThenAsync(buffer => {
         return unzipBufferToTarget(buffer, targetPath);
@@ -87,7 +89,7 @@ export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string,
     const fetchRes = await fetchT(zipFileUrl, {
         redirect: 'follow',
         ...requestInit,
-        responseType: 'arraybuffer',
+        responseType: 'bytes',
         abortable: false,
     });
 
