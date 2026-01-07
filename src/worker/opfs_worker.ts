@@ -9,6 +9,43 @@ import { zip } from '../fs/opfs_zip.ts';
 import type { ErrorLike, FileLike } from './defines.ts';
 import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 
+//----------------------------------------------------------------------
+// Sync Agent Message Protocol
+//----------------------------------------------------------------------
+
+/**
+ * Message sent from main thread to worker to initialize sync agent.
+ * Uses MessageChannel for isolated communication.
+ */
+interface SyncAgentInitMessage {
+    /**
+     * MessagePort for dedicated communication back to main thread.
+     */
+    port: MessagePort;
+    /**
+     * SharedArrayBuffer for cross-thread synchronous communication.
+     */
+    sab: SharedArrayBuffer;
+}
+
+/**
+ * Type guard to check if a message is a SyncAgentInitMessage.
+ * @param data - The message data to check.
+ * @returns `true` if the message is a valid SyncAgentInitMessage.
+ */
+function isSyncAgentInitMessage(data: unknown): data is SyncAgentInitMessage {
+    if (data == null || typeof data !== 'object') {
+        return false;
+    }
+
+    const message = data as SyncAgentInitMessage;
+    return message.port instanceof MessagePort && message.sab instanceof SharedArrayBuffer;
+}
+
+//----------------------------------------------------------------------
+// Worker Async Operations
+//----------------------------------------------------------------------
+
 /**
  * Serializes a `FileSystemHandle` to a plain object for cross-thread communication.
  *
@@ -138,26 +175,29 @@ export function startSyncAgent(): void {
 
     isStarted = true;
 
-    addEventListener('message', (event: MessageEvent<SharedArrayBuffer>) => {
-        // created at main thread and transfer to worker
-        const sab = event.data;
+    const messageHandler = (event: MessageEvent<unknown>): void => {
+        const { data } = event;
 
-        if (!(sab instanceof SharedArrayBuffer)) {
-            // Reset flag to allow retry on failure
-            isStarted = false;
-            throw new TypeError('Only can post SharedArrayBuffer to Worker');
+        // Ignore messages that are not SyncAgentInitMessage
+        if (!isSyncAgentInitMessage(data)) {
+            return;
         }
+
+        // Remove listener after receiving valid init message
+        removeEventListener('message', messageHandler);
+
+        const { port, sab } = data;
 
         messenger = new SyncMessenger(sab);
 
-        // notify main thread that worker is ready
-        postMessage(true);
+        // Notify main thread that worker is ready via dedicated MessagePort
+        port.postMessage(null);
 
-        // start waiting for request
+        // Start waiting for requests
         runWorkerLoop();
-    }, {
-        once: true,
-    });
+    };
+
+    addEventListener('message', messageHandler);
 }
 
 /**

@@ -42,6 +42,12 @@ function deserializeFile(file: FileLike): File {
 const messengerOnce = Once<SyncMessenger>();
 
 /**
+ * Flag to prevent concurrent `connectSyncAgent` calls.
+ * Set to `true` when connecting, reset on failure.
+ */
+let isConnecting = false;
+
+/**
  * Global timeout for synchronous I/O operations in milliseconds.
  */
 let globalSyncOpTimeout = 1000;
@@ -92,6 +98,11 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
         throw new Error('Main messenger already connected');
     }
 
+    if (isConnecting) {
+        throw new Error('Main messenger is connecting');
+    }
+    isConnecting = true;
+
     const {
         worker,
         bufferLength = 1024 * 1024,
@@ -108,20 +119,22 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
     globalSyncOpTimeout = opTimeout;
 
     const sab = new SharedArrayBuffer(bufferLength);
+    const channel = new MessageChannel();
 
     const future = new Future<void>();
 
     const workerAdapter = worker instanceof Worker
         ? worker
         : new Worker(worker);
-    workerAdapter.addEventListener('message', (event: MessageEvent<boolean>) => {
-        if (event.data) {
-            messengerOnce.set(new SyncMessenger(sab));
 
-            future.resolve();
-        }
-    });
-    workerAdapter.postMessage(sab);
+    // Use MessageChannel for isolated communication
+    // port1 stays in main thread, port2 is transferred to worker
+    channel.port1.onmessage = (): void => {
+        messengerOnce.set(new SyncMessenger(sab));
+        future.resolve();
+    };
+
+    workerAdapter.postMessage({ port: channel.port2, sab }, [channel.port2]);
 
     return future.promise;
 }
