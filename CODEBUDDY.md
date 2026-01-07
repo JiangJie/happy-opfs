@@ -178,7 +178,6 @@ await writeFile(path, data as Uint8Array<ArrayBuffer>);
 #### Error Constants
 Common error constants exported from `src/fs/constants.ts`:
 - `NOT_FOUND_ERROR` - File/directory not found (DOMException name)
-- `NO_STRATEGY_ERROR` - No viable strategy for operation
 - `ROOT_DIR` - Root directory path (`/`)
 - `TMP_DIR` - Temporary directory path (`/tmp`)
 - `ABORT_ERROR`, `TIMEOUT_ERROR` - Re-exported from `@happy-ts/fetch-t`

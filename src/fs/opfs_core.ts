@@ -2,7 +2,6 @@ import { basename, join } from '@std/path/posix';
 import { Err, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
 import { textEncode } from './codec.ts';
-import { NO_STRATEGY_ERROR } from './constants.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { isDirectoryHandle } from './guards.ts';
 import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRootDir, removeHandle } from './helpers.ts';
@@ -336,22 +335,17 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
     });
 
     return fileHandleRes.andTryAsync(fileHandle => {
-        if (typeof fileHandle.createWritable === 'function') {
-            // Main thread strategy
-            return isBinaryReadableStream(contents)
-                ? writeStreamViaWritable(fileHandle, contents, append)
-                : writeDataViaWritable(fileHandle, contents, append);
-        } else if (typeof fileHandle.createSyncAccessHandle === 'function') {
-            // Worker strategy
+        // Prefer sync access in Worker for better performance
+        if (typeof fileHandle.createSyncAccessHandle === 'function') {
             return isBinaryReadableStream(contents)
                 ? writeStreamViaSyncAccess(fileHandle, contents, append)
                 : writeDataViaSyncAccess(fileHandle, contents, append);
-        } else {
-            const error = new Error('No file write strategy available');
-            error.name = NO_STRATEGY_ERROR;
-
-            throw error;
         }
+
+        // Main thread fallback
+        return isBinaryReadableStream(contents)
+            ? writeStreamViaWritable(fileHandle, contents, append)
+            : writeDataViaWritable(fileHandle, contents, append);
     });
 }
 

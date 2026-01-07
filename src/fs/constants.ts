@@ -7,11 +7,6 @@ export { ABORT_ERROR, TIMEOUT_ERROR } from '@happy-ts/fetch-t';
 export const NOT_FOUND_ERROR = 'NotFoundError' as const;
 
 /**
- * No strategy for the requested operation is viable.
- */
-export const NO_STRATEGY_ERROR = 'NoStrategyError' as const;
-
-/**
  * Response body is empty (null), typically from 204/304 responses or HEAD requests.
  */
 export const EMPTY_BODY_ERROR = 'EmptyBodyError' as const;
