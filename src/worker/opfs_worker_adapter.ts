@@ -202,7 +202,7 @@ export function getSyncMessenger(): Option<SyncMessenger> {
  * ```
  */
 export function setSyncMessenger(syncMessenger: SyncMessenger): void {
-    invariant(syncMessenger != null, () => 'syncMessenger is null or undefined');
+    invariant(syncMessenger instanceof SyncMessenger, () => 'syncMessenger must be an instance of SyncMessenger');
     messenger = syncMessenger;
     connectionState = 'connected';
 }
