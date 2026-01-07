@@ -1,4 +1,4 @@
-import { Err, Ok, Once, tryResult, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
+import { Err, None, Ok, Some, tryResult, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
 import { textDecode } from '../fs/codec.ts';
@@ -36,16 +36,19 @@ function deserializeFile(file: FileLike): File {
 }
 
 /**
- * Once-initialized messenger instance.
- * Can only be set once via `connectSyncAgent` or `setSyncMessenger`.
+ * Connection state for sync agent.
+ * - 'idle': Not connected, can call connectSyncAgent
+ * - 'connecting': Connection in progress
+ * - 'connected': Connected, messenger is available
  */
-const messengerOnce = Once<SyncMessenger>();
+type ConnectionState = 'idle' | 'connecting' | 'connected';
+let connectionState: ConnectionState = 'idle';
 
 /**
- * Flag to prevent concurrent `connectSyncAgent` calls.
- * Set to `true` when connecting, reset on failure.
+ * Messenger instance for sync communication.
+ * Only available when connectionState is 'connected'.
  */
-let isConnecting = false;
+let messenger: SyncMessenger | null = null;
 
 /**
  * Global timeout for synchronous I/O operations in milliseconds.
@@ -94,14 +97,14 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
         throw new Error('Only can use in main thread');
     }
 
-    if (isSyncAgentConnected()) {
-        throw new Error('Main messenger already connected');
+    if (connectionState !== 'idle') {
+        throw new Error(
+            connectionState === 'connected'
+                ? 'Main messenger already connected'
+                : 'Main messenger is connecting',
+        );
     }
-
-    if (isConnecting) {
-        throw new Error('Main messenger is connecting');
-    }
-    isConnecting = true;
+    connectionState = 'connecting';
 
     const {
         worker,
@@ -130,7 +133,8 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
     // Use MessageChannel for isolated communication
     // port1 stays in main thread, port2 is transferred to worker
     channel.port1.onmessage = (): void => {
-        messengerOnce.set(new SyncMessenger(sab));
+        messenger = new SyncMessenger(sab);
+        connectionState = 'connected';
         future.resolve();
     };
 
@@ -151,7 +155,7 @@ export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
  * ```
  */
 export function isSyncAgentConnected(): boolean {
-    return messengerOnce.isInitialized();
+    return connectionState === 'connected';
 }
 
 /**
@@ -173,7 +177,7 @@ export function isSyncAgentConnected(): boolean {
  * ```
  */
 export function getSyncMessenger(): Option<SyncMessenger> {
-    return messengerOnce.get();
+    return messenger ? Some(messenger) : None;
 }
 
 /**
@@ -199,7 +203,8 @@ export function getSyncMessenger(): Option<SyncMessenger> {
  */
 export function setSyncMessenger(syncMessenger: SyncMessenger): void {
     invariant(syncMessenger != null, () => 'syncMessenger is null or undefined');
-    messengerOnce.set(syncMessenger);
+    messenger = syncMessenger;
+    connectionState = 'connected';
 }
 
 /**
@@ -271,7 +276,7 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
     const request = [op, ...args];
     const requestData = encodeToBuffer(request);
 
-    return callWorkerFromMain(messengerOnce.get().unwrap(), requestData)
+    return callWorkerFromMain(messenger as SyncMessenger, requestData)
         .andThen(response => {
             // Deserialize response: [error, result] or [error] if failed
             const decodedResponse = decodeFromBuffer<[Error, T]>(response);
