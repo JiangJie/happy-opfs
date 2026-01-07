@@ -1,7 +1,7 @@
 import { basename, join } from '@std/path/posix';
 import { Err, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath } from './assertions.ts';
-import { textEncode } from './codec.ts';
+import { textDecode, textEncode } from './codec.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { isDirectoryHandle } from './guards.ts';
 import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRootDir, removeHandle } from './helpers.ts';
@@ -204,29 +204,81 @@ export async function readFile(filePath: string, options?: ReadOptions): AsyncIO
     const fileHandleRes = await getFileHandle(filePath);
 
     return fileHandleRes.andTryAsync(async fileHandle => {
-        const file = await fileHandle.getFile();
-        switch (options?.encoding) {
-            case 'blob': {
-                return file;
-            }
+        const encoding = options?.encoding;
+
+        // Prefer sync access in Worker for better performance
+        // Only for encodings that don't require File object or streaming
+        if (encoding !== 'blob' && encoding !== 'stream' && typeof fileHandle.createSyncAccessHandle === 'function') {
+            return readViaSyncAccess(fileHandle, encoding);
+        }
+
+        // Main thread fallback or blob/stream encoding
+        return readViaFile(fileHandle, encoding);
+    });
+}
+
+/**
+ * Reads file content using the Worker's FileSystemSyncAccessHandle API.
+ * More performant than File-based reading in Worker context.
+ */
+async function readViaSyncAccess(
+    fileHandle: FileSystemFileHandle,
+    encoding?: 'binary' | 'bytes' | 'utf8',
+): Promise<ArrayBuffer | Uint8Array<ArrayBuffer> | string> {
+    const accessHandle = await fileHandle.createSyncAccessHandle();
+
+    try {
+        const size = accessHandle.getSize();
+        const buffer = new Uint8Array(size);
+        accessHandle.read(buffer, { at: 0 });
+
+        switch (encoding) {
             case 'bytes': {
-                // Use native bytes() if available, otherwise polyfill
-                if (typeof file.bytes === 'function') {
-                    return file.bytes();
-                }
-                return new Uint8Array(await file.arrayBuffer());
+                return buffer;
             }
             case 'utf8': {
-                return file.text();
-            }
-            case 'stream': {
-                return file.stream();
+                return textDecode(buffer);
             }
             default: {
-                return file.arrayBuffer();
+                // 'binary' or undefined
+                return buffer.buffer;
             }
         }
-    });
+    } finally {
+        accessHandle.close();
+    }
+}
+
+/**
+ * Reads file content using the File API (main thread strategy).
+ */
+async function readViaFile(
+    fileHandle: FileSystemFileHandle,
+    encoding?: 'binary' | 'bytes' | 'utf8' | 'blob' | 'stream',
+): Promise<ReadFileContent> {
+    const file = await fileHandle.getFile();
+
+    switch (encoding) {
+        case 'blob': {
+            return file;
+        }
+        case 'bytes': {
+            // Use native bytes() if available, otherwise polyfill
+            if (typeof file.bytes === 'function') {
+                return file.bytes();
+            }
+            return new Uint8Array(await file.arrayBuffer());
+        }
+        case 'utf8': {
+            return file.text();
+        }
+        case 'stream': {
+            return file.stream();
+        }
+        default: {
+            return file.arrayBuffer();
+        }
+    }
 }
 
 /**
