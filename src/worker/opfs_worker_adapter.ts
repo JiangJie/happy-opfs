@@ -439,6 +439,32 @@ export function readFileSync(filePath: string, options?: ReadOptions & {
 }): IOResult<ArrayBuffer>;
 /**
  * Synchronous version of `readFile`.
+ * Reads the content of a file with the specified options.
+ * This overload accepts any ReadOptions and returns the union of all possible content types.
+ * Useful when the encoding is determined at runtime.
+ *
+ * @param filePath - The absolute path of the file to read.
+ * @param options - Optional read options.
+ * @returns An `IOResult` containing the file content.
+ * @see {@link readFile} for the async version.
+ * @example
+ * ```typescript
+ * // When encoding is dynamic
+ * const encoding = getUserPreference(); // 'utf8' | 'bytes' | ...
+ * readFileSync('/path/to/file.txt', { encoding })
+ *     .inspect(content => {
+ *         // content type is ReadSyncFileContent (union type)
+ *         if (typeof content === 'string') {
+ *             console.log('Text:', content);
+ *         } else if (content instanceof Uint8Array) {
+ *             console.log('Bytes:', content.length);
+ *         }
+ *     });
+ * ```
+ */
+export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ReadSyncFileContent>;
+/**
+ * Synchronous version of `readFile`.
  * Reads the content of a file with the specified encoding.
  *
  * @param filePath - The absolute path of the file to read.
