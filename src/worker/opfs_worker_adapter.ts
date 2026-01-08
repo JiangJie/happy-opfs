@@ -1,10 +1,11 @@
 import { Err, None, Ok, Some, tryResult, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
+import { textDecode, textEncode } from '../fs/codec.ts';
 import { TIMEOUT_ERROR } from '../fs/constants.ts';
 import type { CopyOptions, DirEntryLike, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirOptions, ReadOptions, ReadSyncFileContent, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
-import type { ErrorLike, FileLike } from './defines.ts';
-import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
+import type { ErrorLike, FileMetadata } from './defines.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 
 /**
  * Deserializes an `ErrorLike` object back to an `Error` instance.
@@ -20,17 +21,19 @@ function deserializeError(error: ErrorLike): Error {
 }
 
 /**
- * Deserializes a `FileLike` object back to a `File` instance.
+ * Deserializes file metadata and binary data to a `File` instance.
+ * Binary data is now received as the last element from the binary protocol.
  *
- * @param file - The `FileLike` object to deserialize.
- * @returns A `File` instance with the same properties.
+ * @param metadata - The file metadata (name, type, lastModified).
+ * @param data - The binary data as Uint8Array.
+ * @returns A `File` instance with the given properties.
  */
-function deserializeFile(file: FileLike): File {
-    const blob = new Blob([new Uint8Array(file.data)]);
+function deserializeFile(metadata: FileMetadata, data: Uint8Array<ArrayBuffer>): File {
+    const blob = new Blob([data]);
 
-    return new File([blob], file.name, {
-        type: file.type,
-        lastModified: file.lastModified,
+    return new File([blob], metadata.name, {
+        type: metadata.type,
+        lastModified: metadata.lastModified,
     });
 }
 
@@ -221,7 +224,7 @@ export function setSyncMessenger(syncMessenger: SyncMessenger): void {
  * @param data - The request data as a `Uint8Array`.
  * @returns An `IOResult` containing the response data, or an error if the request is too large or times out.
  */
-function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array): IOResult<Uint8Array> {
+function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array<ArrayBuffer>): IOResult<Uint8Array<SharedArrayBuffer>> {
     const { i32a, maxDataLength } = messenger;
     const requestLength = data.byteLength;
 
@@ -273,14 +276,24 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
 
     // Serialize request: [operation, ...arguments]
     const request = [op, ...args];
-    const requestData = encodeToBuffer(request);
+    const requestData = encodePayload(request);
 
     return callWorkerFromMain(messenger as SyncMessenger, requestData)
         .andThen(response => {
             // Deserialize response: [error, result] or [error] if failed
-            const decodedResponse = decodeFromBuffer<[Error, T]>(response);
+            // For binary protocol, if result contains Uint8Array, it's the last element
+            const decodedResponse = decodePayload<[Error, ...unknown[]]>(response);
             const err = decodedResponse[0];
-            return err ? Err(deserializeError(err)) : Ok(decodedResponse[1]);
+            if (err) {
+                return Err(deserializeError(err));
+            }
+            // For single result, return decodedResponse[1]
+            // For multi-value result (like readBlobFile), return all elements after error
+            if (decodedResponse.length === 2) {
+                return Ok(decodedResponse[1] as T);
+            }
+            // Multi-value result: return slice from index 1
+            return Ok(decodedResponse.slice(1) as T);
         });
 }
 
@@ -362,11 +375,11 @@ export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult
 
 /**
  * Synchronous version of `readFile`.
- * Reads the content of a file as a `FileLike` object (blob encoding).
+ * Reads the content of a file as a `File` object (blob encoding).
  *
  * @param filePath - The absolute path of the file to read.
  * @param options - Read options with 'blob' encoding.
- * @returns An `IOResult` containing a `FileLike` object.
+ * @returns An `IOResult` containing a `File` object.
  * @example
  * ```typescript
  * readFileSync('/path/to/file.txt', { encoding: 'blob' })
@@ -443,21 +456,19 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
 
     // blob encoding: use readBlobFile for File object with metadata
     if (encoding === 'blob') {
-        const res: IOResult<FileLike> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
-        return res.map(deserializeFile);
+        // Response is [metadata, Uint8Array] from binary protocol
+        const res: IOResult<[FileMetadata, Uint8Array<ArrayBuffer>]> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
+        return res.map(([metadata, data]) => deserializeFile(metadata, data));
     }
 
-    // binary/bytes/utf8: use readFile with sync access optimization
-    const res: IOResult<number[] | string> = callWorkerOp(WorkerAsyncOp.readFile, filePath, options);
+    // binary/bytes/utf8: use readFile
+    // Response has Uint8Array as the last element from binary protocol
+    const res: IOResult<Uint8Array<ArrayBuffer>> = callWorkerOp(WorkerAsyncOp.readFile, filePath, options);
 
-    return res.map(data => {
-        // string (utf8) is returned as-is
-        if (typeof data === 'string') {
-            return data;
+    return res.map(bytes => {
+        if (encoding === 'utf8') {
+            return textDecode(bytes);
         }
-
-        // number[] needs to be converted back
-        const bytes = new Uint8Array(data);
         return encoding === 'bytes' ? bytes : bytes.buffer;
     });
 }
@@ -503,23 +514,25 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
 }
 
 /**
- * Serializes write contents to a format suitable for JSON transport.
- * Binary data (ArrayBuffer, TypedArray) is converted to number arrays.
+ * Serializes write contents to Uint8Array for binary protocol transport.
+ * All content types are converted to Uint8Array for efficient binary transfer.
  *
  * @param contents - The content to serialize (ArrayBuffer, TypedArray, or string).
- * @returns A number array for binary data, or the original string.
+ * @returns Uint8Array containing the binary data.
  */
-function serializeWriteContents(contents: WriteSyncFileContent): number[] | string {
+function serializeWriteContents(contents: WriteSyncFileContent): Uint8Array<ArrayBuffer> {
+    if (contents instanceof Uint8Array) {
+        return contents as Uint8Array<ArrayBuffer>;
+    }
     if (contents instanceof ArrayBuffer) {
-        // ArrayBuffer -> number[]
-        return Array.from(new Uint8Array(contents));
+        return new Uint8Array(contents);
     }
     if (ArrayBuffer.isView(contents)) {
-        // TypedArray -> number[] (handle potential byteOffset)
-        return Array.from(new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength));
+        // Other TypedArray -> Uint8Array (handle potential byteOffset)
+        return new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
     }
-    // String passes through unchanged
-    return contents;
+    // String -> Uint8Array via TextEncoder
+    return textEncode(contents);
 }
 
 /**
@@ -541,7 +554,8 @@ function serializeWriteContents(contents: WriteSyncFileContent): number[] | stri
  * ```
  */
 export function writeFileSync(filePath: string, contents: WriteSyncFileContent, options?: WriteOptions): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.writeFile, filePath, serializeWriteContents(contents), options);
+    // Put Uint8Array as the last argument for binary protocol
+    return callWorkerOp(WorkerAsyncOp.writeFile, filePath, options, serializeWriteContents(contents));
 }
 
 /**
@@ -558,6 +572,7 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  * ```
  */
 export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
+    // Put Uint8Array as the last argument for binary protocol
     return callWorkerOp(WorkerAsyncOp.appendFile, filePath, serializeWriteContents(contents));
 }
 
@@ -669,10 +684,10 @@ export function pruneTempSync(expired: Date): VoidIOResult {
 
 /**
  * Synchronous version of `readBlobFile`.
- * Reads a file as a `FileLike` object.
+ * Reads a file as a `File` object.
  *
  * @param filePath - The absolute path of the file to read.
- * @returns An `IOResult` containing a `FileLike` object.
+ * @returns An `IOResult` containing a `File` object.
  * @see {@link readBlobFile} for the async version.
  * @example
  * ```typescript
@@ -790,7 +805,7 @@ export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOp
  *     .inspect(data => console.log('Zip size:', data.byteLength));
  * ```
  */
-export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint8Array>;
+export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer>>;
 /**
  * Synchronous version of `zip`.
  * Zips a file or directory.
@@ -801,11 +816,7 @@ export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint
  * @returns An `IOResult` containing the result.
  * @see {@link zip} for the async version.
  */
-export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array> | VoidIOResult {
-    const res = callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options) as IOResult<number[]> | VoidIOResult;
-
-    return res.map(data => {
-        // Data was serialized as number[] for JSON transport, convert back to Uint8Array if present
-        return data ? new Uint8Array(data) : data;
-    }) as IOResult<Uint8Array> | VoidIOResult;
+export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult {
+    // Result is Uint8Array directly as the last element from binary protocol, or undefined for void result
+    return callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options) as IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
 }

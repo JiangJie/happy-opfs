@@ -496,20 +496,27 @@ async function writeDataViaSyncAccess(
 
     try {
         // Always write as Uint8Array to avoid copying buffer.
-        const data = typeof contents === 'string'
-            ? textEncode(contents)
-            : contents instanceof Blob
-                ? new Uint8Array(await contents.arrayBuffer())
-                : contents instanceof ArrayBuffer
-                    ? new Uint8Array(contents)
-                    : new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
+        let data: Uint8Array<ArrayBuffer>;
+        if (typeof contents === 'string') {
+            data = textEncode(contents);
+        } else if (contents instanceof Blob) {
+            // Use FileReaderSync for synchronous read in Worker context
+            const reader = new FileReaderSync();
+            data = new Uint8Array(reader.readAsArrayBuffer(contents));
+        } else if (contents instanceof ArrayBuffer) {
+            data = new Uint8Array(contents);
+        } else if (contents instanceof Uint8Array) {
+            data = contents as Uint8Array<ArrayBuffer>;
+        } else {
+            data = new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
+        }
 
         if (!append) {
             accessHandle.truncate(0);
         }
 
         const position = append ? accessHandle.getSize() : 0;
-        writeBytesWithRetry(accessHandle, data as Uint8Array<ArrayBuffer>, position);
+        writeBytesWithRetry(accessHandle, data, position);
     } finally {
         accessHandle.close();
     }

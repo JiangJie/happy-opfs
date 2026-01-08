@@ -1,6 +1,24 @@
 import { textDecode, textEncode } from '../fs/codec.ts';
 
 /**
+ * Payload type markers for binary protocol.
+ * @internal
+ */
+export const enum PayloadType {
+    /**
+     * Pure JSON payload, no binary data.
+     * Format: [type: 1B][json bytes]
+     */
+    JSON = 0,
+    /**
+     * JSON payload with separate binary data field.
+     * Binary data is stored separately to avoid JSON serialization overhead.
+     * Format: [type: 1B][json length: 4B][json bytes][binary bytes]
+     */
+    BINARY_JSON = 1,
+}
+
+/**
  * Enumeration of async I/O operations that can be called from main thread to worker thread.
  * Each value corresponds to a specific file system operation.
  * @internal
@@ -71,30 +89,76 @@ export const WORKER_UNLOCKED = MAIN_LOCKED;
 
 /**
  * Encodes data to a binary buffer for cross-thread communication.
- * Uses JSON serialization internally.
+ * Uses JSON serialization with optional binary data separation.
  *
- * @param data - The data to encode.
- * @returns A `Uint8Array` containing the encoded data.
+ * If the last element of the array is a Uint8Array, it is stored separately
+ * to avoid JSON serialization overhead (which would convert to number[]).
+ *
+ * All requests/responses use array format: `[op, ...args]` or `[error, result]`.
+ *
+ * @param value - The array data to encode.
+ * @returns A `Uint8Array` containing the encoded payload.
  * @internal
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function encodeToBuffer(data: any): Uint8Array {
-    const str = JSON.stringify(data);
-    return textEncode(str);
+export function encodePayload(value: unknown[]): Uint8Array<ArrayBuffer> {
+    const lastItem = value[value.length - 1];
+
+    // If the last element is a Uint8Array, store it separately
+    if (lastItem instanceof Uint8Array) {
+        // BINARY_JSON format: [type: 1B][json length: 4B][json bytes][binary bytes]
+        const jsonValue = value.slice(0, -1);
+        const json = textEncode(JSON.stringify(jsonValue));
+        const result = new Uint8Array(1 + 4 + json.byteLength + lastItem.byteLength);
+        result[0] = PayloadType.BINARY_JSON;
+        new DataView(result.buffer).setUint32(1, json.byteLength);
+        result.set(json, 5);
+        result.set(lastItem, 5 + json.byteLength);
+        return result;
+    }
+
+    // JSON format: [type: 1B][json bytes]
+    const json = textEncode(JSON.stringify(value));
+    const result = new Uint8Array(1 + json.byteLength);
+    result[0] = PayloadType.JSON;
+    result.set(json, 1);
+    return result;
 }
 
 /**
- * Decodes binary data back to its original type.
- * Reverses the `encodeToBuffer` operation.
+ * Decodes binary payload back to its original structure.
+ * Reverses the `encodePayload` operation.
  *
- * @template T - The expected type of the decoded data.
- * @param data - The binary data to decode.
- * @returns The decoded data.
+ * For BINARY_JSON payloads, the binary data is restored as the last element.
+ *
+ * All requests/responses use array format: `[op, ...args]` or `[error, result]`.
+ *
+ * @template T - The expected type of the decoded data (must be an array type).
+ * @param payload - The binary payload from SharedArrayBuffer to decode.
+ * @returns The decoded array with Uint8Array<ArrayBuffer> restored as the last element if applicable.
  * @internal
  */
-export function decodeFromBuffer<T>(data: Uint8Array): T {
-    const str = textDecode(data);
-    return JSON.parse(str);
+export function decodePayload<T extends unknown[]>(payload: Uint8Array<SharedArrayBuffer>): T {
+    const type = payload[0];
+
+    if (type === PayloadType.BINARY_JSON) {
+        // BINARY_JSON format: [type: 1B][json length: 4B][json bytes][binary bytes]
+        const jsonLen = new DataView(payload.buffer, payload.byteOffset + 1, 4).getUint32(0);
+        // Use slice() for both json and data:
+        // 1. TextDecoder cannot accept SharedArrayBuffer views (browser security restriction)
+        // 2. Returned data needs its own ArrayBuffer (caller may access .buffer property)
+        const json = payload.slice(5, 5 + jsonLen);
+        const data = payload.slice(5 + jsonLen);
+        const parsed: unknown[] = JSON.parse(textDecode(json));
+
+        // Restore binary data as the last element
+        parsed.push(data);
+
+        return parsed as T;
+    }
+
+    // JSON format: [type: 1B][json bytes]
+    // Use slice() because TextDecoder cannot accept SharedArrayBuffer views
+    return JSON.parse(textDecode(payload.slice(1)));
 }
 
 /**
@@ -153,7 +217,7 @@ export class SyncMessenger {
      * Uint8 view for reading/writing binary payload.
      * Payload starts after the header.
      */
-    private readonly u8a: Uint8Array;
+    private readonly u8a: Uint8Array<SharedArrayBuffer>;
 
     /**
      * Creates a new SyncMessenger instance.
@@ -177,12 +241,16 @@ export class SyncMessenger {
     }
 
     /**
-     * Reads payload data from the buffer.
+     * Reads payload data from the buffer as a view.
+     *
+     * Note: Returns a subarray (view) of the SharedArrayBuffer.
+     * Caller must use slice() if they need to pass data to TextDecoder
+     * or return data to user code that may access .buffer property.
      *
      * @param length - The number of bytes to read.
-     * @returns A copy of the payload data.
+     * @returns A view into the SharedArrayBuffer payload region.
      */
-    getPayload(length: number): Uint8Array {
-        return this.u8a.slice(SyncMessenger.HEADER_LENGTH, SyncMessenger.HEADER_LENGTH + length);
+    getPayload(length: number): Uint8Array<SharedArrayBuffer> {
+        return this.u8a.subarray(SyncMessenger.HEADER_LENGTH, SyncMessenger.HEADER_LENGTH + length);
     }
 }

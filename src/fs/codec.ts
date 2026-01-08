@@ -19,7 +19,7 @@ const decoder = Lazy(() => new TextDecoder());
  * @returns A `Uint8Array` containing the encoded data.
  * @internal
  */
-export function textEncode(data: string): Uint8Array {
+export function textEncode(data: string): Uint8Array<ArrayBuffer> {
     return encoder.force().encode(data);
 }
 

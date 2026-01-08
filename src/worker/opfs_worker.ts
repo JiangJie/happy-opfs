@@ -1,4 +1,5 @@
 import type { IOResult } from 'happy-rusty';
+import { textEncode } from '../fs/codec.ts';
 import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
 import { isFileHandle } from '../fs/guards.ts';
 import { createFile, mkdir, readDir, readFile, remove, stat, writeFile } from '../fs/opfs_core.ts';
@@ -6,8 +7,8 @@ import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/op
 import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
 import { unzip } from '../fs/opfs_unzip.ts';
 import { zip } from '../fs/opfs_zip.ts';
-import type { ErrorLike, FileLike } from './defines.ts';
-import { DATA_INDEX, decodeFromBuffer, encodeToBuffer, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
+import type { ErrorLike, FileMetadata } from './defines.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 
 //----------------------------------------------------------------------
 // Sync Agent Message Protocol
@@ -89,23 +90,6 @@ function serializeError(error: Error | null): ErrorLike | null {
         name: error.name,
         message: error.message,
     } : error;
-}
-
-/**
- * Serializes a `File` object to a plain object for cross-thread communication.
- *
- * @param file - The `File` object to serialize.
- * @returns A promise that resolves to a serializable `FileLike` object.
- */
-async function serializeFile(file: File): Promise<FileLike> {
-    const ab = await file.arrayBuffer();
-    return {
-        name: file.name,
-        type: file.type,
-        lastModified: file.lastModified,
-        size: ab.byteLength,
-        data: Array.from(new Uint8Array(ab)),
-    };
 }
 
 /**
@@ -208,7 +192,7 @@ export function startSyncAgent(): void {
  * @param messenger - The `SyncMessenger` instance for communication.
  * @param transfer - Async function that processes request data and returns response data.
  */
-async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array) => Promise<Uint8Array>): Promise<void> {
+async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array<SharedArrayBuffer>) => Promise<Uint8Array<ArrayBuffer>>): Promise<void> {
     const { i32a, maxDataLength } = messenger;
 
     // Busy-wait until main thread signals a request is ready
@@ -232,7 +216,7 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
 
         // Error response is guaranteed to fit since bufferLength >= 256 bytes
         // and error response is ~147 bytes (16 header + 131 payload)
-        response = encodeToBuffer([{
+        response = encodePayload([{
             name: 'RangeError',
             message,
         }]);
@@ -251,18 +235,21 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
 
 /**
  * Deserializes request arguments based on operation type.
- * JSON.parse loses type info for some types, so we reconstruct them here.
+ * Binary data is received as the last element from the binary protocol.
  *
  * @param op - The operation type.
  * @param args - The arguments to deserialize.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
-    if (op === WorkerAsyncOp.writeFile || op === WorkerAsyncOp.appendFile) {
-        // Binary data was serialized as number[] for JSON transport, convert back to Uint8Array
-        if (Array.isArray(args[1])) {
-            args[1] = new Uint8Array(args[1]);
-        }
+    if (op === WorkerAsyncOp.writeFile) {
+        // Request format: [filePath, options?, Uint8Array]
+        // Expected args: [filePath, Uint8Array, options?]
+        // Move Uint8Array from last position to second position
+        const data = args.pop() as Uint8Array;
+        const options = args[1];
+        args[1] = data;
+        args[2] = options;
     } else if (op === WorkerAsyncOp.pruneTemp) {
         // Date was serialized as ISO string, reconstruct Date object
         args[0] = new Date(args[0] as Date);
@@ -270,57 +257,68 @@ function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
 }
 
 /**
+ * Serializes a readDir result (async iterator) to an array of DirEntryLike.
+ * Uses parallel processing for better performance since getFile() involves disk I/O.
+ *
+ * @param iterator - The async iterator from readDir.
+ * @returns Promise resolving to array of serializable directory entries.
+ */
+async function serializeReadDirResult(iterator: AsyncIterableIterator<DirEntry>): Promise<DirEntryLike[]> {
+    // Collect and serialize handles in parallel - getFile() involves disk I/O
+    const tasks: Promise<DirEntryLike>[] = [];
+
+    for await (const { path, handle } of iterator) {
+        tasks.push((async () => ({
+            path,
+            handle: await serializeFileSystemHandle(handle),
+        }))());
+    }
+
+    return Promise.all(tasks);
+}
+
+/**
  * Serializes operation result based on operation type.
  * Different operations return different types that need specific serialization.
+ * Binary data is returned directly as the last element for binary protocol.
+ *
+ * Note: readDir and stat require async serialization and are handled separately in processRequest.
  *
  * @param op - The operation type.
  * @param result - The unwrapped result value.
  * @returns Serializable response data.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function serializeResult(op: WorkerAsyncOp, result: unknown): Promise<any> {
+function serializeResult(op: WorkerAsyncOp, result: unknown): any {
     switch (op) {
         case WorkerAsyncOp.readFile: {
-            // ArrayBuffer or Uint8Array needs to be converted to number[] for JSON serialization
-            // string (utf8) can be returned as-is
+            // Return Uint8Array directly - it will be placed as the last element
             if (result instanceof ArrayBuffer) {
-                return Array.from(new Uint8Array(result));
+                return new Uint8Array(result);
             }
             if (result instanceof Uint8Array) {
-                return Array.from(result);
+                return result;
             }
-            return result;
+            // String (utf8) -> Uint8Array
+            return textEncode(result as string);
         }
         case WorkerAsyncOp.readBlobFile: {
-            // File object needs full serialization (name, type, size, lastModified, data)
-            // serializeFile already converts data to number[] for JSON serialization
-            return serializeFile(result as File);
-        }
-        case WorkerAsyncOp.readDir: {
-            // Async iterator needs full materialization to array
-            const iterator = result as AsyncIterableIterator<DirEntry>;
-            const entries: DirEntryLike[] = [];
-
-            for await (const { path, handle } of iterator) {
-                // Convert FileSystemHandle to serializable object
-                const handleLike = await serializeFileSystemHandle(handle);
-                entries.push({
-                    path,
-                    handle: handleLike,
-                });
-            }
-
-            return entries;
-        }
-        case WorkerAsyncOp.stat: {
-            // FileSystemHandle needs serialization to plain object
-            return serializeFileSystemHandle(result as FileSystemHandle);
-        }
-        case WorkerAsyncOp.zip: {
-            // Uint8Array becomes number[] for JSON serialization
-            return result instanceof Uint8Array ? Array.from(result) : result;
+            // Split file into [metadata, Uint8Array]
+            // Caller will receive metadata as first element, Uint8Array as last
+            const file = result as File;
+            // Use FileReaderSync for synchronous read in Worker context
+            const reader = new FileReaderSync();
+            const ab = reader.readAsArrayBuffer(file);
+            const metadata: FileMetadata = {
+                name: file.name,
+                type: file.type,
+                lastModified: file.lastModified,
+            };
+            // Return as array - encodePayload will handle [null, metadata, Uint8Array]
+            return [metadata, new Uint8Array(ab)];
         }
         default: {
+            // readFile returns Uint8Array, zip returns Uint8Array or undefined
             // Other operations return boolean or void (undefined)
             return result;
         }
@@ -333,10 +331,10 @@ async function serializeResult(op: WorkerAsyncOp, result: unknown): Promise<any>
  * @param data - The encoded request data.
  * @returns The encoded response data.
  */
-async function processRequest(data: Uint8Array): Promise<Uint8Array> {
+async function processRequest(data: Uint8Array<SharedArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
     try {
         // Decode the request: [operation, ...arguments]
-        const [op, ...args] = decodeFromBuffer<[WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>]>(data);
+        const [op, ...args] = decodePayload<[WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>]>(data);
 
         deserializeArgs(op, args);
 
@@ -346,14 +344,32 @@ async function processRequest(data: Uint8Array): Promise<Uint8Array> {
 
         if (res.isErr()) {
             // Operation failed - encode error only: [serializedError]
-            return encodeToBuffer([serializeError(res.unwrapErr())]);
+            return encodePayload([serializeError(res.unwrapErr())]);
         }
 
-        // Operation succeeded - serialize and encode response: [null (no error), result]
-        const rawResponse = await serializeResult(op, res.unwrap());
-        return encodeToBuffer([null, rawResponse]);
+        const result = res.unwrap();
+
+        // Build response array: [null (no error), ...serialized result]
+        const response: unknown[] = [null];
+
+        // Serialize result based on operation type
+        if (op === WorkerAsyncOp.readDir) {
+            response.push(await serializeReadDirResult(result as AsyncIterableIterator<DirEntry>));
+        } else if (op === WorkerAsyncOp.stat) {
+            response.push(await serializeFileSystemHandle(result as FileSystemHandle));
+        } else {
+            const rawResponse = serializeResult(op, result);
+            // For readBlobFile, rawResponse is [metadata, Uint8Array], spread it
+            if (op === WorkerAsyncOp.readBlobFile) {
+                response.push(...rawResponse);
+            } else {
+                response.push(rawResponse);
+            }
+        }
+
+        return encodePayload(response);
     } catch (e) {
-        return encodeToBuffer([serializeError(e as Error)]);
+        return encodePayload([serializeError(e as Error)]);
     }
 }
 

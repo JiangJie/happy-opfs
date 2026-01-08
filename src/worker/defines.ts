@@ -1,23 +1,15 @@
 /**
- * Serializable version of `File`.
- *
- * Unlike the native `File` object which contains a `Blob` with binary data,
- * this interface stores the file content as a `number[]` array for JSON serialization.
+ * File metadata for binary protocol.
+ * Contains all file properties except the binary data.
  *
  * **Why this type exists:**
- * Native `File` objects cannot be directly serialized to JSON because they contain
- * binary `Blob` data. When transferring file content between the main thread and
- * Web Worker via `SharedArrayBuffer`, we need a plain object representation.
+ * When transferring files via binary protocol, metadata and binary data
+ * are separated. Metadata is JSON-serialized while binary data is
+ * transferred as the last element for efficiency.
  *
- * **When it's used:**
- * - Internally used when worker reads a file and sends it back to main thread
- * - The `data` property is converted from `ArrayBuffer` to `number[]` for JSON encoding
- * - Deserialized back to `File` via `deserializeFile()` on the main thread
- *
- * @see {@link File} - The native browser File API
  * @internal
  */
-export interface FileLike {
+export interface FileMetadata {
     /**
      * The name of the file.
      */
@@ -32,18 +24,6 @@ export interface FileLike {
      * The last modified timestamp in milliseconds since Unix epoch.
      */
     readonly lastModified: number;
-
-    /**
-     * The size of the file in bytes.
-     */
-    readonly size: number;
-
-    /**
-     * The binary data of the file as a number array.
-     * Each number represents a byte (0-255).
-     * Converted from `ArrayBuffer` for JSON serialization.
-     */
-    readonly data: number[];
 }
 
 /**

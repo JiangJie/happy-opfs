@@ -3,7 +3,7 @@
  * Covers: line 32 (non-main thread), line 128 (request too large), line 184 (catch branch)
  */
 import { describe, expect, it } from 'vitest';
-import { SyncMessenger, encodeToBuffer } from '../src/worker/shared.ts';
+import { SyncMessenger, encodePayload } from '../src/worker/shared.ts';
 
 describe('Worker Adapter Edge Cases - Special Setup', () => {
     describe('SyncMessenger with small buffer', () => {
@@ -39,8 +39,8 @@ describe('Worker Adapter Edge Cases - Special Setup', () => {
         });
 
         it('should encode data to buffer correctly', () => {
-            const data = { op: 1, args: ['test'] };
-            const encoded = encodeToBuffer(data);
+            const data = [1, 'test'];
+            const encoded = encodePayload(data);
 
             expect(encoded).toBeInstanceOf(Uint8Array);
             expect(encoded.byteLength).toBeGreaterThan(0);
@@ -49,8 +49,8 @@ describe('Worker Adapter Edge Cases - Special Setup', () => {
         it('should encode large data that could exceed small buffer', () => {
             // Create a large payload
             const largeString = 'x'.repeat(1000);
-            const data = { op: 1, args: [largeString] };
-            const encoded = encodeToBuffer(data);
+            const data = [1, largeString];
+            const encoded = encodePayload(data);
 
             // Verify it's larger than a small buffer would allow
             const smallSab = new SharedArrayBuffer(100);
