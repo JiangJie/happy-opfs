@@ -1,5 +1,4 @@
 import type { IOResult } from 'happy-rusty';
-import { textEncode } from '../fs/codec.ts';
 import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
 import { readBlobSync } from '../fs/helpers.ts';
 import { isFileHandle } from '../fs/guards.ts';
@@ -251,6 +250,10 @@ function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
         const options = args[1];
         args[1] = data;
         args[2] = options;
+    } else if (op === WorkerAsyncOp.readFile) {
+        // Always use bytes encoding - adapter handles encoding conversion
+        // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
+        args[1] = { encoding: 'bytes' };
     } else if (op === WorkerAsyncOp.pruneTemp) {
         // Date was serialized as ISO string, reconstruct Date object
         args[0] = new Date(args[0] as Date);
@@ -291,36 +294,22 @@ async function serializeReadDirResult(iterator: AsyncIterableIterator<DirEntry>)
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function serializeResult(op: WorkerAsyncOp, result: unknown): any {
-    switch (op) {
-        case WorkerAsyncOp.readFile: {
-            // Return Uint8Array directly - it will be placed as the last element
-            if (result instanceof ArrayBuffer) {
-                return new Uint8Array(result);
-            }
-            if (result instanceof Uint8Array) {
-                return result;
-            }
-            // String (utf8) -> Uint8Array
-            return textEncode(result as string);
-        }
-        case WorkerAsyncOp.readBlobFile: {
-            // Split file into [metadata, Uint8Array]
-            // Caller will receive metadata as first element, Uint8Array as last
-            const file = result as File;
-            const metadata: FileMetadata = {
-                name: file.name,
-                type: file.type,
-                lastModified: file.lastModified,
-            };
-            // Return as array - encodePayload will handle [null, metadata, Uint8Array]
-            return [metadata, readBlobSync(file)];
-        }
-        default: {
-            // readFile returns Uint8Array, zip returns Uint8Array or undefined
-            // Other operations return boolean or void (undefined)
-            return result;
-        }
+    if (op === WorkerAsyncOp.readBlobFile) {
+        // Split file into [metadata, Uint8Array]
+        // Caller will receive metadata as first element, Uint8Array as last
+        const file = result as File;
+        const metadata: FileMetadata = {
+            name: file.name,
+            type: file.type,
+            lastModified: file.lastModified,
+        };
+        // Return as array - encodePayload will handle [null, metadata, Uint8Array]
+        return [metadata, readBlobSync(file)];
     }
+
+    // readFile returns Uint8Array, zip returns Uint8Array or undefined
+    // Other operations return boolean or void (undefined)
+    return result;
 }
 
 /**

@@ -461,9 +461,9 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
         return res.map(([metadata, data]) => deserializeFile(metadata, data));
     }
 
-    // binary/bytes/utf8: use readFile
-    // Response has Uint8Array as the last element from binary protocol
-    const res: IOResult<Uint8Array<ArrayBuffer>> = callWorkerOp(WorkerAsyncOp.readFile, filePath, options);
+    // binary/bytes/utf8: always request bytes encoding from worker
+    // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
+    const res: IOResult<Uint8Array<ArrayBuffer>> = callWorkerOp(WorkerAsyncOp.readFile, filePath);
 
     return res.map(bytes => {
         if (encoding === 'utf8') {
