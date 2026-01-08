@@ -4,7 +4,7 @@ import { assertAbsolutePath } from './assertions.ts';
 import { textDecode, textEncode } from './codec.ts';
 import type { DirEntry, ReadDirOptions, ReadFileContent, ReadOptions, WriteFileContent, WriteOptions } from './defines.ts';
 import { isDirectoryHandle } from './guards.ts';
-import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRootDir, removeHandle } from './helpers.ts';
+import { getDirHandle, getFileHandle, getParentDirHandle, isNotFoundError, isRootDir, readBlobSync, removeHandle } from './helpers.ts';
 
 /**
  * Creates a new empty file at the specified path, similar to the `touch` command.
@@ -500,9 +500,7 @@ async function writeDataViaSyncAccess(
         if (typeof contents === 'string') {
             data = textEncode(contents);
         } else if (contents instanceof Blob) {
-            // Use FileReaderSync for synchronous read in Worker context
-            const reader = new FileReaderSync();
-            data = new Uint8Array(reader.readAsArrayBuffer(contents));
+            data = readBlobSync(contents);
         } else if (contents instanceof ArrayBuffer) {
             data = new Uint8Array(contents);
         } else if (contents instanceof Uint8Array) {

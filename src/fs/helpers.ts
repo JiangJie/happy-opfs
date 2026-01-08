@@ -179,6 +179,19 @@ export function createEmptyBodyError(): Error {
 }
 
 /**
+ * Synchronously reads a Blob as Uint8Array using FileReaderSync.
+ * Only available in Worker context.
+ *
+ * @param blob - The Blob to read.
+ * @returns A Uint8Array containing the blob's binary data.
+ * @internal
+ */
+export function readBlobSync(blob: Blob): Uint8Array<ArrayBuffer> {
+    const reader = new FileReaderSync();
+    return new Uint8Array(reader.readAsArrayBuffer(blob));
+}
+
+/**
  * Extended FileSystemHandle interface with optional remove method.
  * The remove() method is not supported in Firefox/iOS Safari.
  */

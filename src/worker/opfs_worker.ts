@@ -1,6 +1,7 @@
 import type { IOResult } from 'happy-rusty';
 import { textEncode } from '../fs/codec.ts';
 import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
+import { readBlobSync } from '../fs/helpers.ts';
 import { isFileHandle } from '../fs/guards.ts';
 import { createFile, mkdir, readDir, readFile, remove, stat, writeFile } from '../fs/opfs_core.ts';
 import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/opfs_ext.ts';
@@ -306,16 +307,13 @@ function serializeResult(op: WorkerAsyncOp, result: unknown): any {
             // Split file into [metadata, Uint8Array]
             // Caller will receive metadata as first element, Uint8Array as last
             const file = result as File;
-            // Use FileReaderSync for synchronous read in Worker context
-            const reader = new FileReaderSync();
-            const ab = reader.readAsArrayBuffer(file);
             const metadata: FileMetadata = {
                 name: file.name,
                 type: file.type,
                 lastModified: file.lastModified,
             };
             // Return as array - encodePayload will handle [null, metadata, Uint8Array]
-            return [metadata, new Uint8Array(ab)];
+            return [metadata, readBlobSync(file)];
         }
         default: {
             // readFile returns Uint8Array, zip returns Uint8Array or undefined
