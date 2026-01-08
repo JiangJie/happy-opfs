@@ -11,7 +11,7 @@
  * - **Path Operations**: Full directory/file manipulation (create, read, write, delete, copy, move)
  * - **Utilities**: Temporary files, zipping, downloading, uploading
  * - **Type Safety**: Full TypeScript support with strict type checking
- *
+ * -
  * ## Quick Start
  *
  * ### Async API (Recommended)
@@ -67,44 +67,5 @@
  * @packageDocumentation
  */
 
-// Constants
-export * from './fs/constants.ts';
-
-// Type definitions
-export * from './fs/defines.ts';
-
-// Core file system operations: createFile, mkdir, readDir, readFile, writeFile, remove, stat
-export * from './fs/opfs_core.ts';
-
-// Download operations: downloadFile
-export * from './fs/opfs_download.ts';
-
-// Extended operations: copy, move, exists, emptyDir, appendFile, readTextFile, readJsonFile, etc.
-export * from './fs/opfs_ext.ts';
-
-// Temporary file operations: mkTemp, deleteTemp, pruneTemp, generateTempPath, isTempPath
-export * from './fs/opfs_tmp.ts';
-
-// Unzip operations: unzip, unzipFromUrl
-export * from './fs/opfs_unzip.ts';
-
-// Upload operations: uploadFile
-export * from './fs/opfs_upload.ts';
-
-// Zip operations: zip, zipFromUrl
-export * from './fs/opfs_zip.ts';
-
-// Browser support detection
-export * from './fs/support.ts';
-
-// Type guards for FileSystemHandle
-export * from './fs/guards.ts';
-
-// Worker sync agent (for worker thread)
-export * from './worker/opfs_worker.ts';
-
-// Worker adapter and sync API functions (for main thread)
-export * from './worker/opfs_worker_adapter.ts';
-
-// Sync messenger type for cross-context sharing
-export type { SyncMessenger } from './worker/shared.ts';
+export * from './fs/mod.ts';
+export * from './worker/mod.ts';

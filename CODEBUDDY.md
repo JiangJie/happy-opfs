@@ -91,8 +91,8 @@ Download and upload tests use MSW instead of external APIs:
 ```
 src/
 ├── mod.ts                      # Main entry point, exports all public APIs
-├── fs/                         # Core file system operations
-│   ├── opfs_core.ts           # Core OPFS operations (createFile, mkdir, readFile, writeFile, etc.)
+├── fs/                         # OPFS file system operations
+│   ├── core/                  # Core OPFS operations (createFile, mkdir, readFile, writeFile, etc.)
 │   ├── opfs_ext.ts            # Extended operations (copy, move, exists, emptyDir, etc.)
 │   ├── opfs_tmp.ts            # Temporary file operations (mkTemp, deleteTemp, pruneTemp)
 │   ├── opfs_zip.ts            # Zip operations
@@ -234,7 +234,7 @@ This project uses Conventional Commits:
 
 7. **Test Coverage Limitations:**
    - `src/worker/opfs_worker.ts` is excluded from coverage (runs in Worker thread, V8 cannot instrument)
-   - `src/fs/opfs_core.ts` has uncovered branches that run in Worker context (tested via sync API)
+   - `src/fs/core/*.ts` has uncovered branches that run in Worker context (tested via sync API)
    - `src/mod.ts` and `src/fs/defines.ts` are excluded (re-exports and type definitions only)
 
 ## Examples

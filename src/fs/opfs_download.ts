@@ -2,9 +2,9 @@ import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
 import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
+import { writeFile } from './core/mod.ts';
 import type { DownloadFileTempResponse, FsRequestInit } from './defines.ts';
 import { createAbortError, createEmptyBodyError } from './helpers.ts';
-import { writeFile } from './opfs_core.ts';
 import { generateTempPath } from './opfs_tmp.ts';
 import { getUrlPathname } from './url.ts';
 

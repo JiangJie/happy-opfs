@@ -4,10 +4,10 @@ import * as fflate from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
+import { readDir, stat, writeFile } from './core/mod.ts';
 import type { FsRequestInit, ZipOptions } from './defines.ts';
 import { isFileHandle } from './guards.ts';
 import { createEmptyBodyError, readBlobSync } from './helpers.ts';
-import { readDir, stat, writeFile } from './opfs_core.ts';
 import { getUrlPathname } from './url.ts';
 
 type ZipIOResult = IOResult<Uint8Array> | VoidIOResult;

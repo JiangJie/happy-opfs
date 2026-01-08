@@ -4,9 +4,9 @@ import * as fflate from 'fflate/browser';
 import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
+import { readFile, writeFile } from './core/mod.ts';
 import type { FsRequestInit } from './defines.ts';
 import { aggregateResults, createEmptyBodyError } from './helpers.ts';
-import { readFile, writeFile } from './opfs_core.ts';
 
 /**
  * Unzip a buffer then write to the target path.

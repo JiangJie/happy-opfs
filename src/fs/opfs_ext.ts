@@ -2,10 +2,10 @@ import { basename, join } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { assertAbsolutePath } from './assertions.ts';
+import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
 import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
 import { isDirectoryHandle, isFileHandle } from './guards.ts';
 import { aggregateResults, getParentDirHandle, isNotFoundError } from './helpers.ts';
-import { mkdir, readDir, readFile, remove, stat, writeFile } from './opfs_core.ts';
 
 /**
  * Moves a file handle to a new path using the FileSystemFileHandle.move() method.

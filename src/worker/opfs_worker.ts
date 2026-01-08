@@ -1,12 +1,22 @@
 import type { IOResult } from 'happy-rusty';
 import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
-import { readBlobSync } from '../fs/helpers.ts';
 import { isFileHandle } from '../fs/guards.ts';
-import { createFile, mkdir, readDir, readFile, remove, stat, writeFile } from '../fs/opfs_core.ts';
-import { appendFile, copy, emptyDir, exists, move, readBlobFile } from '../fs/opfs_ext.ts';
-import { deleteTemp, mkTemp, pruneTemp } from '../fs/opfs_tmp.ts';
-import { unzip } from '../fs/opfs_unzip.ts';
-import { zip } from '../fs/opfs_zip.ts';
+import { readBlobSync } from '../fs/helpers.ts';
+import {
+    appendFile, copy,
+    createFile,
+    deleteTemp,
+    emptyDir, exists,
+    mkdir,
+    mkTemp,
+    move,
+    pruneTemp,
+    readBlobFile,
+    readDir, readFile, remove, stat,
+    unzip,
+    writeFile,
+    zip,
+} from '../fs/mod.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
 
