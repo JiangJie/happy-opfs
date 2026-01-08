@@ -20,6 +20,22 @@ export default defineConfig([
             tseslint.configs.stylistic,
         ],
         rules: {
+            // Error Prevention
+            'eqeqeq': ['error', 'always', { 'null': 'ignore' }],
+            'no-cond-assign': ['error', 'always'],
+            'no-self-compare': 'error',
+            'no-template-curly-in-string': 'error',
+
+            // Best Practices
+            'default-case-last': 'error',
+            'no-new-wrappers': 'error',
+            'radix': 'error',
+
+            // ES6+ Style
+            'prefer-template': 'error',
+            'object-shorthand': 'error',
+
+            // Stylistic
             '@stylistic/semi': ['error', 'always'],
             '@stylistic/comma-dangle': ['error', 'always-multiline'],
             '@stylistic/member-delimiter-style': ['error', {

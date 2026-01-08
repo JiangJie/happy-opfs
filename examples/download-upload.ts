@@ -90,7 +90,7 @@ async function runDownloadExample(): Promise<void> {
         // Read and show a preview
         const content = await fs.readTextFile(destPath);
         content.inspect((text) => {
-            const preview = text.length > 200 ? text.substring(0, 200) + '...' : text;
+            const preview = text.length > 200 ? `${ text.substring(0, 200) }...` : text;
             log(`✓ File preview:\n${preview}`, 'success');
         });
         content.inspectErr((err) => log(`✗ Failed to read file: ${err.message}`, 'error'));

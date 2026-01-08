@@ -49,7 +49,7 @@ describe('Boundary Cases', () => {
         });
 
         it('should handle very long file names', async () => {
-            const longName = 'a'.repeat(200) + '.txt';
+            const longName = `${ 'a'.repeat(200) }.txt`;
             await fs.writeFile(`/boundary-test/${longName}`, 'content');
             const exists = await fs.exists(`/boundary-test/${longName}`);
             expect(exists.unwrap()).toBe(true);
