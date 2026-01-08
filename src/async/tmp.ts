@@ -1,11 +1,9 @@
 import { join, SEPARATOR } from '@std/path/posix';
 import { Ok, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import { TMP_DIR } from './constants.ts';
+import { isFileHandle, TMP_DIR, type TempOptions } from '../shared/mod.ts';
 import { createFile, mkdir, remove } from './core/mod.ts';
-import type { TempOptions } from './defines.ts';
-import { isFileHandle } from './guards.ts';
-import { getDirHandle, removeHandle } from './helpers.ts';
+import { getDirHandle, removeHandle } from './internal/helpers.ts';
 
 /**
  * Generates a unique temporary file or directory path without creating it.

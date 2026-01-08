@@ -3,7 +3,7 @@
  * Tests: assertAbsolutePath, assertFileUrl
  */
 import { describe, expect, it } from 'vitest';
-import { assertAbsolutePath, assertFileUrl } from '../src/fs/assertions.ts';
+import { assertAbsolutePath, assertFileUrl } from '../src/async/internal/assertions.ts';
 
 describe('Assertions', () => {
     describe('assertAbsolutePath', () => {

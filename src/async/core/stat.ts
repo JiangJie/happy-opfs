@@ -1,7 +1,6 @@
 import { basename } from '@std/path/posix';
 import { tryAsyncResult, type AsyncIOResult } from 'happy-rusty';
-import { assertAbsolutePath } from '../assertions.ts';
-import { getParentDirHandle, isRootDir } from '../helpers.ts';
+import { assertAbsolutePath, getParentDirHandle, isRootDir } from '../internal/mod.ts';
 
 /**
  * Retrieves the `FileSystemHandle` for a file or directory at the specified path.

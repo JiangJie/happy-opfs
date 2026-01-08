@@ -1,7 +1,4 @@
 import type { IOResult } from 'happy-rusty';
-import type { DirEntry, DirEntryLike, FileSystemFileHandleLike, FileSystemHandleLike } from '../fs/defines.ts';
-import { isFileHandle } from '../fs/guards.ts';
-import { readBlobSync } from '../fs/helpers.ts';
 import {
     appendFile, copy,
     createFile,
@@ -16,9 +13,11 @@ import {
     unzip,
     writeFile,
     zip,
-} from '../fs/mod.ts';
+} from '../async/mod.ts';
+import { readBlobSync } from '../shared/helpers.ts';
+import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './protocol.ts';
 
 //----------------------------------------------------------------------
 // Sync Agent Message Protocol

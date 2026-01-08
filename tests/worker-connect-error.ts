@@ -2,7 +2,7 @@
  * Worker that attempts to call connectSyncAgent (which should fail).
  * Used to test the "Only can use in main thread" error.
  */
-import { connectSyncAgent } from '../src/worker/opfs_worker_adapter.ts';
+import { connectSyncAgent } from '../src/mod.ts';
 
 self.addEventListener('message', async () => {
     try {

@@ -11,7 +11,7 @@
  * - **Path Operations**: Full directory/file manipulation (create, read, write, delete, copy, move)
  * - **Utilities**: Temporary files, zipping, downloading, uploading
  * - **Type Safety**: Full TypeScript support with strict type checking
- * -
+ *
  * ## Quick Start
  *
  * ### Async API (Recommended)
@@ -67,5 +67,6 @@
  * @packageDocumentation
  */
 
-export * from './fs/mod.ts';
-export * from './worker/mod.ts';
+export * from './async/mod.ts';
+export * from './shared/mod.ts';
+export * from './sync/mod.ts';

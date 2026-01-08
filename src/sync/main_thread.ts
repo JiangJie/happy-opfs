@@ -1,11 +1,10 @@
 import { Err, None, Ok, Some, tryResult, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import invariant from 'tiny-invariant';
-import { textDecode, textEncode } from '../fs/codec.ts';
-import { TIMEOUT_ERROR } from '../fs/constants.ts';
-import type { CopyOptions, DirEntryLike, ExistsOptions, FileSystemHandleLike, MoveOptions, ReadDirOptions, ReadOptions, ReadSyncFileContent, SyncAgentOptions, TempOptions, WriteOptions, WriteSyncFileContent, ZipOptions } from '../fs/defines.ts';
+import { textDecode, textEncode } from '../shared/codec.ts';
+import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirOptions, type ReadOptions, type ReadSyncFileContent, type SyncAgentOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './shared.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './protocol.ts';
 
 /**
  * Deserializes an `ErrorLike` object back to an `Error` instance.

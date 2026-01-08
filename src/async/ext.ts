@@ -1,11 +1,9 @@
 import { basename, join } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
-import { assertAbsolutePath } from './assertions.ts';
+import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import type { CopyOptions, ExistsOptions, MoveOptions, WriteFileContent } from './defines.ts';
-import { isDirectoryHandle, isFileHandle } from './guards.ts';
-import { aggregateResults, getParentDirHandle, isNotFoundError } from './helpers.ts';
+import { aggregateResults, assertAbsolutePath, getParentDirHandle, isNotFoundError } from './internal/mod.ts';
 
 /**
  * Moves a file handle to a new path using the FileSystemFileHandle.move() method.

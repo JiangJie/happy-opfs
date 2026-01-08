@@ -1,6 +1,6 @@
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { ABORT_ERROR, EMPTY_BODY_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from './constants.ts';
+import { ABORT_ERROR, EMPTY_BODY_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from '../../shared/mod.ts';
 
 /**
  * Lazily initialized root directory handle of the file system.
@@ -176,19 +176,6 @@ export function createEmptyBodyError(): Error {
     error.name = EMPTY_BODY_ERROR;
 
     return error;
-}
-
-/**
- * Synchronously reads a Blob as Uint8Array using FileReaderSync.
- * Only available in Worker context.
- *
- * @param blob - The Blob to read.
- * @returns A Uint8Array containing the blob's binary data.
- * @internal
- */
-export function readBlobSync(blob: Blob): Uint8Array<ArrayBuffer> {
-    const reader = new FileReaderSync();
-    return new Uint8Array(reader.readAsArrayBuffer(blob));
 }
 
 /**

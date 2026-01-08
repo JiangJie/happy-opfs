@@ -12,7 +12,7 @@ import {
     writeFileSync,
     readTextFileSync,
 } from '../src/mod.ts';
-import { SyncMessenger } from '../src/worker/shared.ts';
+import { SyncMessenger } from '../src/sync/protocol.ts';
 
 const output = document.getElementById('output')!;
 const status = document.getElementById('status')!;

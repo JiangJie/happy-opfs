@@ -6,8 +6,8 @@
  * when the request data exceeds the buffer's maxDataLength.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { SyncMessenger } from '../src/worker/shared.ts';
-import { setSyncMessenger, writeFileSync, getSyncMessenger } from '../src/worker/opfs_worker_adapter.ts';
+import { SyncMessenger } from '../src/sync/protocol.ts';
+import { setSyncMessenger, writeFileSync, getSyncMessenger } from '../src/sync/main_thread.ts';
 
 describe('Worker Adapter with Small Buffer', () => {
     let originalMessenger: SyncMessenger | undefined;

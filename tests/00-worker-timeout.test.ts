@@ -3,8 +3,7 @@
  * Uses opTimeout: 0 to trigger immediate timeout.
  */
 import { describe, expect, it } from 'vitest';
-import { connectSyncAgent, existsSync, isSyncAgentConnected } from '../src/worker/opfs_worker_adapter.ts';
-import { TIMEOUT_ERROR } from '../src/fs/constants.ts';
+import { connectSyncAgent, existsSync, isSyncAgentConnected, TIMEOUT_ERROR } from '../src/mod.ts';
 
 describe('Sync Operation Timeout', () => {
     it('should return TimeoutError when opTimeout is 0', async () => {

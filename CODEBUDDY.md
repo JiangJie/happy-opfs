@@ -88,30 +88,51 @@ Download and upload tests use MSW instead of external APIs:
 
 ### Module Structure
 
+The project uses a three-layer architecture separating shared utilities from async and sync APIs:
+
 ```
 src/
 ├── mod.ts                      # Main entry point, exports all public APIs
-├── fs/                         # OPFS file system operations
-│   ├── core/                  # Core OPFS operations (createFile, mkdir, readFile, writeFile, etc.)
-│   ├── opfs_ext.ts            # Extended operations (copy, move, exists, emptyDir, etc.)
-│   ├── opfs_tmp.ts            # Temporary file operations (mkTemp, deleteTemp, pruneTemp)
-│   ├── opfs_zip.ts            # Zip operations
-│   ├── opfs_unzip.ts          # Unzip operations
-│   ├── opfs_download.ts       # File download operations
-│   ├── opfs_upload.ts         # File upload operations
-│   ├── helpers.ts             # Internal helper functions for handle management
-│   ├── guards.ts              # Type guard functions (isAbsolutePath, etc.)
-│   ├── assertions.ts          # Path and URL validation assertions
-│   ├── constants.ts           # Constants (ROOT_DIR, TMP_DIR, error names)
-│   ├── defines.ts             # TypeScript type definitions
+├── shared/                     # Shared utilities for both async and sync APIs
+│   ├── mod.ts                 # Aggregates shared modules
 │   ├── codec.ts               # Text encoding/decoding utilities (cached TextEncoder/TextDecoder)
-│   ├── url.ts                 # URL utilities (getUrlPathname, etc.) - @internal
+│   ├── constants.ts           # Constants (ROOT_DIR, TMP_DIR, error names)
+│   ├── defines.ts             # Shared TypeScript type definitions
+│   ├── guards.ts              # Type guard functions (isAbsolutePath, etc.)
+│   ├── helpers.ts             # Shared helper functions (readBlobSync, etc.)
 │   └── support.ts             # OPFS feature detection
-└── worker/                     # Synchronous API implementation via Web Workers
-    ├── opfs_worker.ts         # Worker-side: Listens for requests, executes async operations
-    ├── opfs_worker_adapter.ts # Main thread-side: Sends requests to worker, provides sync APIs
-    ├── shared.ts              # Shared communication protocol (SyncMessenger, lock mechanism)
-    └── defines.ts             # Worker-specific type definitions (FileLike, ErrorLike)
+├── async/                      # Async OPFS file system operations
+│   ├── mod.ts                 # Aggregates all async modules
+│   ├── core/                  # Core OPFS operations (createFile, mkdir, readFile, writeFile, etc.)
+│   │   ├── mod.ts
+│   │   ├── create.ts
+│   │   ├── read.ts
+│   │   ├── write.ts
+│   │   ├── remove.ts
+│   │   └── stat.ts
+│   ├── archive/               # Archive operations
+│   │   ├── mod.ts
+│   │   ├── zip.ts
+│   │   └── unzip.ts
+│   ├── transfer/              # File transfer operations
+│   │   ├── mod.ts
+│   │   ├── download.ts
+│   │   └── upload.ts
+│   ├── internal/              # Internal utilities (@internal)
+│   │   ├── mod.ts
+│   │   ├── assertions.ts      # Path and URL validation assertions
+│   │   ├── guards.ts          # Internal type guards (isFileHandle, etc.)
+│   │   ├── helpers.ts         # Internal helper functions for handle management
+│   │   └── url.ts             # URL utilities
+│   ├── ext.ts                 # Extended operations (copy, move, exists, emptyDir, etc.)
+│   ├── tmp.ts                 # Temporary file operations (mkTemp, deleteTemp, pruneTemp)
+│   └── defines.ts             # Async-specific TypeScript type definitions
+└── sync/                       # Sync API implementation via Web Workers
+    ├── mod.ts                 # Aggregates sync modules
+    ├── worker_thread.ts       # Worker-side: Runs in Worker, executes async operations
+    ├── main_thread.ts         # Main thread-side: Provides sync APIs, blocks until response
+    ├── protocol.ts            # Communication protocol (SyncMessenger, lock mechanism)
+    └── defines.ts             # Sync-specific type definitions (FileLike, ErrorLike)
 ```
 
 ### Key Architectural Patterns
@@ -128,8 +149,8 @@ if (result.isOk()) {
 ```
 
 #### 2. Dual API Design (Async + Sync)
-- **Async APIs** (in `src/fs/`): Direct OPFS operations, recommended for use
-- **Sync APIs** (in `src/worker/`): Implemented via Worker communication using SharedArrayBuffer
+- **Async APIs** (in `src/async/`): Direct OPFS operations, recommended for use
+- **Sync APIs** (in `src/sync/`): Implemented via Worker communication using SharedArrayBuffer
   - Main thread calls sync function → blocks and waits
   - Worker thread executes async OPFS operation
   - Result is passed back via SharedArrayBuffer
@@ -142,7 +163,7 @@ if (result.isOk()) {
 - Paths must be absolute (start with `/`)
 - Root directory: `/`
 - Temporary directory: `/tmp`
-- Path validation via `assertAbsolutePath()` in `assertions.ts`
+- Path validation via `assertAbsolutePath()` in `async/internal/assertions.ts`
 
 #### 4. URL Parameter Support
 Functions accepting URL parameters (`downloadFile`, `uploadFile`, `zipFromUrl`, `unzipFromUrl`) support both:
@@ -157,7 +178,7 @@ URL validation uses `URL.canParse()` with fallback to `new URL()` for older brow
 - Public API uses path strings, internal code uses handles
 
 #### 6. Worker Communication Protocol
-Located in `src/worker/shared.ts`:
+Located in `src/sync/protocol.ts`:
 - Uses SharedArrayBuffer with Int32Array for lock-based communication
 - Atomics.wait/notify for synchronization
 - JSON serialization for data transfer
@@ -176,7 +197,7 @@ await writeFile(path, data as Uint8Array<ArrayBuffer>);
 ```
 
 #### Error Constants
-Common error constants exported from `src/fs/constants.ts`:
+Common error constants exported from `src/shared/constants.ts`:
 - `NOT_FOUND_ERROR` - File/directory not found (DOMException name)
 - `ROOT_DIR` - Root directory path (`/`)
 - `TMP_DIR` - Temporary directory path (`/tmp`)
@@ -233,9 +254,9 @@ This project uses Conventional Commits:
 6. **Testing:** Use OPFS Explorer browser extension to visually inspect file system state during development
 
 7. **Test Coverage Limitations:**
-   - `src/worker/opfs_worker.ts` is excluded from coverage (runs in Worker thread, V8 cannot instrument)
-   - `src/fs/core/*.ts` has uncovered branches that run in Worker context (tested via sync API)
-   - `src/mod.ts` and `src/fs/defines.ts` are excluded (re-exports and type definitions only)
+   - `src/sync/worker_thread.ts` is excluded from coverage (runs in Worker thread, V8 cannot instrument)
+   - `src/async/core/*.ts` has uncovered branches that run in Worker context (tested via sync API)
+   - `src/mod.ts` and type definition files (`defines.ts`) are excluded (re-exports and type definitions only)
 
 ## Examples
 

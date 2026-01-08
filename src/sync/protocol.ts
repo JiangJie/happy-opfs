@@ -1,4 +1,4 @@
-import { textDecode, textEncode } from '../fs/codec.ts';
+import { textDecode, textEncode } from '../shared/codec.ts';
 
 /**
  * Payload type markers for binary protocol.

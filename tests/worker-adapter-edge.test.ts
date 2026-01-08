@@ -3,7 +3,7 @@
  * Covers: line 32 (non-main thread), line 128 (request too large), line 184 (catch branch)
  */
 import { describe, expect, it } from 'vitest';
-import { SyncMessenger, encodePayload } from '../src/worker/shared.ts';
+import { SyncMessenger, encodePayload } from '../src/sync/protocol.ts';
 
 describe('Worker Adapter Edge Cases - Special Setup', () => {
     describe('SyncMessenger with small buffer', () => {

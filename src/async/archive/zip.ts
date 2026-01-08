@@ -3,12 +3,10 @@ import { basename, join } from '@std/path/posix';
 import * as fflate from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
-import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
-import { readDir, stat, writeFile } from './core/mod.ts';
-import type { FsRequestInit, ZipOptions } from './defines.ts';
-import { isFileHandle } from './guards.ts';
-import { createEmptyBodyError, readBlobSync } from './helpers.ts';
-import { getUrlPathname } from './url.ts';
+import { readBlobSync } from '../../shared/helpers.ts';
+import { isFileHandle, type FsRequestInit, type ZipOptions } from '../../shared/mod.ts';
+import { readDir, stat, writeFile } from '../core/mod.ts';
+import { assertAbsolutePath, assertFileUrl, createEmptyBodyError, getUrlPathname } from '../internal/mod.ts';
 
 type ZipIOResult = IOResult<Uint8Array> | VoidIOResult;
 

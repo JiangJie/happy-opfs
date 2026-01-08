@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest';
 
 // Import functions directly to avoid side effects from mod.ts
-import { existsSync, readFileSync, writeFileSync, createFileSync, mkdirSync, removeSync, statSync } from '../src/worker/opfs_worker_adapter.ts';
+import { createFileSync, existsSync, mkdirSync, readFileSync, removeSync, statSync, writeFileSync } from '../src/mod.ts';
 
 describe('Worker Uninitialized State', () => {
     describe('Sync operations without connectSyncAgent', () => {

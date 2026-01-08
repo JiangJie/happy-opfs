@@ -1,8 +1,8 @@
 import type { AsyncIOResult, AsyncVoidIOResult } from 'happy-rusty';
-import { assertAbsolutePath } from '../assertions.ts';
-import { textEncode } from '../codec.ts';
-import type { WriteFileContent, WriteOptions } from '../defines.ts';
-import { getFileHandle, readBlobSync } from '../helpers.ts';
+import { textEncode } from '../../shared/codec.ts';
+import { readBlobSync } from '../../shared/helpers.ts';
+import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
+import { assertAbsolutePath, getFileHandle } from '../internal/mod.ts';
 
 /**
  * Writes content to a file at the specified path.

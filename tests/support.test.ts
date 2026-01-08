@@ -3,7 +3,7 @@
  * Tests: isOPFSSupported
  */
 import { describe, expect, it } from 'vitest';
-import { isOPFSSupported } from '../src/fs/support.ts';
+import { isOPFSSupported } from '../src/mod.ts';
 
 describe('Support', () => {
     describe('isOPFSSupported', () => {

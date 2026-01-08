@@ -1,6 +1,6 @@
 import { normalize } from '@std/path/posix';
 import invariant from 'tiny-invariant';
-import { ROOT_DIR } from './constants.ts';
+import { ROOT_DIR } from '../../shared/mod.ts';
 import { isValidUrl } from './url.ts';
 
 /**
