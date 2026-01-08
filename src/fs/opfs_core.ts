@@ -192,6 +192,31 @@ export function readFile(filePath: string, options?: ReadOptions & {
 
 /**
  * Reads the content of a file at the specified path with the specified options.
+ * This overload accepts any ReadOptions and returns the union of all possible content types.
+ * Useful when the encoding is determined at runtime.
+ *
+ * @param filePath - The path of the file to read.
+ * @param options - Optional read options.
+ * @returns A promise that resolves to an `AsyncIOResult` containing the file content.
+ * @example
+ * ```typescript
+ * // When encoding is dynamic
+ * const encoding = getUserPreference(); // 'utf8' | 'bytes' | ...
+ * (await readFile('/path/to/file.txt', { encoding }))
+ *     .inspect(content => {
+ *         // content type is ReadFileContent (union type)
+ *         if (typeof content === 'string') {
+ *             console.log('Text:', content);
+ *         } else if (content instanceof Uint8Array) {
+ *             console.log('Bytes:', content.length);
+ *         }
+ *     });
+ * ```
+ */
+export function readFile(filePath: string, options?: ReadOptions): AsyncIOResult<ReadFileContent>;
+
+/**
+ * Reads the content of a file at the specified path with the specified options.
  *
  * @template T The type of the content to read from the file.
  * @param filePath - The path of the file to read.
