@@ -6,7 +6,7 @@ import { Future } from 'tiny-future';
 import { assertAbsolutePath, assertFileUrl } from './assertions.ts';
 import type { FsRequestInit, ZipOptions } from './defines.ts';
 import { isFileHandle } from './guards.ts';
-import { createEmptyBodyError } from './helpers.ts';
+import { createEmptyBodyError, readBlobSync } from './helpers.ts';
 import { readDir, stat, writeFile } from './opfs_core.ts';
 import { getUrlPathname } from './url.ts';
 
@@ -221,6 +221,8 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
 
 /**
  * Reads the binary data from a file handle.
+ * Uses FileReaderSync in Worker context for better performance,
+ * falls back to async arrayBuffer() in main thread.
  *
  * @param fileHandle - The `FileSystemFileHandle` to read from.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a `Uint8Array`.
@@ -228,7 +230,9 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
 function getFileDataByHandle(fileHandle: FileSystemFileHandle): AsyncIOResult<Uint8Array<ArrayBuffer>> {
     return tryAsyncResult(async () => {
         const file = await fileHandle.getFile();
-        const ab = await file.arrayBuffer();
-        return new Uint8Array(ab);
+        // Use sync read in Worker context, async in main thread
+        return typeof FileReaderSync === 'function'
+            ? readBlobSync(file)
+            : new Uint8Array(await file.arrayBuffer());
     });
 }
