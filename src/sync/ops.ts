@@ -273,36 +273,20 @@ export function readFileSync(filePath: string, options: ReadOptions & {
 }): IOResult<string>;
 /**
  * Synchronous version of `readFile`.
- * Reads the content of a file as a Uint8Array.
+ * Reads the content of a file as a Uint8Array (default).
  *
  * @param filePath - The absolute path of the file to read.
- * @param options - Read options with 'bytes' encoding.
+ * @param options - Optional read options. Defaults to 'bytes' encoding.
  * @returns An `IOResult` containing the file content as a Uint8Array.
  * @example
  * ```typescript
- * readFileSync('/path/to/file.bin', { encoding: 'bytes' })
+ * readFileSync('/path/to/file.bin')
  *     .inspect(bytes => console.log('First byte:', bytes[0]));
  * ```
  */
-export function readFileSync(filePath: string, options: ReadOptions & {
-    encoding: 'bytes';
-}): IOResult<Uint8Array<ArrayBuffer>>;
-/**
- * Synchronous version of `readFile`.
- * Reads the content of a file as an ArrayBuffer (binary/default encoding).
- *
- * @param filePath - The absolute path of the file to read.
- * @param options - Optional read options with 'binary' encoding.
- * @returns An `IOResult` containing the file content as an ArrayBuffer.
- * @example
- * ```typescript
- * readFileSync('/path/to/file.bin')
- *     .inspect(buffer => console.log('Size:', buffer.byteLength));
- * ```
- */
 export function readFileSync(filePath: string, options?: ReadOptions & {
-    encoding?: 'binary';
-}): IOResult<ArrayBuffer>;
+    encoding?: 'bytes';
+}): IOResult<Uint8Array<ArrayBuffer>>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file with the specified options.
@@ -355,7 +339,7 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
         return res.map(([metadata, data]) => deserializeFile(metadata, data));
     }
 
-    // binary/bytes/utf8: always request bytes encoding from worker
+    // bytes/utf8: always request bytes encoding from worker
     // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
     const res: IOResult<Uint8Array<ArrayBuffer>> = callWorkerOp(WorkerAsyncOp.readFile, filePath);
 
@@ -363,7 +347,8 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
         if (encoding === 'utf8') {
             return textDecode(bytes);
         }
-        return encoding === 'bytes' ? bytes : bytes.buffer;
+        // 'bytes' or undefined (default)
+        return bytes;
     });
 }
 

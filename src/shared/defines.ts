@@ -15,13 +15,12 @@ export type WriteSyncFileContent = BufferSource | string;
 /**
  * Represents the possible content types that can be read from a file.
  * The actual type depends on the `encoding` option:
- * - `'binary'`: `ArrayBuffer`
- * - `'bytes'`: `Uint8Array`
+ * - `'bytes'` (default): `Uint8Array`
  * - `'utf8'`: `string`
  * - `'blob'`: `File`
  * - `'stream'`: `ReadableStream<Uint8Array>`
  */
-export type ReadFileContent = ArrayBuffer | Uint8Array<ArrayBuffer> | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
+export type ReadFileContent = Uint8Array<ArrayBuffer> | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Represents the possible content types for synchronous file reads.
@@ -35,7 +34,7 @@ export type ReadSyncFileContent = Exclude<ReadFileContent, ReadableStream<Uint8A
 export interface ReadOptions {
     /**
      * The encoding to use for reading the file's content.
-     * @defaultValue `'binary'`
+     * @defaultValue `'bytes'`
      */
     encoding?: FileEncoding;
 }
@@ -76,13 +75,12 @@ export interface ExistsOptions {
 
 /**
  * Supported file encodings for reading files.
- * - `'binary'`: Returns raw `ArrayBuffer`
- * - `'bytes'`: Returns `Uint8Array`
+ * - `'bytes'` (default): Returns `Uint8Array`
  * - `'utf8'`: Returns decoded `string`
  * - `'blob'`: Returns `File` object with metadata
  * - `'stream'`: Returns `ReadableStream<Uint8Array>` for streaming reads
  */
-export type FileEncoding = 'binary' | 'bytes' | 'utf8' | 'blob' | 'stream';
+export type FileEncoding = 'bytes' | 'utf8' | 'blob' | 'stream';
 
 /**
  * Request init options for network-related APIs.

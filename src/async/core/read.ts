@@ -106,36 +106,20 @@ export function readFile(filePath: string, options: ReadOptions & {
 }): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>>;
 
 /**
- * Reads the content of a file at the specified path as a Uint8Array.
+ * Reads the content of a file at the specified path as a Uint8Array (default).
  *
  * @param filePath - The path of the file to read.
- * @param options - Read options specifying the 'bytes' encoding.
+ * @param options - Optional read options. Defaults to 'bytes' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Uint8Array.
  * @example
  * ```typescript
- * (await readFile('/path/to/file.bin', { encoding: 'bytes' }))
+ * (await readFile('/path/to/file.bin'))
  *     .inspect(bytes => console.log('First byte:', bytes[0]));
  * ```
  */
-export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'bytes';
-}): AsyncIOResult<Uint8Array<ArrayBuffer>>;
-
-/**
- * Reads the content of a file at the specified path as an ArrayBuffer by default.
- *
- * @param filePath - The path of the file to read.
- * @param options - Read options specifying the 'binary' encoding.
- * @returns A promise that resolves to an `AsyncIOResult` containing the file content as an ArrayBuffer.
- * @example
- * ```typescript
- * (await readFile('/path/to/file.bin'))
- *     .inspect(buffer => console.log('File size:', buffer.byteLength));
- * ```
- */
 export function readFile(filePath: string, options?: ReadOptions & {
-    encoding?: 'binary';
-}): AsyncIOResult<ArrayBuffer>;
+    encoding?: 'bytes';
+}): AsyncIOResult<Uint8Array<ArrayBuffer>>;
 
 /**
  * Reads the content of a file at the specified path with the specified options.
@@ -226,8 +210,8 @@ export function readFileStream(filePath: string): AsyncIOResult<ReadableStream<U
  */
 async function readViaSyncAccess(
     fileHandle: FileSystemFileHandle,
-    encoding?: 'binary' | 'bytes' | 'utf8',
-): Promise<ArrayBuffer | Uint8Array<ArrayBuffer> | string> {
+    encoding?: 'bytes' | 'utf8',
+): Promise<Uint8Array<ArrayBuffer> | string> {
     const accessHandle = await fileHandle.createSyncAccessHandle();
 
     try {
@@ -235,18 +219,11 @@ async function readViaSyncAccess(
         const buffer = new Uint8Array(size);
         accessHandle.read(buffer, { at: 0 });
 
-        switch (encoding) {
-            case 'bytes': {
-                return buffer;
-            }
-            case 'utf8': {
-                return textDecode(buffer);
-            }
-            default: {
-                // 'binary' or undefined
-                return buffer.buffer;
-            }
+        if (encoding === 'utf8') {
+            return textDecode(buffer);
         }
+        // 'bytes' or undefined (default)
+        return buffer;
     } finally {
         accessHandle.close();
     }
@@ -257,20 +234,13 @@ async function readViaSyncAccess(
  */
 async function readViaFile(
     fileHandle: FileSystemFileHandle,
-    encoding?: 'binary' | 'bytes' | 'utf8' | 'blob' | 'stream',
+    encoding?: 'bytes' | 'utf8' | 'blob' | 'stream',
 ): Promise<ReadFileContent> {
     const file = await fileHandle.getFile();
 
     switch (encoding) {
         case 'blob': {
             return file;
-        }
-        case 'bytes': {
-            // Use native bytes() if available, otherwise polyfill
-            if (typeof file.bytes === 'function') {
-                return file.bytes();
-            }
-            return new Uint8Array(await file.arrayBuffer());
         }
         case 'utf8': {
             return file.text();
@@ -279,7 +249,12 @@ async function readViaFile(
             return file.stream();
         }
         default: {
-            return file.arrayBuffer();
+            // 'bytes' or undefined (default)
+            // Use native bytes() if available, otherwise polyfill
+            if (typeof file.bytes === 'function') {
+                return file.bytes();
+            }
+            return new Uint8Array(await file.arrayBuffer());
         }
     }
 }

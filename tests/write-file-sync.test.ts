@@ -199,7 +199,8 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
                 expect(result.isOk()).toBe(true);
 
                 const content = fs.readFileSync('/worker-write-test.bin');
-                const readData = new Int32Array(content.unwrap());
+                const bytes = content.unwrap();
+                const readData = new Int32Array(bytes.buffer);
                 expect(readData).toEqual(data);
             });
 
@@ -209,7 +210,8 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
                 expect(result.isOk()).toBe(true);
 
                 const content = fs.readFileSync('/worker-write-test.bin');
-                const readData = new Float64Array(content.unwrap());
+                const bytes = content.unwrap();
+                const readData = new Float64Array(bytes.buffer);
                 expect(readData).toEqual(data);
             });
 
@@ -226,7 +228,8 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
                 expect(result.isOk()).toBe(true);
 
                 const content = fs.readFileSync('/worker-write-test.bin');
-                const readView = new Float64Array(content.unwrap());
+                const bytes = content.unwrap();
+                const readView = new Float64Array(bytes.buffer);
                 expect(readView[0]).toBeCloseTo(123.456);
                 expect(readView[1]).toBeCloseTo(789.012);
             });
@@ -244,7 +247,8 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
                 expect(result.isOk()).toBe(true);
 
                 const content = fs.readFileSync('/worker-write-test.bin');
-                const readView = new DataView(content.unwrap());
+                const bytes = content.unwrap();
+                const readView = new DataView(bytes.buffer);
                 expect(readView.getUint32(0, true)).toBe(0xDEADBEEF);
                 expect(readView.getUint32(4, true)).toBe(0xCAFEBABE);
             });

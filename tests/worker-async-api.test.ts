@@ -82,28 +82,28 @@ describe('Worker Async API (readViaSyncAccess)', () => {
             expect(response.value).toBe('Hello from Worker async API test');
         });
 
-        it('should return ArrayBuffer for binary encoding', async () => {
+        it('should return Uint8Array for bytes encoding', async () => {
             const response = await callWorker({
                 type: 'readFile',
                 filePath: '/worker-async-test.txt',
-                encoding: 'binary',
+                encoding: 'bytes',
             });
 
             expect(response.success).toBe(true);
-            expect(response.resultType).toBe('ArrayBuffer');
-            // value is byteLength
-            expect(response.value).toBe('Hello from Worker async API test'.length);
+            expect(response.resultType).toBe('Uint8Array');
+            // value is array of bytes
+            expect((response.value as number[]).length).toBe('Hello from Worker async API test'.length);
         });
 
-        it('should return ArrayBuffer for undefined encoding (default)', async () => {
+        it('should return Uint8Array for undefined encoding (default)', async () => {
             const response = await callWorker({
                 type: 'readFile',
                 filePath: '/worker-async-test.txt',
             });
 
             expect(response.success).toBe(true);
-            expect(response.resultType).toBe('ArrayBuffer');
-            expect(response.value).toBe('Hello from Worker async API test'.length);
+            expect(response.resultType).toBe('Uint8Array');
+            expect((response.value as number[]).length).toBe('Hello from Worker async API test'.length);
         });
     });
 });

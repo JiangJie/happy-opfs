@@ -7,7 +7,7 @@ import { readFile, writeFile } from '../src/mod.ts';
 interface TestRequest {
     type: 'readFile';
     filePath: string;
-    encoding?: 'binary' | 'bytes' | 'utf8';
+    encoding?: 'bytes' | 'utf8';
 }
 
 interface TestResponse {

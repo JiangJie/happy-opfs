@@ -94,24 +94,24 @@ describe('Worker Adapter Edge Cases', () => {
             expect(content).toBe('utf8 test');
         });
 
-        it('should read as binary encoding (default)', () => {
-            fs.writeFileSync('/adapter-test.txt', 'binary test');
+        it('should read as bytes encoding (explicit)', () => {
+            fs.writeFileSync('/adapter-test.txt', 'bytes test');
 
-            const result = fs.readFileSync('/adapter-test.txt', { encoding: 'binary' });
+            const result = fs.readFileSync('/adapter-test.txt', { encoding: 'bytes' });
             expect(result.isOk()).toBe(true);
 
-            const buffer = result.unwrap();
-            expect(buffer).toBeInstanceOf(ArrayBuffer);
+            const bytes = result.unwrap();
+            expect(bytes).toBeInstanceOf(Uint8Array);
         });
 
-        it('should read as default encoding (binary)', () => {
+        it('should read as default encoding (bytes)', () => {
             fs.writeFileSync('/adapter-test.txt', 'default test');
 
             const result = fs.readFileSync('/adapter-test.txt');
             expect(result.isOk()).toBe(true);
 
-            const buffer = result.unwrap();
-            expect(buffer).toBeInstanceOf(ArrayBuffer);
+            const bytes = result.unwrap();
+            expect(bytes).toBeInstanceOf(Uint8Array);
         });
     });
 
