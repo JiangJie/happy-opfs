@@ -12,8 +12,8 @@ import { isValidUrl } from './url.ts';
  * @internal
  */
 export function assertAbsolutePath(path: string): string {
-    invariant(typeof path === 'string', () => `Path must be a string but received ${ path }`);
-    invariant(path[0] === ROOT_DIR, () => `Path must start with / but received ${ path }`);
+    invariant(typeof path === 'string', () => `path must be a string but received ${ path }`);
+    invariant(path[0] === ROOT_DIR, () => `path must start with / but received ${ path }`);
 
     const normalized = normalize(path);
     // Remove trailing slash except for root
@@ -33,8 +33,8 @@ export function assertFileUrl(fileUrl: string | URL): void {
     if (fileUrl instanceof URL) {
         return;
     }
-    invariant(typeof fileUrl === 'string', () => `File url must be a string or URL but received ${ fileUrl }`);
-    invariant(isValidUrl(fileUrl), () => `File url must be a valid URL but received ${ fileUrl }`);
+    invariant(typeof fileUrl === 'string', () => `fileUrl must be a string or URL but received ${ fileUrl }`);
+    invariant(isValidUrl(fileUrl), () => `fileUrl must be a valid URL but received ${ fileUrl }`);
 }
 
 /**
@@ -47,7 +47,7 @@ export function assertFileUrl(fileUrl: string | URL): void {
  */
 export function assertExistsOptions(options?: ExistsOptions): void {
     const { isDirectory = false, isFile = false } = options ?? {};
-    invariant(!(isDirectory && isFile), () => 'ExistsOptions.isDirectory and ExistsOptions.isFile must not be true together');
+    invariant(!(isDirectory && isFile), () => 'isDirectory and isFile cannot both be true');
 }
 
 /**
@@ -58,5 +58,5 @@ export function assertExistsOptions(options?: ExistsOptions): void {
  * @internal
  */
 export function assertExpiredDate(expired: unknown): asserts expired is Date {
-    invariant(expired instanceof Date, () => `Expired must be a Date but received ${ expired }`);
+    invariant(expired instanceof Date, () => `expired must be a Date but received ${ expired }`);
 }

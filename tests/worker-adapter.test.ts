@@ -228,7 +228,7 @@ describe('Worker Adapter Edge Cases', () => {
                 new Worker(new URL('./worker.ts', import.meta.url), {
                     type: 'module',
                 }),
-            )).toThrow('Sync channel already connected');
+            )).toThrow('already connected');
         });
 
         it('should throw error when called from worker thread', async () => {
@@ -250,7 +250,7 @@ describe('Worker Adapter Edge Cases', () => {
                 worker.postMessage('start');
             });
 
-            expect(result.error).toBe('Only can use in main thread');
+            expect(result.error).toContain('connectSyncChannel can only be called in main thread');
         });
     });
 

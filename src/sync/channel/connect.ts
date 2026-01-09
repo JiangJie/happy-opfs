@@ -33,18 +33,11 @@ import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChann
  * ```
  */
 export function connectSyncChannel(worker: Worker | URL | string, options?: ConnectSyncChannelOptions): Promise<SharedArrayBuffer> {
-    if (typeof window === 'undefined') {
-        throw new Error('Only can use in main thread');
-    }
+    invariant(typeof window !== 'undefined', () => 'connectSyncChannel can only be called in main thread');
 
     const state = getSyncChannelState();
-    if (state !== 'idle') {
-        throw new Error(
-            state === 'ready'
-                ? 'Sync channel already connected'
-                : 'Sync channel is connecting',
-        );
-    }
+    invariant(state !== 'ready', () => 'Sync channel already connected');
+    invariant(state !== 'connecting', () => 'Sync channel is connecting');
     setSyncChannelState('connecting');
 
     const {
@@ -53,11 +46,11 @@ export function connectSyncChannel(worker: Worker | URL | string, options?: Conn
     } = options ?? {};
 
     // check parameters
-    invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be Worker or valid URL(string)');
+    invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be a Worker, URL, or non-empty string');
     // Minimum buffer size: 16 bytes header + ~131 bytes for largest error response = 147 bytes
     // Using 256 (power of 2) for better memory alignment
     invariant(sharedBufferLength >= 256 && sharedBufferLength % 4 === 0, () => 'sharedBufferLength must be at least 256 and a multiple of 4');
-    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
+    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be a positive integer');
 
     setGlobalSyncOpTimeout(opTimeout);
 
@@ -120,10 +113,10 @@ export function isSyncChannelReady(): boolean {
  * ```
  */
 export function attachSyncChannel(sharedBuffer: SharedArrayBuffer, options?: AttachSyncChannelOptions): void {
-    invariant(sharedBuffer instanceof SharedArrayBuffer, () => 'sharedBuffer must be an instance of SharedArrayBuffer');
+    invariant(sharedBuffer instanceof SharedArrayBuffer, () => 'sharedBuffer must be a SharedArrayBuffer');
 
     const { opTimeout = 1000 } = options ?? {};
-    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
+    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be a positive integer');
 
     setGlobalSyncOpTimeout(opTimeout);
     setMessenger(new SyncMessenger(sharedBuffer));

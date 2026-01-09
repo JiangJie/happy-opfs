@@ -1,4 +1,5 @@
 import type { AsyncIOResult } from 'happy-rusty';
+import invariant from 'tiny-invariant';
 import {
     appendFile, copy,
     createFile,
@@ -159,13 +160,8 @@ let isListening = false;
  * ```
  */
 export function listenSyncChannel(): void {
-    if (typeof window !== 'undefined') {
-        throw new Error('Only can use in worker');
-    }
-
-    if (isListening) {
-        throw new Error('Sync channel already listening');
-    }
+    invariant(typeof window === 'undefined', () => 'listenSyncChannel can only be called in Worker');
+    invariant(!isListening, () => 'Sync channel already listening');
 
     isListening = true;
 
