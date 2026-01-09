@@ -1,5 +1,7 @@
 import type { FetchInit } from '@happy-ts/fetch-t';
 
+// ==================== File Content Types ====================
+
 /**
  * Represents the possible content types that can be written to a file asynchronously.
  * Includes `BufferSource` (ArrayBuffer or TypedArray), `Blob`, `string`, or a binary `ReadableStream`.
@@ -27,6 +29,17 @@ export type ReadFileContent = Uint8Array<ArrayBuffer> | File | string | Readable
  * Excludes `ReadableStream` since it cannot be returned synchronously.
  */
 export type ReadSyncFileContent = Exclude<ReadFileContent, ReadableStream<Uint8Array<ArrayBuffer>>>;
+
+/**
+ * Supported file encodings for reading files.
+ * - `'bytes'` (default): Returns `Uint8Array`
+ * - `'utf8'`: Returns decoded `string`
+ * - `'blob'`: Returns `File` object with metadata
+ * - `'stream'`: Returns `ReadableStream<Uint8Array>` for streaming reads
+ */
+export type FileEncoding = 'bytes' | 'utf8' | 'blob' | 'stream';
+
+// ==================== Core Operation Options ====================
 
 /**
  * Options for reading files with specified encoding.
@@ -57,55 +70,6 @@ export interface WriteOptions {
 }
 
 /**
- * Options to determine the existence of a file or directory.
- */
-export interface ExistsOptions {
-    /**
-     * Whether to check for the existence of a directory.
-     * @defaultValue `false`
-     */
-    isDirectory?: boolean;
-
-    /**
-     * Whether to check for the existence of a file.
-     * @defaultValue `false`
-     */
-    isFile?: boolean;
-}
-
-/**
- * Supported file encodings for reading files.
- * - `'bytes'` (default): Returns `Uint8Array`
- * - `'utf8'`: Returns decoded `string`
- * - `'blob'`: Returns `File` object with metadata
- * - `'stream'`: Returns `ReadableStream<Uint8Array>` for streaming reads
- */
-export type FileEncoding = 'bytes' | 'utf8' | 'blob' | 'stream';
-
-/**
- * Request init options for network-related APIs.
- *
- * This type is based on `@happy-ts/fetch-t` and is used by:
- * - {@link downloadFile}
- * - {@link uploadFile}
- * - {@link zipFromUrl}
- * - {@link unzipFromUrl}
- *
- * It supports `timeout` and `onProgress` (see fetch-t docs for exact semantics).
- */
-export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>;
-
-/**
- * Request init options for {@link uploadFile}.
- */
-export interface UploadRequestInit extends FsRequestInit {
-    /**
-     * The filename to use when uploading the file.
-     */
-    filename?: string;
-}
-
-/**
  * Options for reading directories.
  */
 export interface ReadDirOptions {
@@ -121,6 +85,74 @@ export interface ReadDirOptions {
      */
     signal?: AbortSignal;
 }
+
+/**
+ * Options to determine the existence of a file or directory.
+ *
+ * The `isDirectory` and `isFile` options are mutually exclusive.
+ * Setting both to `true` will result in a compile-time error (and runtime error as fallback).
+ *
+ * @example
+ * ```typescript
+ * // Check if path exists (any type)
+ * await exists('/path');
+ *
+ * // Check if path exists and is a directory
+ * await exists('/path', { isDirectory: true });
+ *
+ * // Check if path exists and is a file
+ * await exists('/path', { isFile: true });
+ * ```
+ */
+export type ExistsOptions =
+    | {
+        /**
+         * Whether to check for the existence of a directory.
+         * @defaultValue `false`
+         */
+        isDirectory?: boolean;
+        /**
+         * Must be `false` or omitted when `isDirectory` is `true`.
+         * @defaultValue `false`
+         */
+        isFile?: false;
+    }
+    | {
+        /**
+         * Must be `false` or omitted when `isFile` is `true`.
+         * @defaultValue `false`
+         */
+        isDirectory?: false;
+        /**
+         * Whether to check for the existence of a file.
+         * @defaultValue `false`
+         */
+        isFile?: boolean;
+    };
+
+/**
+ * Options for `copy`.
+ */
+export interface CopyOptions {
+    /**
+     * Whether to overwrite the destination file if it already exists.
+     * @defaultValue `true`
+     */
+    overwrite?: boolean;
+}
+
+/**
+ * Options for `move`.
+ */
+export interface MoveOptions {
+    /**
+     * Whether to overwrite the destination file if it already exists.
+     * @defaultValue `true`
+     */
+    overwrite?: boolean;
+}
+
+// ==================== Directory Entry Types ====================
 
 /**
  * An entry returned by `readDir`.
@@ -230,6 +262,90 @@ export interface FileSystemFileHandleLike extends FileSystemHandleLike {
     readonly lastModified: number;
 }
 
+// ==================== Temporary File Options ====================
+
+/**
+ * Options for `mkTemp`.
+ */
+export interface TempOptions {
+    /**
+     * Whether to create a directory.
+     * eg: `mktemp -d`
+     * @defaultValue `false`
+     */
+    isDirectory?: boolean;
+
+    /**
+     * The basename of the file or directory.
+     * eg: `mktemp -t basename.XXX`
+     * @defaultValue `tmp`
+     */
+    basename?: string;
+
+    /**
+     * The extension of the file.
+     * eg: `mktemp --suffix .txt`
+     */
+    extname?: string;
+}
+
+// ==================== Archive Options ====================
+
+/**
+ * Options for `zip`.
+ */
+export interface ZipOptions {
+    /**
+     * Whether to preserve the root directory name in the zip file structure.
+     * - `true`: `/path/to/folder` → `folder/file1.txt`, `folder/file2.txt`
+     * - `false`: `/path/to/folder` → `file1.txt`, `file2.txt`
+     * @defaultValue `true`
+     */
+    preserveRoot?: boolean;
+}
+
+// ==================== Network Types ====================
+
+/**
+ * Request init options for network-related APIs.
+ *
+ * This type is based on `@happy-ts/fetch-t` and is used by:
+ * - {@link downloadFile}
+ * - {@link uploadFile}
+ * - {@link zipFromUrl}
+ * - {@link unzipFromUrl}
+ *
+ * It supports `timeout` and `onProgress` (see fetch-t docs for exact semantics).
+ */
+export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>;
+
+/**
+ * Request init options for {@link uploadFile}.
+ */
+export interface UploadRequestInit extends FsRequestInit {
+    /**
+     * The filename to use when uploading the file.
+     */
+    filename?: string;
+}
+
+/**
+ * Result of {@link downloadFile} when the file is saved to a temporary path.
+ */
+export interface DownloadFileTempResponse {
+    /**
+     * The temporary path of the downloaded file to be saved.
+     */
+    readonly tempFilePath: string;
+
+    /**
+     * The raw response.
+     */
+    readonly rawResponse: Response;
+}
+
+// ==================== Sync Channel Options ====================
+
 /**
  * Options for `SyncChannel.connect`.
  */
@@ -260,79 +376,4 @@ export interface AttachSyncChannelOptions {
      * @defaultValue `1000` (1 second)
      */
     opTimeout?: number;
-}
-
-/**
- * Options for `zip`.
- */
-export interface ZipOptions {
-    /**
-     * Whether to preserve the root directory name in the zip file structure.
-     * - `true`: `/path/to/folder` → `folder/file1.txt`, `folder/file2.txt`
-     * - `false`: `/path/to/folder` → `file1.txt`, `file2.txt`
-     * @defaultValue `true`
-     */
-    preserveRoot?: boolean;
-}
-
-/**
- * Options for `mkTemp`.
- */
-export interface TempOptions {
-    /**
-     * Whether to create a directory.
-     * eg: `mktemp -d`
-     * @defaultValue `false`
-     */
-    isDirectory?: boolean;
-
-    /**
-     * The basename of the file or directory.
-     * eg: `mktemp -t basename.XXX`
-     * @defaultValue `tmp`
-     */
-    basename?: string;
-
-    /**
-     * The extension of the file.
-     * eg: `mktemp --suffix .txt`
-     */
-    extname?: string;
-}
-
-/**
- * Options for `copy`.
- */
-export interface CopyOptions {
-    /**
-     * Whether to overwrite the destination file if it already exists.
-     * @defaultValue `true`
-     */
-    overwrite?: boolean;
-}
-
-/**
- * Result of `downloadFile` when the file is saved to a temporary path.
- */
-export interface DownloadFileTempResponse {
-    /**
-     * The temporary path of the downloaded file to be saved.
-     */
-    readonly tempFilePath: string;
-
-    /**
-     * The raw response.
-     */
-    readonly rawResponse: Response;
-}
-
-/**
- * Options for `move`.
- */
-export interface MoveOptions {
-    /**
-     * Whether to overwrite the destination file if it already exists.
-     * @defaultValue `true`
-     */
-    overwrite?: boolean;
 }
