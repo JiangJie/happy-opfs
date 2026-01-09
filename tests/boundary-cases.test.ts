@@ -195,7 +195,7 @@ describe('Boundary Cases', () => {
 
     describe('Stream boundary cases', () => {
         it('should write empty content with stream', async () => {
-            const result = await fs.writeFileStream('/boundary-file.txt');
+            const result = await fs.openWritableFileStream('/boundary-file.txt');
             const stream = result.unwrap();
             await stream.close();
 
@@ -204,7 +204,7 @@ describe('Boundary Cases', () => {
         });
 
         it('should write single byte with stream', async () => {
-            const result = await fs.writeFileStream('/boundary-file.txt');
+            const result = await fs.openWritableFileStream('/boundary-file.txt');
             const stream = result.unwrap();
             await stream.write(new Uint8Array([42]));
             await stream.close();

@@ -39,7 +39,7 @@ describe('Error Handling', () => {
         });
 
         it('should return Err for reading stream from non-existent file', async () => {
-            const result = await fs.readFileStream('/non-existent-xyz.txt');
+            const result = await fs.readFile('/non-existent-xyz.txt', { encoding: 'stream' });
             expect(result.isErr()).toBe(true);
         });
     });
@@ -50,8 +50,8 @@ describe('Error Handling', () => {
             expect(result.isErr()).toBe(true);
         });
 
-        it('should fail writeFileStream when create is false and file does not exist', async () => {
-            const result = await fs.writeFileStream('/error-test/non-existent.txt', { create: false });
+        it('should fail openWritableFileStream when create is false and file does not exist', async () => {
+            const result = await fs.openWritableFileStream('/error-test/non-existent.txt', { create: false });
             expect(result.isErr()).toBe(true);
         });
 

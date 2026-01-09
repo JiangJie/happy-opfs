@@ -46,7 +46,7 @@ jsr add @happy-js/happy-opfs
 |----------|------|
 | **Core** | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat` |
 | **Extended** | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile` |
-| **Stream** | `readFileStream`, `writeFileStream` |
+| **Stream** | `readFile` with `{ encoding: 'stream' }`, `openWritableFileStream` |
 | **Temp** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp` |
 | **Zip** | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl` |
 | **Network** | `downloadFile`, `uploadFile` |

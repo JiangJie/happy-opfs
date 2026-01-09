@@ -46,7 +46,7 @@ jsr add @happy-js/happy-opfs
 |------|-----|
 | **核心** | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat` |
 | **扩展** | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile` |
-| **流式** | `readFileStream`, `writeFileStream` |
+| **流式** | `readFile` 配合 `{ encoding: 'stream' }`, `openWritableFileStream` |
 | **临时文件** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp` |
 | **压缩** | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl` |
 | **网络** | `downloadFile`, `uploadFile` |

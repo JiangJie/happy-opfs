@@ -102,34 +102,6 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
 }
 
 /**
- * Opens a file and returns a writable stream for writing contents.
- * Useful for writing large files without loading them entirely into memory.
- * The caller is responsible for closing the stream when done.
- *
- * @deprecated Use `openWritableFileStream` instead. This function will be removed in the next major version.
- * @param filePath - The absolute path of the file to write.
- * @param options - Optional write options.
- * @returns A promise that resolves to an `AsyncIOResult` containing a `FileSystemWritableFileStream`.
- * @example
- * ```typescript
- * // Deprecated usage:
- * (await writeFileStream('/path/to/large-file.bin'))
- *     .inspect(async stream => {
- *         // ...
- *     });
- *
- * // New usage:
- * (await openWritableFileStream('/path/to/large-file.bin'))
- *     .inspect(async stream => {
- *         // ...
- *     });
- * ```
- */
-export function writeFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
-    return openWritableFileStream(filePath, options);
-}
-
-/**
  * Type guard for detecting binary ReadableStream input for file writing.
  *
  * Note: uses `instanceof ReadableStream`, which may not work across realms (e.g. iframe)

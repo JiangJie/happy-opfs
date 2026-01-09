@@ -179,37 +179,6 @@ export async function readFile(filePath: string, options?: ReadOptions): AsyncIO
 }
 
 /**
- * Opens a file and returns a readable stream for reading its contents.
- * Useful for processing large files without loading them entirely into memory.
- *
- * @deprecated Use `readFile(filePath, { encoding: 'stream' })` instead. This function will be removed in the next major version.
- * @param filePath - The absolute path of the file to read.
- * @returns A promise that resolves to an `AsyncIOResult` containing a `ReadableStream<Uint8Array>`.
- * @example
- * ```typescript
- * // Deprecated usage:
- * (await readFileStream('/path/to/large-file.bin'))
- *     .inspect(async stream => {
- *         const reader = stream.getReader();
- *         while (true) {
- *             const { done, value } = await reader.read();
- *             if (done) break;
- *             console.log('Received chunk:', value.length, 'bytes');
- *         }
- *     });
- *
- * // New usage:
- * (await readFile('/path/to/large-file.bin', { encoding: 'stream' }))
- *     .inspect(async stream => {
- *         // same as above
- *     });
- * ```
- */
-export function readFileStream(filePath: string): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>> {
-    return readFile(filePath, { encoding: 'stream' });
-}
-
-/**
  * Reads file content using the Worker's FileSystemSyncAccessHandle API.
  * More performant than File-based reading in Worker context.
  */

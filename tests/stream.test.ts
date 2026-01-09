@@ -1,6 +1,6 @@
 /**
  * Stream-based file operations tests using Vitest
- * Tests: readFileStream, writeFileStream
+ * Tests: readFile with stream encoding, openWritableFileStream
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import * as fs from '../src/mod.ts';
@@ -15,12 +15,12 @@ describe('OPFS Stream Operations', () => {
         await fs.remove('/stream-nested');
     });
 
-    describe('readFileStream', () => {
+    describe('readFile stream encoding', () => {
         it('should read file as a stream', async () => {
             const content = 'Hello, Stream World!';
             await fs.writeFile('/stream-read.txt', content);
 
-            const result = await fs.readFileStream('/stream-read.txt');
+            const result = await fs.readFile('/stream-read.txt', { encoding: 'stream' });
             const stream = result.unwrap();
 
             // Read from stream
@@ -55,7 +55,7 @@ describe('OPFS Stream Operations', () => {
             }
             await fs.writeFile('/stream-large.bin', data);
 
-            const result = await fs.readFileStream('/stream-large.bin');
+            const result = await fs.readFile('/stream-large.bin', { encoding: 'stream' });
             const stream = result.unwrap();
 
             const reader = stream.getReader();
@@ -71,14 +71,14 @@ describe('OPFS Stream Operations', () => {
         });
 
         it('should fail for non-existent file', async () => {
-            const result = await fs.readFileStream('/non-existent-stream.txt');
+            const result = await fs.readFile('/non-existent-stream.txt', { encoding: 'stream' });
             expect(result.isErr()).toBe(true);
         });
     });
 
-    describe('writeFileStream', () => {
+    describe('openWritableFileStream', () => {
         it('should write file using stream', async () => {
-            const result = await fs.writeFileStream('/stream-write.txt');
+            const result = await fs.openWritableFileStream('/stream-write.txt');
             const stream = result.unwrap();
 
             try {
@@ -94,7 +94,7 @@ describe('OPFS Stream Operations', () => {
         });
 
         it('should write binary data using stream', async () => {
-            const result = await fs.writeFileStream('/stream-write-bin.bin');
+            const result = await fs.openWritableFileStream('/stream-write-bin.bin');
             const stream = result.unwrap();
 
             try {
@@ -116,7 +116,7 @@ describe('OPFS Stream Operations', () => {
         it('should append using stream', async () => {
             await fs.writeFile('/stream-append.txt', 'Initial');
 
-            const result = await fs.writeFileStream('/stream-append.txt', { append: true });
+            const result = await fs.openWritableFileStream('/stream-append.txt', { append: true });
             const stream = result.unwrap();
 
             try {
@@ -130,7 +130,7 @@ describe('OPFS Stream Operations', () => {
         });
 
         it('should create file and parent directories', async () => {
-            const result = await fs.writeFileStream('/stream-nested/dir/file.txt');
+            const result = await fs.openWritableFileStream('/stream-nested/dir/file.txt');
             const stream = result.unwrap();
 
             try {
@@ -143,7 +143,7 @@ describe('OPFS Stream Operations', () => {
         });
 
         it('should fail when create is false and file does not exist', async () => {
-            const result = await fs.writeFileStream('/non-existent-stream-write.txt', { create: false });
+            const result = await fs.openWritableFileStream('/non-existent-stream-write.txt', { create: false });
             expect(result.isErr()).toBe(true);
         });
     });

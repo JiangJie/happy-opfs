@@ -138,7 +138,7 @@ describe('OPFS Edge Cases', () => {
 
     describe('Stream Edge Cases', () => {
         it('should handle multiple write operations', async () => {
-            const result = await fs.writeFileStream('/edge-file.txt');
+            const result = await fs.openWritableFileStream('/edge-file.txt');
             const stream = result.unwrap();
 
             try {
