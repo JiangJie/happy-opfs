@@ -6,7 +6,7 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { assertAbsolutePath } from '../async/internal/assertions.ts';
+import { assertAbsolutePath, assertExistsOptions, assertExpiredDate } from '../async/internal/assertions.ts';
 import { textDecode, textEncode } from '../shared/codec.ts';
 import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirOptions, type ReadOptions, type ReadSyncFileContent, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
@@ -515,6 +515,7 @@ export function emptyDirSync(dirPath: string): VoidIOResult {
  */
 export function existsSync(path: string, options?: ExistsOptions): IOResult<boolean> {
     path = assertAbsolutePath(path);
+    assertExistsOptions(options);
     return callWorkerOp(WorkerOp.exists, path, options);
 }
 
@@ -565,6 +566,7 @@ export function mkTempSync(options?: TempOptions): IOResult<string> {
  * ```
  */
 export function pruneTempSync(expired: Date): VoidIOResult {
+    assertExpiredDate(expired);
     return callWorkerOp(WorkerOp.pruneTemp, expired);
 }
 

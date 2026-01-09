@@ -1,6 +1,6 @@
 import { normalize } from '@std/path/posix';
 import invariant from 'tiny-invariant';
-import { ROOT_DIR } from '../../shared/mod.ts';
+import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
 import { isValidUrl } from './url.ts';
 
 /**
@@ -35,4 +35,28 @@ export function assertFileUrl(fileUrl: string | URL): void {
     }
     invariant(typeof fileUrl === 'string', () => `File url must be a string or URL but received ${ fileUrl }`);
     invariant(isValidUrl(fileUrl), () => `File url must be a valid URL but received ${ fileUrl }`);
+}
+
+/**
+ * Asserts that the provided ExistsOptions are valid.
+ * `isDirectory` and `isFile` cannot both be `true`.
+ *
+ * @param options - The ExistsOptions to validate.
+ * @throws Will throw an error if both `isDirectory` and `isFile` are `true`.
+ * @internal
+ */
+export function assertExistsOptions(options?: ExistsOptions): void {
+    const { isDirectory = false, isFile = false } = options ?? {};
+    invariant(!(isDirectory && isFile), () => 'ExistsOptions.isDirectory and ExistsOptions.isFile must not be true together');
+}
+
+/**
+ * Asserts that the provided value is a valid Date for pruneTemp expiration.
+ *
+ * @param expired - The value to validate.
+ * @throws Will throw an error if the value is not a Date instance.
+ * @internal
+ */
+export function assertExpiredDate(expired: unknown): asserts expired is Date {
+    invariant(expired instanceof Date, () => `Expired must be a Date but received ${ expired }`);
 }

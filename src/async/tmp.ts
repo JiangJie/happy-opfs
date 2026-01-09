@@ -1,8 +1,8 @@
 import { join, SEPARATOR } from '@std/path/posix';
 import { Ok, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import invariant from 'tiny-invariant';
 import { isFileHandle, TMP_DIR, type TempOptions } from '../shared/mod.ts';
 import { createFile, mkdir, remove } from './core/mod.ts';
+import { assertExpiredDate } from './internal/assertions.ts';
 import { getDirHandle, removeHandle } from './internal/helpers.ts';
 
 /**
@@ -107,7 +107,7 @@ export function deleteTemp(): AsyncVoidIOResult {
  * ```
  */
 export async function pruneTemp(expired: Date): AsyncVoidIOResult {
-    invariant(expired instanceof Date, () => `Expired must be a Date but received ${ expired }`);
+    assertExpiredDate(expired);
 
     // Get TMP_DIR handle to iterate and reuse for removal
     const tmpDirHandleRes = await getDirHandle(TMP_DIR);

@@ -1,9 +1,8 @@
 import { basename, join } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import invariant from 'tiny-invariant';
 import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import { aggregateResults, assertAbsolutePath, getParentDirHandle, isNotFoundError } from './internal/mod.ts';
+import { aggregateResults, assertAbsolutePath, assertExistsOptions, getParentDirHandle, isNotFoundError } from './internal/mod.ts';
 
 /**
  * Moves a file handle to a new path using the FileSystemFileHandle.move() method.
@@ -235,13 +234,12 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
  * ```
  */
 export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
-    const { isDirectory = false, isFile = false } = options ?? {};
-
-    invariant(!(isDirectory && isFile), () => 'ExistsOptions.isDirectory and ExistsOptions.isFile must not be true together.');
+    assertExistsOptions(options);
 
     const statRes = await stat(path);
 
     return statRes.map(handle => {
+        const { isDirectory = false, isFile = false } = options ?? {};
         const notExist =
             (isDirectory && isFileHandle(handle))
             || (isFile && isDirectoryHandle(handle));
