@@ -11,7 +11,7 @@ import { textDecode, textEncode } from '../shared/codec.ts';
 import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirOptions, type ReadOptions, type ReadSyncFileContent, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp, type SyncMessenger } from './protocol.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp, type SyncMessenger } from './protocol.ts';
 
 /**
  * Deserializes an `ErrorLike` object back to an `Error` instance.
@@ -119,12 +119,11 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array<ArrayBuff
  * Serializes the request, sends to worker, and deserializes the response.
  *
  * @template T - The expected return type.
- * @param op - The I/O operation enum value from `WorkerAsyncOp`.
+ * @param op - The I/O operation enum value from `WorkerOp`.
  * @param args - Arguments to pass to the operation.
  * @returns The I/O operation result wrapped in `IOResult<T>`.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
+function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
     if (getSyncChannelState() !== 'ready') {
         // too early
         return Err(new Error('Sync channel not connected'));
@@ -173,7 +172,7 @@ function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
  */
 export function createFileSync(filePath: string): VoidIOResult {
     filePath = assertAbsolutePath(filePath);
-    return callWorkerOp(WorkerAsyncOp.createFile, filePath);
+    return callWorkerOp(WorkerOp.createFile, filePath);
 }
 
 /**
@@ -191,7 +190,7 @@ export function createFileSync(filePath: string): VoidIOResult {
  */
 export function mkdirSync(dirPath: string): VoidIOResult {
     dirPath = assertAbsolutePath(dirPath);
-    return callWorkerOp(WorkerAsyncOp.mkdir, dirPath);
+    return callWorkerOp(WorkerOp.mkdir, dirPath);
 }
 
 /**
@@ -212,7 +211,7 @@ export function mkdirSync(dirPath: string): VoidIOResult {
 export function moveSync(srcPath: string, destPath: string, options?: MoveOptions): VoidIOResult {
     srcPath = assertAbsolutePath(srcPath);
     destPath = assertAbsolutePath(destPath);
-    return callWorkerOp(WorkerAsyncOp.move, srcPath, destPath, options);
+    return callWorkerOp(WorkerOp.move, srcPath, destPath, options);
 }
 
 /**
@@ -236,7 +235,7 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  */
 export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult<DirEntryLike[]> {
     dirPath = assertAbsolutePath(dirPath);
-    return callWorkerOp(WorkerAsyncOp.readDir, dirPath, options);
+    return callWorkerOp(WorkerOp.readDir, dirPath, options);
 }
 
 /**
@@ -335,13 +334,13 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
     // blob encoding: use readBlobFile for File object with metadata
     if (encoding === 'blob') {
         // Response is [metadata, Uint8Array] from binary protocol
-        const res: IOResult<[FileMetadata, Uint8Array<ArrayBuffer>]> = callWorkerOp(WorkerAsyncOp.readBlobFile, filePath);
+        const res = callWorkerOp<[FileMetadata, Uint8Array<ArrayBuffer>]>(WorkerOp.readBlobFile, filePath);
         return res.map(([metadata, data]) => deserializeFile(metadata, data));
     }
 
     // bytes/utf8: always request bytes encoding from worker
     // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
-    const res: IOResult<Uint8Array<ArrayBuffer>> = callWorkerOp(WorkerAsyncOp.readFile, filePath);
+    const res = callWorkerOp<Uint8Array<ArrayBuffer>>(WorkerOp.readFile, filePath);
 
     return res.map(bytes => {
         if (encoding === 'utf8') {
@@ -367,7 +366,7 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
  */
 export function removeSync(path: string): VoidIOResult {
     path = assertAbsolutePath(path);
-    return callWorkerOp(WorkerAsyncOp.remove, path);
+    return callWorkerOp(WorkerOp.remove, path);
 }
 
 /**
@@ -391,7 +390,7 @@ export function removeSync(path: string): VoidIOResult {
  */
 export function statSync(path: string): IOResult<FileSystemHandleLike> {
     path = assertAbsolutePath(path);
-    return callWorkerOp(WorkerAsyncOp.stat, path);
+    return callWorkerOp(WorkerOp.stat, path);
 }
 
 /**
@@ -437,7 +436,7 @@ function serializeWriteContents(contents: WriteSyncFileContent): Uint8Array<Arra
 export function writeFileSync(filePath: string, contents: WriteSyncFileContent, options?: WriteOptions): VoidIOResult {
     filePath = assertAbsolutePath(filePath);
     // Put Uint8Array as the last argument for binary protocol
-    return callWorkerOp(WorkerAsyncOp.writeFile, filePath, options, serializeWriteContents(contents));
+    return callWorkerOp(WorkerOp.writeFile, filePath, options, serializeWriteContents(contents));
 }
 
 /**
@@ -456,7 +455,7 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
 export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
     filePath = assertAbsolutePath(filePath);
     // Put Uint8Array as the last argument for binary protocol
-    return callWorkerOp(WorkerAsyncOp.appendFile, filePath, serializeWriteContents(contents));
+    return callWorkerOp(WorkerOp.appendFile, filePath, serializeWriteContents(contents));
 }
 
 /**
@@ -480,7 +479,7 @@ export function appendFileSync(filePath: string, contents: WriteSyncFileContent)
 export function copySync(srcPath: string, destPath: string, options?: CopyOptions): VoidIOResult {
     srcPath = assertAbsolutePath(srcPath);
     destPath = assertAbsolutePath(destPath);
-    return callWorkerOp(WorkerAsyncOp.copy, srcPath, destPath, options);
+    return callWorkerOp(WorkerOp.copy, srcPath, destPath, options);
 }
 
 /**
@@ -497,7 +496,7 @@ export function copySync(srcPath: string, destPath: string, options?: CopyOption
  */
 export function emptyDirSync(dirPath: string): VoidIOResult {
     dirPath = assertAbsolutePath(dirPath);
-    return callWorkerOp(WorkerAsyncOp.emptyDir, dirPath);
+    return callWorkerOp(WorkerOp.emptyDir, dirPath);
 }
 
 /**
@@ -516,7 +515,7 @@ export function emptyDirSync(dirPath: string): VoidIOResult {
  */
 export function existsSync(path: string, options?: ExistsOptions): IOResult<boolean> {
     path = assertAbsolutePath(path);
-    return callWorkerOp(WorkerAsyncOp.exists, path, options);
+    return callWorkerOp(WorkerOp.exists, path, options);
 }
 
 /**
@@ -531,7 +530,7 @@ export function existsSync(path: string, options?: ExistsOptions): IOResult<bool
  * ```
  */
 export function deleteTempSync(): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.deleteTemp);
+    return callWorkerOp(WorkerOp.deleteTemp);
 }
 
 /**
@@ -548,7 +547,7 @@ export function deleteTempSync(): VoidIOResult {
  * ```
  */
 export function mkTempSync(options?: TempOptions): IOResult<string> {
-    return callWorkerOp(WorkerAsyncOp.mkTemp, options);
+    return callWorkerOp(WorkerOp.mkTemp, options);
 }
 
 /**
@@ -566,7 +565,7 @@ export function mkTempSync(options?: TempOptions): IOResult<string> {
  * ```
  */
 export function pruneTempSync(expired: Date): VoidIOResult {
-    return callWorkerOp(WorkerAsyncOp.pruneTemp, expired);
+    return callWorkerOp(WorkerOp.pruneTemp, expired);
 }
 
 /**
@@ -664,7 +663,7 @@ export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
 export function unzipSync(zipFilePath: string, targetPath: string): VoidIOResult {
     zipFilePath = assertAbsolutePath(zipFilePath);
     targetPath = assertAbsolutePath(targetPath);
-    return callWorkerOp(WorkerAsyncOp.unzip, zipFilePath, targetPath);
+    return callWorkerOp(WorkerOp.unzip, zipFilePath, targetPath);
 }
 
 /**
@@ -705,12 +704,12 @@ export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint
  * @returns An `IOResult` containing the result.
  * @see {@link zip} for the async version.
  */
-export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult {
+export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer> | void> {
     sourcePath = assertAbsolutePath(sourcePath);
     // If zipFilePath is a string path, validate it too
     if (typeof zipFilePath === 'string') {
         zipFilePath = assertAbsolutePath(zipFilePath);
     }
     // Result is Uint8Array directly as the last element from binary protocol, or undefined for void result
-    return callWorkerOp(WorkerAsyncOp.zip, sourcePath, zipFilePath, options) as IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
+    return callWorkerOp(WorkerOp.zip, sourcePath, zipFilePath, options);
 }

@@ -1,4 +1,4 @@
-import type { IOResult } from 'happy-rusty';
+import type { AsyncIOResult } from 'happy-rusty';
 import {
     appendFile, copy,
     createFile,
@@ -17,7 +17,7 @@ import {
 import { readBlobSync } from '../../shared/helpers.ts';
 import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from '../defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from '../protocol.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp } from '../protocol.ts';
 
 //----------------------------------------------------------------------
 // Sync Channel Message Protocol
@@ -111,28 +111,28 @@ const WORKER_LOCKED = MAIN_UNLOCKED;
  * Mapping of async operation enums to their corresponding OPFS functions.
  * Used by the worker loop to dispatch operations from the main thread.
  *
- * Key: `WorkerAsyncOp` enum value
+ * Key: `WorkerOp` value
  * Value: The async function to execute
  */
-const asyncOps = {
-    [WorkerAsyncOp.createFile]: createFile,
-    [WorkerAsyncOp.mkdir]: mkdir,
-    [WorkerAsyncOp.move]: move,
-    [WorkerAsyncOp.readDir]: readDir,
-    [WorkerAsyncOp.readFile]: readFile,
-    [WorkerAsyncOp.remove]: remove,
-    [WorkerAsyncOp.stat]: stat,
-    [WorkerAsyncOp.writeFile]: writeFile,
-    [WorkerAsyncOp.appendFile]: appendFile,
-    [WorkerAsyncOp.copy]: copy,
-    [WorkerAsyncOp.emptyDir]: emptyDir,
-    [WorkerAsyncOp.exists]: exists,
-    [WorkerAsyncOp.deleteTemp]: deleteTemp,
-    [WorkerAsyncOp.mkTemp]: mkTemp,
-    [WorkerAsyncOp.pruneTemp]: pruneTemp,
-    [WorkerAsyncOp.readBlobFile]: readBlobFile,
-    [WorkerAsyncOp.unzip]: unzip,
-    [WorkerAsyncOp.zip]: zip,
+const opHandlers = {
+    [WorkerOp.createFile]: createFile,
+    [WorkerOp.mkdir]: mkdir,
+    [WorkerOp.move]: move,
+    [WorkerOp.readDir]: readDir,
+    [WorkerOp.readFile]: readFile,
+    [WorkerOp.remove]: remove,
+    [WorkerOp.stat]: stat,
+    [WorkerOp.writeFile]: writeFile,
+    [WorkerOp.appendFile]: appendFile,
+    [WorkerOp.copy]: copy,
+    [WorkerOp.emptyDir]: emptyDir,
+    [WorkerOp.exists]: exists,
+    [WorkerOp.deleteTemp]: deleteTemp,
+    [WorkerOp.mkTemp]: mkTemp,
+    [WorkerOp.pruneTemp]: pruneTemp,
+    [WorkerOp.readBlobFile]: readBlobFile,
+    [WorkerOp.unzip]: unzip,
+    [WorkerOp.zip]: zip,
 };
 
 /**
@@ -249,9 +249,8 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
  * @param op - The operation type.
  * @param args - The arguments to deserialize.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
-    if (op === WorkerAsyncOp.writeFile) {
+function deserializeArgs(op: WorkerOp, args: unknown[]): void {
+    if (op === WorkerOp.writeFile) {
         // Request format: [filePath, options?, Uint8Array]
         // Expected args: [filePath, Uint8Array, options?]
         // Move Uint8Array from last position to second position
@@ -259,11 +258,11 @@ function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
         const options = args[1];
         args[1] = data;
         args[2] = options;
-    } else if (op === WorkerAsyncOp.readFile) {
+    } else if (op === WorkerOp.readFile) {
         // Always use bytes encoding (default) - adapter handles encoding conversion
         // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
         args.length = 1;
-    } else if (op === WorkerAsyncOp.pruneTemp) {
+    } else if (op === WorkerOp.pruneTemp) {
         // Date was serialized as ISO string, reconstruct Date object
         args[0] = new Date(args[0] as Date);
     }
@@ -301,9 +300,8 @@ async function serializeReadDirResult(iterator: AsyncIterableIterator<DirEntry>)
  * @param result - The unwrapped result value.
  * @returns Serializable response data.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function serializeResult(op: WorkerAsyncOp, result: unknown): any {
-    if (op === WorkerAsyncOp.readBlobFile) {
+function serializeResult(op: WorkerOp, result: unknown): unknown {
+    if (op === WorkerOp.readBlobFile) {
         // Split file into [metadata, Uint8Array]
         // Caller will receive metadata as first element, Uint8Array as last
         const file = result as File;
@@ -330,13 +328,12 @@ function serializeResult(op: WorkerAsyncOp, result: unknown): any {
 async function processRequest(data: Uint8Array<SharedArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
     try {
         // Decode the request: [operation, ...arguments]
-        const [op, ...args] = decodePayload<[WorkerAsyncOp, ...Parameters<typeof asyncOps[WorkerAsyncOp]>]>(data);
+        const [op, ...args] = decodePayload<[WorkerOp, ...Parameters<typeof opHandlers[WorkerOp]>]>(data);
 
         deserializeArgs(op, args);
 
-        const handle = asyncOps[op];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const res: IOResult<any> = await (handle as any)(...args);
+        const handle = opHandlers[op] as (...args: unknown[]) => AsyncIOResult<unknown>;
+        const res = await handle(...args);
 
         if (res.isErr()) {
             // Operation failed - encode error only: [serializedError]
@@ -344,19 +341,18 @@ async function processRequest(data: Uint8Array<SharedArrayBuffer>): Promise<Uint
         }
 
         const result = res.unwrap();
-
         // Build response array: [null (no error), ...serialized result]
-        const response: unknown[] = [null];
+        const response: [null, ...unknown[]] = [null];
 
         // Serialize result based on operation type
-        if (op === WorkerAsyncOp.readDir) {
+        if (op === WorkerOp.readDir) {
             response.push(await serializeReadDirResult(result as AsyncIterableIterator<DirEntry>));
-        } else if (op === WorkerAsyncOp.stat) {
+        } else if (op === WorkerOp.stat) {
             response.push(await serializeFileSystemHandle(result as FileSystemHandle));
         } else {
-            const rawResponse = serializeResult(op, result);
+            const rawResponse = serializeResult(op, result) as unknown[];
             // For readBlobFile, rawResponse is [metadata, Uint8Array], spread it
-            if (op === WorkerAsyncOp.readBlobFile) {
+            if (op === WorkerOp.readBlobFile) {
                 response.push(...rawResponse);
             } else {
                 response.push(rawResponse);

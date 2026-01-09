@@ -2,49 +2,54 @@ import { textDecode, textEncode } from '../shared/codec.ts';
 
 /**
  * Payload type markers for binary protocol.
- * @internal
  */
-export const enum PayloadType {
+const PayloadType = {
     /**
      * Pure JSON payload, no binary data.
      * Format: [type: 1B][json bytes]
      */
-    JSON = 0,
+    JSON: 0,
     /**
      * JSON payload with separate binary data field.
      * Binary data is stored separately to avoid JSON serialization overhead.
      * Format: [type: 1B][json length: 4B][json bytes][binary bytes]
      */
-    BINARY_JSON = 1,
-}
+    BINARY_JSON: 1,
+} as const;
 
 /**
- * Enumeration of async I/O operations that can be called from main thread to worker thread.
+ * Operations that can be called from main thread to worker thread.
  * Each value corresponds to a specific file system operation.
  * @internal
  */
-export const enum WorkerAsyncOp {
+export const WorkerOp = {
     // core
-    createFile,
-    mkdir,
-    move,
-    readDir,
-    readFile,
-    remove,
-    stat,
-    writeFile,
+    createFile: 0,
+    mkdir: 1,
+    move: 2,
+    readDir: 3,
+    readFile: 4,
+    remove: 5,
+    stat: 6,
+    writeFile: 7,
     // ext
-    appendFile,
-    copy,
-    emptyDir,
-    exists,
-    deleteTemp,
-    mkTemp,
-    pruneTemp,
-    readBlobFile,
-    unzip,
-    zip,
-}
+    appendFile: 8,
+    copy: 9,
+    emptyDir: 10,
+    exists: 11,
+    deleteTemp: 12,
+    mkTemp: 13,
+    pruneTemp: 14,
+    readBlobFile: 15,
+    unzip: 16,
+    zip: 17,
+} as const;
+
+/**
+ * Worker operation type.
+ * @internal
+ */
+export type WorkerOp = typeof WorkerOp[keyof typeof WorkerOp];
 
 /**
  * Main thread lock index in the Int32Array view of SharedArrayBuffer.
