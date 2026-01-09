@@ -5,6 +5,20 @@
  */
 
 /**
+ * Asynchronously reads a Blob's content as a Uint8Array.
+ * Uses native `bytes()` method if available, otherwise falls back to `arrayBuffer()`.
+ *
+ * @param blob - The Blob to read.
+ * @returns A promise that resolves to a Uint8Array containing the blob's binary data.
+ * @internal
+ */
+export async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
+    return typeof blob.bytes === 'function'
+        ? blob.bytes()
+        : new Uint8Array(await blob.arrayBuffer());
+}
+
+/**
  * Synchronously reads a Blob's content as a Uint8Array.
  * Uses FileReaderSync for synchronous binary data reading.
  *
@@ -15,7 +29,7 @@
  * @returns A Uint8Array containing the blob's binary data.
  * @internal
  */
-export function readBlobSync(blob: Blob): Uint8Array<ArrayBuffer> {
+export function readBlobBytesSync(blob: Blob): Uint8Array<ArrayBuffer> {
     const reader = new FileReaderSync();
     return new Uint8Array(reader.readAsArrayBuffer(blob));
 }

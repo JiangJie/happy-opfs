@@ -15,7 +15,7 @@ import {
     writeFile,
     zip,
 } from '../../async/mod.ts';
-import { readBlobSync } from '../../shared/helpers.ts';
+import { readBlobBytesSync } from '../../shared/helpers.ts';
 import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from '../defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp } from '../protocol.ts';
@@ -307,7 +307,7 @@ function serializeResult(op: WorkerOp, result: unknown): unknown {
             lastModified: file.lastModified,
         };
         // Return as array - encodePayload will handle [null, metadata, Uint8Array]
-        return [metadata, readBlobSync(file)];
+        return [metadata, readBlobBytesSync(file)];
     }
 
     // readFile returns Uint8Array, zip returns Uint8Array or undefined

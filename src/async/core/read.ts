@@ -1,6 +1,7 @@
 import { join } from '@std/path/posix';
 import type { AsyncIOResult } from 'happy-rusty';
 import { textDecode } from '../../shared/codec.ts';
+import { readBlobBytes } from '../../shared/helpers.ts';
 import { isDirectoryHandle, type DirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions } from '../../shared/mod.ts';
 import { assertAbsolutePath, getDirHandle, getFileHandle } from '../internal/mod.ts';
 
@@ -224,11 +225,7 @@ async function readViaFile(
         }
         default: {
             // 'bytes' or undefined (default)
-            // Use native bytes() if available, otherwise polyfill
-            if (typeof file.bytes === 'function') {
-                return file.bytes();
-            }
-            return new Uint8Array(await file.arrayBuffer());
+            return readBlobBytes(file);
         }
     }
 }

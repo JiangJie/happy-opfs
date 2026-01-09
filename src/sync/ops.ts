@@ -654,7 +654,7 @@ export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
  * Extracts a zip file to a directory.
  *
  * @param zipFilePath - The path to the zip file.
- * @param targetPath - The directory to extract to.
+ * @param destDir - The directory to unzip to.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link unzip} for the async version.
  * @example
@@ -662,10 +662,10 @@ export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
  * unzipSync('/downloads/archive.zip', '/extracted');
  * ```
  */
-export function unzipSync(zipFilePath: string, targetPath: string): VoidIOResult {
+export function unzipSync(zipFilePath: string, destDir: string): VoidIOResult {
     zipFilePath = assertAbsolutePath(zipFilePath);
-    targetPath = assertAbsolutePath(targetPath);
-    return callWorkerOp(WorkerOp.unzip, zipFilePath, targetPath);
+    destDir = assertAbsolutePath(destDir);
+    return callWorkerOp(WorkerOp.unzip, zipFilePath, destDir);
 }
 
 /**

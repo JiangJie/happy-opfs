@@ -1,6 +1,6 @@
 import type { AsyncIOResult, AsyncVoidIOResult } from 'happy-rusty';
 import { textEncode } from '../../shared/codec.ts';
-import { readBlobSync } from '../../shared/helpers.ts';
+import { readBlobBytesSync } from '../../shared/helpers.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
 import { assertAbsolutePath, getFileHandle } from '../internal/mod.ts';
 
@@ -200,7 +200,7 @@ async function writeDataViaSyncAccess(
         if (typeof contents === 'string') {
             data = textEncode(contents);
         } else if (contents instanceof Blob) {
-            data = readBlobSync(contents);
+            data = readBlobBytesSync(contents);
         } else if (contents instanceof ArrayBuffer) {
             data = new Uint8Array(contents);
         } else if (contents instanceof Uint8Array) {

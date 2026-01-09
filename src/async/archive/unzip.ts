@@ -8,11 +8,11 @@ import { readFile, writeFile } from '../core/mod.ts';
 import { aggregateResults, assertAbsolutePath, assertFileUrl, createEmptyBodyError } from '../internal/mod.ts';
 
 /**
- * Unzip a buffer then write to the target path.
+ * Unzip a buffer then write to the destination directory.
  * @param bytes - Zipped Uint8Array.
- * @param targetPath - Target directory path.
+ * @param destDir - Destination directory path.
  */
-function unzipBytesToTarget(bytes: Uint8Array<ArrayBuffer>, targetPath: string): AsyncVoidIOResult {
+function unzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIOResult {
     const future = new Future<VoidIOResult>();
 
     fflate.unzip(bytes, async (err, unzipped) => {
@@ -26,7 +26,7 @@ function unzipBytesToTarget(bytes: Uint8Array<ArrayBuffer>, targetPath: string):
         for (const path in unzipped) {
             // ignore directory
             if (path.at(-1) !== SEPARATOR) {
-                tasks.push(writeFile(join(targetPath, path), unzipped[path] as Uint8Array<ArrayBuffer>));
+                tasks.push(writeFile(join(destDir, path), unzipped[path] as Uint8Array<ArrayBuffer>));
             }
         }
 
@@ -38,11 +38,11 @@ function unzipBytesToTarget(bytes: Uint8Array<ArrayBuffer>, targetPath: string):
 
 /**
  * Unzip a zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
+ * Equivalent to `unzip -o <zipFilePath> -d <destDir>
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
  * @param zipFilePath - Zip file path.
- * @param targetPath - The directory to unzip to.
+ * @param destDir - The directory to unzip to.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @example
  * ```typescript
@@ -50,19 +50,19 @@ function unzipBytesToTarget(bytes: Uint8Array<ArrayBuffer>, targetPath: string):
  *     .inspect(() => console.log('Unzipped successfully'));
  * ```
  */
-export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
-    targetPath = assertAbsolutePath(targetPath);
+export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIOResult {
+    destDir = assertAbsolutePath(destDir);
 
     const fileRes = await readFile(zipFilePath);
 
     return fileRes.andThenAsync(bytes => {
-        return unzipBytesToTarget(bytes, targetPath);
+        return unzipTo(bytes, destDir);
     });
 }
 
 /**
  * Unzip a remote zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <targetPath>
+ * Equivalent to `unzip -o <zipFilePath> -d <destDir>
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
  *
@@ -70,7 +70,7 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
  * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
  *
  * @param zipFileUrl - Zip file url.
- * @param targetPath - The directory to unzip to.
+ * @param destDir - The directory to unzip to.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @example
@@ -79,9 +79,9 @@ export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidI
  *     .inspect(() => console.log('Remote zip file unzipped successfully'));
  * ```
  */
-export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
+export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
     assertFileUrl(zipFileUrl);
-    targetPath = assertAbsolutePath(targetPath);
+    destDir = assertAbsolutePath(destDir);
 
     const fetchRes = await fetchT(zipFileUrl, {
         redirect: 'follow',
@@ -96,6 +96,6 @@ export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string,
             return Err(createEmptyBodyError());
         }
 
-        return unzipBytesToTarget(bytes, targetPath);
+        return unzipTo(bytes, destDir);
     });
 }

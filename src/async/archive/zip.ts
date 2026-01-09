@@ -3,12 +3,12 @@ import { basename, join } from '@std/path/posix';
 import * as fflate from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
-import { readBlobSync } from '../../shared/helpers.ts';
+import { readBlobBytes, readBlobBytesSync } from '../../shared/helpers.ts';
 import { isFileHandle, type FsRequestInit, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
 import { assertAbsolutePath, assertFileUrl, createEmptyBodyError, getUrlPathname } from '../internal/mod.ts';
 
-type ZipIOResult = IOResult<Uint8Array> | VoidIOResult;
+type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
 
 /**
  * Zip a zippable data then write to the target path.
@@ -20,17 +20,18 @@ function zipTo(zippable: fflate.AsyncZippable, zipFilePath?: string): Promise<Zi
 
     fflate.zip(zippable, {
         consume: true,
-    }, async (err, u8a) => {
+    }, async (err, bytesLike) => {
         if (err) {
             future.resolve(Err(err) as ZipIOResult);
             return;
         }
 
+        const bytes = bytesLike as Uint8Array<ArrayBuffer>;
         // whether to write to file
         if (zipFilePath) {
-            future.resolve(writeFile(zipFilePath, u8a as Uint8Array<ArrayBuffer>));
+            future.resolve(writeFile(zipFilePath, bytes));
         } else {
-            future.resolve(Ok(u8a));
+            future.resolve(Ok(bytes));
         }
     });
 
@@ -39,7 +40,7 @@ function zipTo(zippable: fflate.AsyncZippable, zipFilePath?: string): Promise<Zi
 
 /**
  * Zip a file or directory and write to a zip file.
- * Equivalent to `zip -r <zipFilePath> <targetPath>`.
+ * Equivalent to `zip -r <zipFilePath> <sourcePath>`.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
  * @param sourcePath - The path to be zipped.
@@ -57,7 +58,7 @@ export function zip(sourcePath: string, zipFilePath: string, options?: ZipOption
 
 /**
  * Zip a file or directory and return the zip file data.
- * Equivalent to `zip -r <zipFilePath> <targetPath>`.
+ * Equivalent to `zip -r <zipFilePath> <sourcePath>`.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
  * @param sourcePath - The path to be zipped.
@@ -70,7 +71,7 @@ export function zip(sourcePath: string, zipFilePath: string, options?: ZipOption
  *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
  * ```
  */
-export function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array>;
+export function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array<ArrayBuffer>>;
 export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): Promise<ZipIOResult> {
     if (typeof zipFilePath === 'string') {
         zipFilePath = assertAbsolutePath(zipFilePath);
@@ -180,7 +181,7 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
  * ```
  */
-export function zipFromUrl(sourceUrl: string | URL, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array>;
+export function zipFromUrl(sourceUrl: string | URL, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array<ArrayBuffer>>;
 export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string | FsRequestInit, requestInit?: FsRequestInit): Promise<ZipIOResult> {
     assertFileUrl(sourceUrl);
 
@@ -202,25 +203,24 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
         return fetchRes.asErr() as ZipIOResult;
     }
 
-    const buffer = fetchRes.unwrap();
+    const bytes = fetchRes.unwrap();
 
     // body can be null for 204/304 responses or HEAD requests
-    if (buffer.byteLength === 0) {
+    if (bytes.byteLength === 0) {
         return Err(createEmptyBodyError()) as ZipIOResult;
     }
 
     const sourceName = basename(getUrlPathname(sourceUrl));
-    const zippable: fflate.AsyncZippable = {
-        [sourceName]: buffer,
-    };
 
-    return zipTo(zippable, zipFilePath);
+    return zipTo({
+        [sourceName]: bytes,
+    }, zipFilePath);
 }
 
 /**
  * Reads the binary data from a file handle.
  * Uses FileReaderSync in Worker context for better performance,
- * falls back to async arrayBuffer() in main thread.
+ * falls back to async readBlobBytes in main thread.
  *
  * @param fileHandle - The `FileSystemFileHandle` to read from.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a `Uint8Array`.
@@ -230,7 +230,7 @@ function getFileDataByHandle(fileHandle: FileSystemFileHandle): AsyncIOResult<Ui
         const file = await fileHandle.getFile();
         // Use sync read in Worker context, async in main thread
         return typeof FileReaderSync === 'function'
-            ? readBlobSync(file)
-            : new Uint8Array(await file.arrayBuffer());
+            ? readBlobBytesSync(file)
+            : readBlobBytes(file);
     });
 }
