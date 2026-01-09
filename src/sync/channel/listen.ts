@@ -260,9 +260,9 @@ function deserializeArgs(op: WorkerAsyncOp, args: any[]): void {
         args[1] = data;
         args[2] = options;
     } else if (op === WorkerAsyncOp.readFile) {
-        // Always use bytes encoding - adapter handles encoding conversion
+        // Always use bytes encoding (default) - adapter handles encoding conversion
         // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
-        args[1] = { encoding: 'bytes' };
+        args.length = 1;
     } else if (op === WorkerAsyncOp.pruneTemp) {
         // Date was serialized as ISO string, reconstruct Date object
         args[0] = new Date(args[0] as Date);

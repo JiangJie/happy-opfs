@@ -9,13 +9,13 @@ import { aggregateResults, assertAbsolutePath, assertFileUrl, createEmptyBodyErr
 
 /**
  * Unzip a buffer then write to the target path.
- * @param buffer - Zipped Uint8Array.
+ * @param bytes - Zipped Uint8Array.
  * @param targetPath - Target directory path.
  */
-function unzipBufferToTarget(buffer: Uint8Array, targetPath: string): AsyncVoidIOResult {
+function unzipBytesToTarget(bytes: Uint8Array<ArrayBuffer>, targetPath: string): AsyncVoidIOResult {
     const future = new Future<VoidIOResult>();
 
-    fflate.unzip(buffer, async (err, unzipped) => {
+    fflate.unzip(bytes, async (err, unzipped) => {
         if (err) {
             future.resolve(Err(err));
             return;
@@ -53,12 +53,10 @@ function unzipBufferToTarget(buffer: Uint8Array, targetPath: string): AsyncVoidI
 export async function unzip(zipFilePath: string, targetPath: string): AsyncVoidIOResult {
     targetPath = assertAbsolutePath(targetPath);
 
-    const fileRes = await readFile(zipFilePath, {
-        encoding: 'bytes',
-    });
+    const fileRes = await readFile(zipFilePath);
 
-    return fileRes.andThenAsync(buffer => {
-        return unzipBufferToTarget(buffer, targetPath);
+    return fileRes.andThenAsync(bytes => {
+        return unzipBytesToTarget(bytes, targetPath);
     });
 }
 
@@ -92,12 +90,12 @@ export async function unzipFromUrl(zipFileUrl: string | URL, targetPath: string,
         abortable: false,
     });
 
-    return fetchRes.andThenAsync(buffer => {
+    return fetchRes.andThenAsync(bytes => {
         // body can be null for 204/304 responses or HEAD requests
-        if (buffer.byteLength === 0) {
+        if (bytes.byteLength === 0) {
             return Err(createEmptyBodyError());
         }
 
-        return unzipBufferToTarget(buffer, targetPath);
+        return unzipBytesToTarget(bytes, targetPath);
     });
 }
