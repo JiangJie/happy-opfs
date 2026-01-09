@@ -37,6 +37,7 @@
     "test": "pnpm exec vitest run --coverage",
     "test:watch": "pnpm exec vitest watch",
     "test:ui": "pnpm exec vitest --ui",
+    "bench": "pnpm exec vite --config benchmarks/vite.config.ts",
     "eg": "pnpm exec vite --config examples/vite.config.ts"
   },
   "repository": {

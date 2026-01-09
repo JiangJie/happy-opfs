@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>happy-opfs Benchmarks</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #00d9ff;
+        }
+        a {
+            color: #00d9ff;
+            text-decoration: none;
+            display: block;
+            padding: 10px 0;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>happy-opfs Benchmarks</h1>
+    <ul>
+        <li><a href="./unzip.html">unzip vs unzipSync (main thread)</a></li>
+        <li><a href="./zip.html">zip vs zipSync (main thread)</a></li>
+        <li><a href="./worker.html">async vs sync inside Worker</a></li>
+    </ul>
+</body>
+</html>

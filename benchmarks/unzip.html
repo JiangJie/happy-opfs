@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>unzip vs unzipSync - Benchmark</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #00d9ff;
+        }
+        a {
+            color: #00d9ff;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #00d9ff;
+            border: none;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00b8d9;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            background: #16213e;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            min-height: 200px;
+        }
+        #output div {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <p><a href="./">&larr; Back</a></p>
+    <h1>unzip vs unzipSync</h1>
+    <button id="run">Run Benchmark</button>
+    <div id="output">Click "Run Benchmark" to start...</div>
+    <script type="module" src="./unzip.ts"></script>
+</body>
+</html>

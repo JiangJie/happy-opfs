@@ -58,6 +58,7 @@ export default defineConfig([
         files: [
             '**/*.test.ts',
             'examples/**/*.ts',
+            'benchmarks/**/*.ts',
         ],
         rules: {
             '@typescript-eslint/no-non-null-assertion': 'off',
