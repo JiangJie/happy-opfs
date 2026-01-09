@@ -107,27 +107,31 @@ async function mkDestFromSrc(
         tasks.push(mkdir(destPath));
     }
 
-    for await (const { path, handle } of readDirRes.unwrap()) {
-        const newEntryPath = join(destPath, path);
-        // Wrap each entry processing in an async IIFE for parallel execution
-        tasks.push((async () => {
-            let newPathExists = false;
+    try {
+        for await (const { path, handle } of readDirRes.unwrap()) {
+            const newEntryPath = join(destPath, path);
+            // Wrap each entry processing in an async IIFE for parallel execution
+            tasks.push((async () => {
+                let newPathExists = false;
 
-            if (destExists) {
-                // Destination dir exists, need to check each file individually
-                const existsRes = await exists(newEntryPath);
-                if (existsRes.isErr()) {
-                    return existsRes.asErr();
+                if (destExists) {
+                    // Destination dir exists, need to check each file individually
+                    const existsRes = await exists(newEntryPath);
+                    if (existsRes.isErr()) {
+                        return existsRes.asErr();
+                    }
+
+                    newPathExists = existsRes.unwrap();
                 }
 
-                newPathExists = existsRes.unwrap();
-            }
-
-            // For files: apply handler; for directories: just create them
-            return isFileHandle(handle)
-                ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : RESULT_VOID)
-                : mkdir(newEntryPath);
-        })());
+                // For files: apply handler; for directories: just create them
+                return isFileHandle(handle)
+                    ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : RESULT_VOID)
+                    : mkdir(newEntryPath);
+            })());
+        }
+    } catch (e) {
+        return Err(e as Error);
     }
 
     // Wait for all tasks and return first error if any
@@ -206,8 +210,12 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
 
     const tasks: AsyncVoidIOResult[] = [];
 
-    for await (const { path } of readDirRes.unwrap()) {
-        tasks.push(remove(join(dirPath, path)));
+    try {
+        for await (const { path } of readDirRes.unwrap()) {
+            tasks.push(remove(join(dirPath, path)));
+        }
+    } catch (e) {
+        return Err(e as Error);
     }
 
     return aggregateResults(tasks);

@@ -112,19 +112,23 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
             data: Uint8Array;
         }>[] = [];
 
-        for await (const { path, handle } of readDirRes.unwrap()) {
-            if (!isFileHandle(handle)) {
-                continue;
-            }
+        try {
+            for await (const { path, handle } of readDirRes.unwrap()) {
+                if (!isFileHandle(handle)) {
+                    continue;
+                }
 
-            const entryName = preserveRoot ? join(sourceName, path) : path;
-            tasks.push((async () => {
-                const dataRes = await getFileDataByHandle(handle);
-                return dataRes.map(data => ({
-                    entryName,
-                    data,
-                }));
-            })());
+                const entryName = preserveRoot ? join(sourceName, path) : path;
+                tasks.push((async () => {
+                    const dataRes = await getFileDataByHandle(handle);
+                    return dataRes.map(data => ({
+                        entryName,
+                        data,
+                    }));
+                })());
+            }
+        } catch (e) {
+            return Err(e as Error) as ZipIOResult;
         }
 
         if (tasks.length > 0) {
