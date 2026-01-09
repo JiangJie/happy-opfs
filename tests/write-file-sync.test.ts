@@ -16,13 +16,15 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
     let originalCreateWritable: typeof FileSystemFileHandle.prototype.createWritable | undefined;
 
     beforeAll(async () => {
-        await fs.connectSyncAgent({
-            worker: new Worker(new URL('./worker.ts', import.meta.url), {
+        await fs.SyncChannel.connect(
+            new Worker(new URL('./worker.ts', import.meta.url), {
                 type: 'module',
             }),
-            bufferLength: 10 * 1024 * 1024,
-            opTimeout: 10000,
-        });
+            {
+                sharedBufferLength: 10 * 1024 * 1024,
+                opTimeout: 10000,
+            },
+        );
     });
 
     afterAll(() => {

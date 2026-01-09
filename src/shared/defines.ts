@@ -227,23 +227,29 @@ export interface FileSystemFileHandleLike extends FileSystemHandleLike {
 }
 
 /**
- * Setup options for `connectSyncAgent`.
+ * Options for `SyncChannel.connect`.
  */
-export interface SyncAgentOptions {
-    /**
-     * The worker to communicate with.
-     * Can be a `Worker` instance, a `URL`, or a URL string.
-     */
-    worker: Worker | URL | string;
-
+export interface ConnectSyncChannelOptions {
     /**
      * The size of the `SharedArrayBuffer` in bytes.
      * Larger buffers can handle larger file operations but consume more memory.
-     * Must be a multiple of 4 and greater than 16.
+     * Must be a multiple of 4 and at least 256 bytes.
      * @defaultValue `1048576` (1MB)
      */
-    bufferLength?: number;
+    sharedBufferLength?: number;
 
+    /**
+     * The timeout for each synchronous operation in milliseconds.
+     * If an operation takes longer than this, a `TimeoutError` is thrown.
+     * @defaultValue `1000` (1 second)
+     */
+    opTimeout?: number;
+}
+
+/**
+ * Options for `SyncChannel.attach`.
+ */
+export interface AttachSyncChannelOptions {
     /**
      * The timeout for each synchronous operation in milliseconds.
      * If an operation takes longer than this, a `TimeoutError` is thrown.

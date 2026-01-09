@@ -33,19 +33,17 @@
  *
  * ```typescript
  * // main.js
- * import { connectSyncAgent, readFileSync } from 'happy-opfs';
+ * import { SyncChannel, readFileSync } from 'happy-opfs';
  *
- * await connectSyncAgent({
- *     worker: new URL('./worker.js', import.meta.url),
- * });
+ * await SyncChannel.connect(new URL('./worker.js', import.meta.url));
  *
  * const result = readFileSync('/data/config.json', { encoding: 'utf8' });
  * ```
  *
  * ```typescript
  * // worker.js
- * import { startSyncAgent } from 'happy-opfs';
- * startSyncAgent();
+ * import { SyncChannel } from 'happy-opfs';
+ * SyncChannel.listen();
  * ```
  *
  * ## Error Handling

@@ -1,6 +1,6 @@
 /**
  * Worker file for sync API tests
  */
-import { startSyncAgent } from '../src/mod.ts';
+import { SyncChannel } from '../src/mod.ts';
 
-startSyncAgent();
+SyncChannel.listen();

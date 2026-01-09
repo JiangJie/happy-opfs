@@ -2,17 +2,15 @@
  * Shared Messenger Example - Child Iframe
  *
  * Demonstrates:
- * - Receive shared messenger from parent using setSyncMessenger()
- * - Use sync APIs without calling connectSyncAgent()
+ * - Receive SharedArrayBuffer from parent using SyncChannel.attach()
+ * - Use sync APIs without calling SyncChannel.connect()
  */
 
 import {
-    setSyncMessenger,
-    isSyncAgentConnected,
+    SyncChannel,
     writeFileSync,
     readTextFileSync,
 } from '../src/mod.ts';
-import { SyncMessenger } from '../src/sync/protocol.ts';
 
 const output = document.getElementById('output')!;
 const status = document.getElementById('status')!;
@@ -47,29 +45,28 @@ function updateStatus(connected: boolean): void {
     }
 }
 
-// Listen for shared messenger from parent
+// Listen for SharedArrayBuffer from parent
 window.addEventListener('message', (event) => {
-    if (event.data.type === 'init-sync-messenger' && event.data.sab) {
+    if (event.data.type === 'init-sync-channel' && event.data.sharedBuffer) {
         output.textContent = '';
         log('Received SharedArrayBuffer from parent', 'info');
 
         try {
-            // Reconstruct messenger from SharedArrayBuffer
-            const messenger = new SyncMessenger(event.data.sab);
-            setSyncMessenger(messenger);
+            // Attach to the SharedArrayBuffer
+            SyncChannel.attach(event.data.sharedBuffer, { opTimeout: 5000 });
 
-            log('Messenger set successfully!', 'success');
+            log('Attached to sync channel successfully!', 'success');
             log('Sync APIs are now available', 'success');
             updateStatus(true);
         } catch (err) {
-            log(`Failed to set messenger: ${(err as Error).message}`, 'error');
+            log(`Failed to attach: ${(err as Error).message}`, 'error');
         }
     }
 });
 
 // Write file from iframe
 writeBtn.addEventListener('click', () => {
-    if (!isSyncAgentConnected()) {
+    if (!SyncChannel.isReady()) {
         log('Not connected!', 'error');
         return;
     }
@@ -88,7 +85,7 @@ writeBtn.addEventListener('click', () => {
 
 // Read file written by main page
 readBtn.addEventListener('click', () => {
-    if (!isSyncAgentConnected()) {
+    if (!SyncChannel.isReady()) {
         log('Not connected!', 'error');
         return;
     }
@@ -105,4 +102,4 @@ readBtn.addEventListener('click', () => {
 });
 
 // Initial status
-updateStatus(isSyncAgentConnected());
+updateStatus(SyncChannel.isReady());

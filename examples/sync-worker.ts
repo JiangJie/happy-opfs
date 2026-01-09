@@ -5,7 +5,7 @@
  * It must be loaded as a separate worker file.
  */
 
-import { startSyncAgent } from '../src/mod.ts';
+import { SyncChannel } from '../src/mod.ts';
 
-// Start the sync agent to handle requests from the main thread
-startSyncAgent();
+// Start listening for sync channel requests from the main thread
+SyncChannel.listen();

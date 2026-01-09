@@ -2,7 +2,7 @@
  * Synchronous API Example
  *
  * Demonstrates:
- * - Connect to sync agent
+ * - Connect to sync channel
  * - Synchronous file operations
  * - Compare with async operations
  *
@@ -10,8 +10,7 @@
  */
 
 import {
-    connectSyncAgent,
-    isSyncAgentConnected,
+    SyncChannel,
     mkdirSync,
     writeFileSync,
     readTextFileSync,
@@ -50,20 +49,22 @@ async function runExample(): Promise<void> {
         return;
     }
 
-    log('=== Connecting to Sync Agent ===', 'info');
+    log('=== Connecting to Sync Channel ===', 'info');
 
-    if (isSyncAgentConnected()) {
-        log('✓ Already connected to sync agent', 'success');
+    if (SyncChannel.isReady()) {
+        log('✓ Already connected to sync channel', 'success');
     } else {
         try {
-            // Connect to the sync worker (returns Promise<void>)
-            await connectSyncAgent({
-                worker: new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
-                bufferLength: 10 * 1024 * 1024, // 10MB buffer
-                opTimeout: 5000, // 5 second timeout
-            });
+            // Connect to the sync worker (returns Promise<SharedArrayBuffer>)
+            await SyncChannel.connect(
+                new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
+                {
+                    sharedBufferLength: 10 * 1024 * 1024, // 10MB buffer
+                    opTimeout: 5000, // 5 second timeout
+                },
+            );
 
-            log('✓ Connected to sync agent', 'success');
+            log('✓ Connected to sync channel', 'success');
         } catch (err) {
             log(`✗ Failed to connect: ${(err as Error).message}`, 'error');
             return;

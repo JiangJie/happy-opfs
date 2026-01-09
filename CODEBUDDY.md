@@ -129,10 +129,14 @@ src/
 │   └── defines.ts             # Async-specific TypeScript type definitions
 └── sync/                       # Sync API implementation via Web Workers
     ├── mod.ts                 # Aggregates sync modules
-    ├── worker_thread.ts       # Worker-side: Runs in Worker, executes async operations
-    ├── main_thread.ts         # Main thread-side: Provides sync APIs, blocks until response
+    ├── ops.ts                 # Main thread sync file operations (*Sync functions)
     ├── protocol.ts            # Communication protocol (SyncMessenger, lock mechanism)
-    └── defines.ts             # Sync-specific type definitions (FileLike, ErrorLike)
+    ├── defines.ts             # Sync-specific type definitions (FileLike, ErrorLike)
+    └── channel/               # SyncChannel namespace for channel management
+        ├── mod.ts             # SyncChannel namespace exports (connect, attach, listen, isReady)
+        ├── state.ts           # Internal shared state (@internal, not exported)
+        ├── connect.ts         # Main thread: connect, attach, isReady
+        └── listen.ts          # Worker thread: listen for sync requests
 ```
 
 ### Key Architectural Patterns
@@ -154,9 +158,11 @@ if (result.isOk()) {
   - Main thread calls sync function → blocks and waits
   - Worker thread executes async OPFS operation
   - Result is passed back via SharedArrayBuffer
-  - **Usage:** Call `connectSyncAgent()` in main thread, `startSyncAgent()` in worker
-  - **Check connection:** Use `isSyncAgentConnected()` to check if sync agent is connected
-  - **Share messenger:** Use `getSyncMessenger()` / `setSyncMessenger()` to share sync instance between contexts (e.g., iframes)
+  - **Usage:** Use `SyncChannel` namespace:
+    - `SyncChannel.listen()` in worker to start listening
+    - `SyncChannel.connect(worker, options?)` in main thread to connect
+    - `SyncChannel.attach(sharedBuffer, options?)` to share connection between contexts (e.g., iframes)
+    - `SyncChannel.isReady()` to check if channel is ready
 
 #### 3. Path Handling
 - All paths are normalized to POSIX format using `@std/path/posix`
@@ -267,6 +273,6 @@ The `examples/` directory contains runnable examples for all major features:
 - `stream.ts` - Readable/writable stream operations
 - `zip.ts` - Zip/unzip operations
 - `sync-api.ts` + `sync-worker.ts` - Synchronous file operations via Web Worker
-- `shared-messenger.ts` + `shared-messenger-child.ts` - Sharing sync instance between iframe contexts
+- `shared-messenger.ts` + `shared-messenger-child.ts` - Sharing sync channel between iframe contexts
 
 Run examples with `pnpm eg` (requires HTTPS, Vite dev server handles this automatically).

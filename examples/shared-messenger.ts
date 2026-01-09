@@ -2,15 +2,13 @@
  * Shared Messenger Example - Main Page
  *
  * Demonstrates:
- * - Connect sync agent in main page
- * - Share messenger to iframe using getSyncMessenger()
+ * - Connect sync channel in main page
+ * - Share SharedArrayBuffer to iframe
  * - Both contexts can use sync APIs with the same worker
  */
 
 import {
-    connectSyncAgent,
-    isSyncAgentConnected,
-    getSyncMessenger,
+    SyncChannel,
     mkdirSync,
     writeFileSync,
     readTextFileSync,
@@ -29,7 +27,10 @@ function log(message: string, type: 'success' | 'error' | 'info' | 'warning' = '
     console.log(`[Main] ${message}`);
 }
 
-// 1. Connect sync agent
+// Store the SharedArrayBuffer for sharing
+let sharedBuffer: SharedArrayBuffer | null = null;
+
+// 1. Connect sync channel
 document.getElementById('connect')!.addEventListener('click', async () => {
     mainOutput.textContent = '';
 
@@ -44,18 +45,20 @@ document.getElementById('connect')!.addEventListener('click', async () => {
         return;
     }
 
-    if (isSyncAgentConnected()) {
+    if (SyncChannel.isReady()) {
         log('Already connected', 'info');
         return;
     }
 
     try {
-        await connectSyncAgent({
-            worker: new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
-            bufferLength: 10 * 1024 * 1024,
-            opTimeout: 5000,
-        });
-        log('Connected to sync agent', 'success');
+        sharedBuffer = await SyncChannel.connect(
+            new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
+            {
+                sharedBufferLength: 10 * 1024 * 1024,
+                opTimeout: 5000,
+            },
+        );
+        log('Connected to sync channel', 'success');
 
         // Create shared directory
         mkdirSync('/shared-example');
@@ -65,36 +68,26 @@ document.getElementById('connect')!.addEventListener('click', async () => {
     }
 });
 
-// 2. Share messenger to iframe
+// 2. Share SharedArrayBuffer to iframe
 document.getElementById('share')!.addEventListener('click', () => {
-    if (!isSyncAgentConnected()) {
+    if (!SyncChannel.isReady() || !sharedBuffer) {
         log('Not connected! Click "Connect" first', 'error');
         return;
     }
 
-    const messengerOpt = getSyncMessenger();
-    if (messengerOpt.isNone()) {
-        log('Messenger not available', 'error');
-        return;
-    }
-
-    const messenger = messengerOpt.unwrap();
-
-    // Send messenger to iframe
-    // Note: We send the internal SharedArrayBuffer (from i32a.buffer)
-    // The iframe will reconstruct the messenger using setSyncMessenger
+    // Send SharedArrayBuffer to iframe
     iframe.contentWindow?.postMessage({
-        type: 'init-sync-messenger',
-        sab: messenger.i32a.buffer, // SharedArrayBuffer can be transferred
+        type: 'init-sync-channel',
+        sharedBuffer,
     }, '*');
 
-    log('Shared messenger to iframe', 'success');
+    log('Shared SharedArrayBuffer to iframe', 'success');
     log('Iframe can now use sync APIs!', 'info');
 });
 
 // 3. Write file from main page
 document.getElementById('main-write')!.addEventListener('click', () => {
-    if (!isSyncAgentConnected()) {
+    if (!SyncChannel.isReady()) {
         log('Not connected! Click "Connect" first', 'error');
         return;
     }
@@ -123,7 +116,7 @@ document.getElementById('main-write')!.addEventListener('click', () => {
 // Cleanup
 document.getElementById('cleanup')!.addEventListener('click', () => {
     mainOutput.textContent = '';
-    if (isSyncAgentConnected()) {
+    if (SyncChannel.isReady()) {
         const result = removeSync('/shared-example');
         result.inspect(() => log('Cleaned up /shared-example', 'success'));
         result.inspectErr((err) => log(`Failed to cleanup: ${err.message}`, 'error'));

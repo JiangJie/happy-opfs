@@ -7,13 +7,15 @@ import * as fs from '../src/mod.ts';
 
 describe('Worker Operations Coverage', () => {
     beforeAll(async () => {
-        await fs.connectSyncAgent({
-            worker: new Worker(new URL('./worker.ts', import.meta.url), {
+        await fs.SyncChannel.connect(
+            new Worker(new URL('./worker.ts', import.meta.url), {
                 type: 'module',
             }),
-            bufferLength: 10 * 1024 * 1024,
-            opTimeout: 5000,
-        });
+            {
+                sharedBufferLength: 10 * 1024 * 1024,
+                opTimeout: 5000,
+            },
+        );
     });
 
     afterAll(() => {

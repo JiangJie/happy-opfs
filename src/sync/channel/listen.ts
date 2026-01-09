@@ -13,21 +13,21 @@ import {
     unzip,
     writeFile,
     zip,
-} from '../async/mod.ts';
-import { readBlobSync } from '../shared/helpers.ts';
-import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../shared/mod.ts';
-import type { ErrorLike, FileMetadata } from './defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './protocol.ts';
+} from '../../async/mod.ts';
+import { readBlobSync } from '../../shared/helpers.ts';
+import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../../shared/mod.ts';
+import type { ErrorLike, FileMetadata } from '../defines.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from '../protocol.ts';
 
 //----------------------------------------------------------------------
-// Sync Agent Message Protocol
+// Sync Channel Message Protocol
 //----------------------------------------------------------------------
 
 /**
- * Message sent from main thread to worker to initialize sync agent.
+ * Message sent from main thread to worker to initialize sync channel.
  * Uses MessageChannel for isolated communication.
  */
-interface SyncAgentInitMessage {
+interface SyncChannelInitMessage {
     /**
      * MessagePort for dedicated communication back to main thread.
      */
@@ -39,16 +39,16 @@ interface SyncAgentInitMessage {
 }
 
 /**
- * Type guard to check if a message is a SyncAgentInitMessage.
+ * Type guard to check if a message is a SyncChannelInitMessage.
  * @param data - The message data to check.
- * @returns `true` if the message is a valid SyncAgentInitMessage.
+ * @returns `true` if the message is a valid SyncChannelInitMessage.
  */
-function isSyncAgentInitMessage(data: unknown): data is SyncAgentInitMessage {
+function isSyncChannelInitMessage(data: unknown): data is SyncChannelInitMessage {
     if (data == null || typeof data !== 'object') {
         return false;
     }
 
-    const message = data as SyncAgentInitMessage;
+    const message = data as SyncChannelInitMessage;
     return message.port instanceof MessagePort && message.sab instanceof SharedArrayBuffer;
 }
 
@@ -141,39 +141,39 @@ const asyncOps = {
 let messenger: SyncMessenger;
 
 /**
- * Flag to track if startSyncAgent has been called.
+ * Flag to track if listenSyncChannel has been called.
  * Used to prevent multiple event listeners from being registered.
  */
-let isStarted = false;
+let isListening = false;
 
 /**
- * Starts the sync agent in a Web Worker.
- * Listens for a SharedArrayBuffer from the main thread and begins processing requests.
+ * Starts listening for sync channel requests in a Web Worker.
+ * Waits for a SharedArrayBuffer from the main thread and begins processing requests.
  *
- * @throws {Error} If called outside a Worker context or if already started.
+ * @throws {Error} If called outside a Worker context or if already listening.
  * @example
  * ```typescript
  * // In worker.js
- * import { startSyncAgent } from 'happy-opfs';
- * startSyncAgent();
+ * import { SyncChannel } from 'happy-opfs';
+ * SyncChannel.listen();
  * ```
  */
-export function startSyncAgent(): void {
+export function listenSyncChannel(): void {
     if (typeof window !== 'undefined') {
         throw new Error('Only can use in worker');
     }
 
-    if (isStarted) {
-        throw new Error('Worker messenger already started');
+    if (isListening) {
+        throw new Error('Sync channel already listening');
     }
 
-    isStarted = true;
+    isListening = true;
 
     const messageHandler = (event: MessageEvent<unknown>): void => {
         const { data } = event;
 
-        // Ignore messages that are not SyncAgentInitMessage
-        if (!isSyncAgentInitMessage(data)) {
+        // Ignore messages that are not SyncChannelInitMessage
+        if (!isSyncChannelInitMessage(data)) {
             return;
         }
 

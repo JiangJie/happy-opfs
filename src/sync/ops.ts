@@ -1,10 +1,16 @@
-import { Err, None, Ok, Some, tryResult, type IOResult, type Option, type VoidIOResult } from 'happy-rusty';
-import { Future } from 'tiny-future';
-import invariant from 'tiny-invariant';
+/**
+ * Synchronous file system operations for main thread.
+ * Uses SharedArrayBuffer to communicate with worker thread.
+ *
+ * @module
+ */
+
+import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { textDecode, textEncode } from '../shared/codec.ts';
-import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirOptions, type ReadOptions, type ReadSyncFileContent, type SyncAgentOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
+import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirOptions, type ReadOptions, type ReadSyncFileContent, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
+import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp } from './protocol.ts';
+import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerAsyncOp, type SyncMessenger } from './protocol.ts';
 
 /**
  * Deserializes an `ErrorLike` object back to an `Error` instance.
@@ -37,26 +43,6 @@ function deserializeFile(metadata: FileMetadata, data: Uint8Array<ArrayBuffer>):
 }
 
 /**
- * Connection state for sync agent.
- * - 'idle': Not connected, can call connectSyncAgent
- * - 'connecting': Connection in progress
- * - 'connected': Connected, messenger is available
- */
-type ConnectionState = 'idle' | 'connecting' | 'connected';
-let connectionState: ConnectionState = 'idle';
-
-/**
- * Messenger instance for sync communication.
- * Only available when connectionState is 'connected'.
- */
-let messenger: SyncMessenger | null = null;
-
-/**
- * Global timeout for synchronous I/O operations in milliseconds.
- */
-let globalSyncOpTimeout = 1000;
-
-/**
  * Blocks execution until a condition is met or timeout occurs.
  * Uses busy-waiting, which is necessary for synchronous operations.
  *
@@ -64,9 +50,10 @@ let globalSyncOpTimeout = 1000;
  * @returns A `VoidIOResult` - `Ok` if condition met, `Err` with TimeoutError if timed out.
  */
 function sleepUntil(condition: () => boolean): VoidIOResult {
+    const timeout = getGlobalSyncOpTimeout();
     const start = performance.now();
     while (!condition()) {
-        if (performance.now() - start > globalSyncOpTimeout) {
+        if (performance.now() - start > timeout) {
             const error = new Error('Operation timed out');
             error.name = TIMEOUT_ERROR;
 
@@ -75,137 +62,6 @@ function sleepUntil(condition: () => boolean): VoidIOResult {
     }
 
     return Ok();
-}
-
-/**
- * Connects to a sync agent worker for synchronous file system operations.
- * Must be called before using any sync API functions.
- *
- * @param options - Configuration options for the sync agent.
- * @returns A promise that resolves when the worker is ready.
- * @throws {Error} If called outside the main thread or if already connected.
- * @example
- * ```typescript
- * await connectSyncAgent({
- *     worker: new URL('./worker.js', import.meta.url),
- *     bufferLength: 1024 * 1024,
- *     opTimeout: 5000,
- * });
- * ```
- */
-export function connectSyncAgent(options: SyncAgentOptions): Promise<void> {
-    if (typeof window === 'undefined') {
-        throw new Error('Only can use in main thread');
-    }
-
-    if (connectionState !== 'idle') {
-        throw new Error(
-            connectionState === 'connected'
-                ? 'Main messenger already connected'
-                : 'Main messenger is connecting',
-        );
-    }
-    connectionState = 'connecting';
-
-    const {
-        worker,
-        bufferLength = 1024 * 1024,
-        opTimeout = 1000,
-    } = options;
-
-    // check parameters
-    invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be Worker or valid URL(string)');
-    // Minimum buffer size: 16 bytes header + ~131 bytes for largest error response = 147 bytes
-    // Using 256 (power of 2) for better memory alignment
-    invariant(bufferLength >= 256 && bufferLength % 4 === 0, () => 'bufferLength must be at least 256 and a multiple of 4');
-    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be integer and greater than 0');
-
-    globalSyncOpTimeout = opTimeout;
-
-    const sab = new SharedArrayBuffer(bufferLength);
-    const channel = new MessageChannel();
-
-    const future = new Future<void>();
-
-    const workerAdapter = worker instanceof Worker
-        ? worker
-        : new Worker(worker);
-
-    // Use MessageChannel for isolated communication
-    // port1 stays in main thread, port2 is transferred to worker
-    channel.port1.onmessage = (): void => {
-        messenger = new SyncMessenger(sab);
-        connectionState = 'connected';
-        future.resolve();
-    };
-
-    workerAdapter.postMessage({ port: channel.port2, sab }, [channel.port2]);
-
-    return future.promise;
-}
-
-/**
- * Checks if the sync agent is already connected.
- *
- * @returns `true` if connected, `false` otherwise.
- * @example
- * ```typescript
- * if (!isSyncAgentConnected()) {
- *     await connectSyncAgent({ worker: new URL('./worker.js', import.meta.url) });
- * }
- * ```
- */
-export function isSyncAgentConnected(): boolean {
-    return connectionState === 'connected';
-}
-
-/**
- * Gets the current sync messenger instance.
- * Can be used to share the messenger with other contexts (e.g., iframes).
- *
- * This is useful when you have multiple contexts that need to use sync APIs
- * but only want to create one worker connection.
- *
- * @returns An `Option<SyncMessenger>` - `Some(messenger)` if connected, `None` otherwise.
- * @example
- * ```typescript
- * // In main page: connect and share messenger to iframe
- * await connectSyncAgent({ worker: new URL('./worker.js', import.meta.url) });
- * getSyncMessenger()
- *     .inspect(messenger => {
- *         iframe.contentWindow.postMessage({ type: 'sync-messenger', messenger }, '*');
- *     });
- * ```
- */
-export function getSyncMessenger(): Option<SyncMessenger> {
-    return messenger ? Some(messenger) : None;
-}
-
-/**
- * Sets the sync messenger instance.
- * Used to receive a shared messenger from another context.
- *
- * After calling this function, sync APIs (e.g., `readFileSync`, `writeFileSync`)
- * can be used in the current context without calling `connectSyncAgent`.
- *
- * @param syncMessenger - The `SyncMessenger` instance to use.
- * @throws {Error} If syncMessenger is null or undefined.
- * @example
- * ```typescript
- * // In iframe: receive messenger from main page
- * window.addEventListener('message', (event) => {
- *     if (event.data.type === 'sync-messenger') {
- *         setSyncMessenger(event.data.messenger);
- *         // Now sync APIs can be used
- *         const result = readTextFileSync('/data/file.txt');
- *     }
- * });
- * ```
- */
-export function setSyncMessenger(syncMessenger: SyncMessenger): void {
-    invariant(syncMessenger instanceof SyncMessenger, () => 'syncMessenger must be an instance of SyncMessenger');
-    messenger = syncMessenger;
-    connectionState = 'connected';
 }
 
 /**
@@ -268,16 +124,21 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array<ArrayBuff
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function callWorkerOp<T>(op: WorkerAsyncOp, ...args: any[]): IOResult<T> {
-    if (!isSyncAgentConnected()) {
+    if (getSyncChannelState() !== 'ready') {
         // too early
-        return Err(new Error('Worker not initialized'));
+        return Err(new Error('Sync channel not connected'));
+    }
+
+    const messenger = getMessenger();
+    if (!messenger) {
+        return Err(new Error('Sync channel not connected'));
     }
 
     // Serialize request: [operation, ...arguments]
     const request = [op, ...args];
     const requestData = encodePayload(request);
 
-    return callWorkerFromMain(messenger as SyncMessenger, requestData)
+    return callWorkerFromMain(messenger, requestData)
         .andThen(response => {
             // Deserialize response: [error, result] or [error] if failed
             // For binary protocol, if result contains Uint8Array, it's the last element

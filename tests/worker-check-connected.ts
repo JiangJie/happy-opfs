@@ -1,10 +1,10 @@
 /**
- * Worker to test isSyncAgentConnected in an isolated context
+ * Worker to test SyncChannel.isReady in an isolated context
  */
-import { isSyncAgentConnected } from '../src/mod.ts';
+import { SyncChannel } from '../src/mod.ts';
 
 // Test: Check initial state (should be false in worker context)
-const initialState = isSyncAgentConnected();
+const initialState = SyncChannel.isReady();
 
 // Report results back to main thread
 postMessage({

@@ -1,19 +1,21 @@
 /**
  * Tests for opfs_worker_adapter.ts edge cases
- * Covers: getSyncMessenger, setSyncMessenger, writeJsonFileSync error, connectSyncAgent validation
+ * Covers: SyncChannel.attach, writeJsonFileSync error, SyncChannel.connect validation
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import * as fs from '../src/mod.ts';
 
 describe('Worker Adapter Edge Cases', () => {
     beforeAll(async () => {
-        await fs.connectSyncAgent({
-            worker: new Worker(new URL('./worker.ts', import.meta.url), {
+        await fs.SyncChannel.connect(
+            new Worker(new URL('./worker.ts', import.meta.url), {
                 type: 'module',
             }),
-            bufferLength: 10 * 1024 * 1024,
-            opTimeout: 5000,
-        });
+            {
+                sharedBufferLength: 10 * 1024 * 1024,
+                opTimeout: 5000,
+            },
+        );
     });
 
     afterAll(() => {
@@ -25,19 +27,9 @@ describe('Worker Adapter Edge Cases', () => {
         fs.removeSync('/adapter-test.json');
     });
 
-    describe('getSyncMessenger', () => {
-        it('should return the messenger instance after connection', () => {
-            const messengerOpt = fs.getSyncMessenger();
-            expect(messengerOpt.isSome()).toBe(true);
-            const messenger = messengerOpt.unwrap();
-            expect(messenger.i32a).toBeInstanceOf(Int32Array);
-            expect(messenger.maxDataLength).toBeGreaterThan(0);
-        });
-    });
-
-    describe('isSyncAgentConnected', () => {
+    describe('SyncChannel.isReady', () => {
         it('should return true after connection', () => {
-            expect(fs.isSyncAgentConnected()).toBe(true);
+            expect(fs.SyncChannel.isReady()).toBe(true);
         });
 
         it('should return false before connection in isolated context', async () => {
@@ -53,23 +45,8 @@ describe('Worker Adapter Edge Cases', () => {
                 });
             });
 
-            // In worker context, isSyncAgentConnected should return false initially
+            // In worker context, SyncChannel.isReady should return false initially
             expect(result.initialState).toBe(false);
-        });
-    });
-
-    describe('setSyncMessenger', () => {
-        it('should set messenger and allow operations', () => {
-            // Get current messenger
-            const messengerOpt = fs.getSyncMessenger();
-            expect(messengerOpt.isSome()).toBe(true);
-
-            // Set it again (simulates sharing messenger between contexts)
-            fs.setSyncMessenger(messengerOpt.unwrap());
-
-            // Operations should still work
-            const result = fs.writeFileSync('/adapter-test.txt', 'content');
-            expect(result.isOk()).toBe(true);
         });
     });
 
@@ -244,18 +221,18 @@ describe('Worker Adapter Edge Cases', () => {
         });
     });
 
-    describe('connectSyncAgent error cases', () => {
+    describe('SyncChannel.connect error cases', () => {
         it('should throw error when called again (already connected)', () => {
             // messenger is already set from beforeAll, calling again should throw
-            expect(() => fs.connectSyncAgent({
-                worker: new Worker(new URL('./worker.ts', import.meta.url), {
+            expect(() => fs.SyncChannel.connect(
+                new Worker(new URL('./worker.ts', import.meta.url), {
                     type: 'module',
                 }),
-            })).toThrow('Main messenger already connected');
+            )).toThrow('Sync channel already connected');
         });
 
         it('should throw error when called from worker thread', async () => {
-            // Create a worker that tries to call connectSyncAgent
+            // Create a worker that tries to call SyncChannel.connect
             const worker = new Worker(new URL('./worker-connect-error.ts', import.meta.url), {
                 type: 'module',
             });

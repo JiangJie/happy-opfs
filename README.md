@@ -50,7 +50,7 @@ jsr add @happy-js/happy-opfs
 | **Temp** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp` |
 | **Zip** | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl` |
 | **Network** | `downloadFile`, `uploadFile` |
-| **Sync** | All core operations have sync versions (e.g., `mkdirSync`, `readFileSync`) via Web Workers. Use `connectSyncAgent`, `isSyncAgentConnected`, `getSyncMessenger`, `setSyncMessenger` for setup |
+| **Sync** | All core operations have sync versions (e.g., `mkdirSync`, `readFileSync`) via Web Workers. Use `SyncChannel.connect`, `SyncChannel.listen`, `SyncChannel.attach`, `SyncChannel.isReady` for setup |
 
 ## Examples
 

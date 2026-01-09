@@ -50,7 +50,7 @@ jsr add @happy-js/happy-opfs
 | **临时文件** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp` |
 | **压缩** | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl` |
 | **网络** | `downloadFile`, `uploadFile` |
-| **同步** | 所有核心操作都有同步版本（如 `mkdirSync`, `readFileSync`），通过 Web Workers 实现。使用 `connectSyncAgent`, `isSyncAgentConnected`, `getSyncMessenger`, `setSyncMessenger` 进行设置 |
+| **同步** | 所有核心操作都有同步版本（如 `mkdirSync`, `readFileSync`），通过 Web Workers 实现。使用 `SyncChannel.connect`, `SyncChannel.listen`, `SyncChannel.attach`, `SyncChannel.isReady` 进行设置 |
 
 ## 示例
 
