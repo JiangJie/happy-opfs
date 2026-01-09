@@ -33,6 +33,11 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         const entries = dirHandle.entries();
 
         for await (const [name, handle] of entries) {
+            // Check if aborted before yielding each entry
+            if (options?.signal?.aborted) {
+                return;
+            }
+
             // relative path from `dirPath`
             const path = subDirPath === dirPath ? name : join(subDirPath, name);
             yield {

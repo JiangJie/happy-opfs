@@ -223,6 +223,69 @@ describe('OPFS Core Operations', () => {
             const result = await fs.readDir('/non-existent-dir');
             expect(result.isErr()).toBe(true);
         });
+
+        it('should stop iteration when signal is aborted before start', async () => {
+            await fs.mkdir('/test-readdir-abort');
+            await fs.writeFile('/test-readdir-abort/file1.txt', 'a');
+            await fs.writeFile('/test-readdir-abort/file2.txt', 'b');
+
+            const controller = new AbortController();
+            controller.abort(); // Abort before iteration
+
+            const result = await fs.readDir('/test-readdir-abort', { signal: controller.signal });
+            const entries = await Array.fromAsync(result.unwrap());
+            expect(entries.length).toBe(0);
+        });
+
+        it('should stop iteration when signal is aborted during traversal', async () => {
+            await fs.mkdir('/test-readdir-abort-mid');
+            await fs.writeFile('/test-readdir-abort-mid/file1.txt', 'a');
+            await fs.writeFile('/test-readdir-abort-mid/file2.txt', 'b');
+            await fs.writeFile('/test-readdir-abort-mid/file3.txt', 'c');
+
+            const controller = new AbortController();
+            const result = await fs.readDir('/test-readdir-abort-mid', { signal: controller.signal });
+
+            const entries: fs.DirEntry[] = [];
+            for await (const entry of result.unwrap()) {
+                entries.push(entry);
+                if (entries.length === 1) {
+                    controller.abort(); // Abort after first entry
+                }
+            }
+
+            // Should have stopped after 1 entry (the abort check happens before each yield)
+            expect(entries.length).toBe(1);
+        });
+
+        it('should work with AbortSignal.timeout()', async () => {
+            await fs.mkdir('/test-readdir-timeout');
+            await fs.writeFile('/test-readdir-timeout/file1.txt', 'a');
+
+            // Use a long timeout - operation should complete before timeout
+            const signal = AbortSignal.timeout(5000);
+            const result = await fs.readDir('/test-readdir-timeout', { signal });
+            const entries = await Array.fromAsync(result.unwrap());
+
+            expect(entries.length).toBe(1);
+            expect(signal.aborted).toBe(false);
+        });
+
+        it('should stop with already-timed-out signal', async () => {
+            await fs.mkdir('/test-readdir-timeout-expired');
+            await fs.writeFile('/test-readdir-timeout-expired/file1.txt', 'a');
+
+            // Create signal with 0ms timeout and wait for it to expire
+            const signal = AbortSignal.timeout(0);
+            await new Promise(resolve => setTimeout(resolve, 10));
+
+            expect(signal.aborted).toBe(true);
+
+            const result = await fs.readDir('/test-readdir-timeout-expired', { signal });
+            const entries = await Array.fromAsync(result.unwrap());
+
+            expect(entries.length).toBe(0);
+        });
     });
 
     describe('stat', () => {

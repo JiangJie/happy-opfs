@@ -114,6 +114,12 @@ export interface ReadDirOptions {
      * @defaultValue `false`
      */
     recursive?: boolean;
+
+    /**
+     * An optional `AbortSignal` to abort the directory traversal.
+     * When aborted, the iterator will stop yielding entries.
+     */
+    signal?: AbortSignal;
 }
 
 /**
