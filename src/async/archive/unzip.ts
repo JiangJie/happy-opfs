@@ -1,6 +1,6 @@
 import { fetchT } from '@happy-ts/fetch-t';
 import { join, SEPARATOR } from '@std/path/posix';
-import * as fflate from 'fflate/browser';
+import { unzip as decompress } from 'fflate/browser';
 import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import type { FsRequestInit } from '../../shared/mod.ts';
@@ -15,7 +15,7 @@ import { aggregateResults, assertAbsolutePath, assertFileUrl, createEmptyBodyErr
 function unzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIOResult {
     const future = new Future<VoidIOResult>();
 
-    fflate.unzip(bytes, async (err, unzipped) => {
+    decompress(bytes, async (err, unzipped) => {
         if (err) {
             future.resolve(Err(err));
             return;

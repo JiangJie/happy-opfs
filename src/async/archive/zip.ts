@@ -1,6 +1,6 @@
 import { fetchT } from '@happy-ts/fetch-t';
 import { basename, join } from '@std/path/posix';
-import * as fflate from 'fflate/browser';
+import { zip as compress, type AsyncZippable } from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { readBlobBytes, readBlobBytesSync } from '../../shared/helpers.ts';
@@ -20,10 +20,10 @@ const EMPTY_DIR_DATA = new Uint8Array(0);
  * @param zippable - Zippable data.
  * @param zipFilePath - Target zip file path.
  */
-function zipTo(zippable: fflate.AsyncZippable, zipFilePath?: string): Promise<ZipIOResult> {
+function zipTo(zippable: AsyncZippable, zipFilePath?: string): Promise<ZipIOResult> {
     const future = new Future<ZipIOResult>();
 
-    fflate.zip(zippable, {
+    compress(zippable, {
         consume: true,
     }, async (err, bytesLike) => {
         if (err) {
@@ -92,7 +92,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
 
     const handle = statRes.unwrap();
     const sourceName = basename(sourcePath);
-    const zippable: fflate.AsyncZippable = {};
+    const zippable: AsyncZippable = {};
 
     if (isFileHandle(handle)) {
         // file
