@@ -99,6 +99,29 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/empty-dir');
             await fs.remove('/empty.zip');
         });
+
+        it('should include directory entries in zip', async () => {
+            // Create structure with nested empty directories
+            await fs.mkdir('/dir-test');
+            await fs.mkdir('/dir-test/subdir');
+            await fs.mkdir('/dir-test/empty-subdir');
+            await fs.writeFile('/dir-test/subdir/file.txt', 'content');
+
+            const result = await fs.zip('/dir-test', '/dir-test.zip');
+            expect(result.isOk()).toBe(true);
+
+            // Unzip and verify directory structure
+            const unzipResult = await fs.unzip('/dir-test.zip', '/dir-test-unzipped');
+            expect(unzipResult.isOk()).toBe(true);
+
+            // Empty subdirectory should exist after unzip
+            expect((await fs.exists('/dir-test-unzipped/dir-test/empty-subdir', { isDirectory: true })).unwrap()).toBe(true);
+
+            // Clean up
+            await fs.remove('/dir-test');
+            await fs.remove('/dir-test.zip');
+            await fs.remove('/dir-test-unzipped');
+        });
     });
 
     describe('unzip', () => {

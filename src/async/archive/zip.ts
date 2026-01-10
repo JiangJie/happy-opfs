@@ -11,6 +11,11 @@ import { assertAbsolutePath, assertFileUrl, createEmptyBodyError, getUrlPathname
 type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
 
 /**
+ * Empty bytes for directory entries in zip.
+ */
+const EMPTY_DIR_DATA = new Uint8Array(0);
+
+/**
  * Zip a zippable data then write to the target path.
  * @param zippable - Zippable data.
  * @param zipFilePath - Target zip file path.
@@ -112,20 +117,28 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
             data: Uint8Array;
         }>[] = [];
 
+        // Add root directory entry
+        if (preserveRoot) {
+            zippable[`${ sourceName }/`] = EMPTY_DIR_DATA;
+        }
+
         try {
             for await (const { path, handle } of readDirRes.unwrap()) {
-                if (!isFileHandle(handle)) {
-                    continue;
-                }
-
                 const entryName = preserveRoot ? join(sourceName, path) : path;
-                tasks.push((async () => {
-                    const dataRes = await getFileDataByHandle(handle);
-                    return dataRes.map(data => ({
-                        entryName,
-                        data,
-                    }));
-                })());
+
+                if (isFileHandle(handle)) {
+                    // file
+                    tasks.push((async () => {
+                        const dataRes = await getFileDataByHandle(handle);
+                        return dataRes.map(data => ({
+                            entryName,
+                            data,
+                        }));
+                    })());
+                } else {
+                    // directory - add entry with trailing slash and empty content
+                    zippable[`${ entryName }/`] = EMPTY_DIR_DATA;
+                }
             }
         } catch (e) {
             return Err(e as Error) as ZipIOResult;

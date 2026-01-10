@@ -4,7 +4,7 @@ import * as fflate from 'fflate/browser';
 import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import type { FsRequestInit } from '../../shared/mod.ts';
-import { readFile, writeFile } from '../core/mod.ts';
+import { mkdir, readFile, writeFile } from '../core/mod.ts';
 import { aggregateResults, assertAbsolutePath, assertFileUrl, createEmptyBodyError } from '../internal/mod.ts';
 
 /**
@@ -22,11 +22,32 @@ function unzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIORe
         }
 
         const tasks: AsyncVoidIOResult[] = [];
+        const dirs: string[] = [];
+        const nonEmptyDirs = new Set<string>();
 
         for (const path in unzipped) {
-            // ignore directory
-            if (path.at(-1) !== SEPARATOR) {
+            if (path.at(-1) === SEPARATOR) {
+                // Collect directory entries, process later
+                dirs.push(path);
+            } else {
+                // File entry - writeFile will create parent directories automatically
                 tasks.push(writeFile(join(destDir, path), unzipped[path] as Uint8Array<ArrayBuffer>));
+
+                // Mark all parent directories as non-empty
+                let slashIndex = path.lastIndexOf(SEPARATOR);
+                while (slashIndex > 0) {
+                    const parent = path.slice(0, slashIndex + 1);
+                    if (nonEmptyDirs.has(parent)) break;
+                    nonEmptyDirs.add(parent);
+                    slashIndex = path.lastIndexOf(SEPARATOR, slashIndex - 1);
+                }
+            }
+        }
+
+        // Only create truly empty directories
+        for (const dir of dirs) {
+            if (!nonEmptyDirs.has(dir)) {
+                tasks.push(mkdir(join(destDir, dir)));
             }
         }
 
