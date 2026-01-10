@@ -250,7 +250,7 @@ function deserializeArgs(op: WorkerOp, args: unknown[]): void {
         // Request format: [filePath, options?, Uint8Array]
         // Expected args: [filePath, Uint8Array, options?]
         // Move Uint8Array from last position to second position
-        const data = args.pop() as Uint8Array;
+        const data = args.pop();
         const options = args[1];
         args[1] = data;
         args[2] = options;

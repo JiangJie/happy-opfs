@@ -114,7 +114,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
         const { preserveRoot = true } = options ?? {};
         const tasks: AsyncIOResult<{
             entryName: string;
-            data: Uint8Array;
+            data: Uint8Array<ArrayBuffer>;
         }>[] = [];
 
         // Add root directory entry
