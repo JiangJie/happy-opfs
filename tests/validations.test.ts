@@ -1,11 +1,11 @@
 /**
- * Assertions module tests using Vitest
+ * Validations module tests using Vitest
  * Tests: validateAbsolutePath, validateUrl, validateExistsOptions, validateExpiredDate
  */
 import { describe, expect, it } from 'vitest';
-import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateUrl } from '../src/async/internal/assertions.ts';
+import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateUrl } from '../src/async/internal/validations.ts';
 
-describe('Assertions', () => {
+describe('Validations', () => {
     describe('validateAbsolutePath', () => {
         it('should return Ok for valid absolute paths', () => {
             expect(validateAbsolutePath('/').isOk()).toBe(true);

@@ -8,5 +8,5 @@
  * @module
  */
 
-export * from './assertions.ts';
+export * from './validations.ts';
 export * from './helpers.ts';
