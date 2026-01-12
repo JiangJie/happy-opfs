@@ -10,9 +10,9 @@ export type WriteFileContent = BufferSource | Blob | string | ReadableStream<Uin
 
 /**
  * Represents the possible content types that can be written to a file synchronously.
- * Excludes `Blob` since it requires async operations to read.
+ * Excludes `Blob` (requires async read) and `ReadableStream` (inherently async).
  */
-export type WriteSyncFileContent = BufferSource | string;
+export type WriteSyncFileContent = Exclude<WriteFileContent, Blob | ReadableStream<Uint8Array<ArrayBuffer>>>;
 
 /**
  * Represents the possible content types that can be read from a file.
@@ -39,6 +39,12 @@ export type ReadSyncFileContent = Exclude<ReadFileContent, ReadableStream<Uint8A
  */
 export type FileEncoding = 'bytes' | 'utf8' | 'blob' | 'stream';
 
+/**
+ * Supported file encodings for synchronous file reads.
+ * Excludes `'stream'` since `ReadableStream` cannot be returned synchronously.
+ */
+export type FileSyncEncoding = Exclude<FileEncoding, 'stream'>;
+
 // ==================== Core Operation Options ====================
 
 /**
@@ -50,6 +56,18 @@ export interface ReadOptions {
      * @defaultValue `'bytes'`
      */
     encoding?: FileEncoding;
+}
+
+/**
+ * Options for reading files synchronously.
+ */
+export interface ReadSyncOptions {
+    /**
+     * The encoding to use for reading the file's content.
+     * Excludes `'stream'` since `ReadableStream` cannot be returned synchronously.
+     * @defaultValue `'bytes'`
+     */
+    encoding?: FileSyncEncoding;
 }
 
 /**
@@ -70,15 +88,20 @@ export interface WriteOptions {
 }
 
 /**
- * Options for reading directories.
+ * Options for reading directories synchronously.
  */
-export interface ReadDirOptions {
+export interface ReadDirSyncOptions {
     /**
      * Whether to recursively read the contents of subdirectories.
      * @defaultValue `false`
      */
     recursive?: boolean;
+}
 
+/**
+ * Options for reading directories.
+ */
+export interface ReadDirOptions extends ReadDirSyncOptions {
     /**
      * An optional `AbortSignal` to abort the directory traversal.
      * When aborted, the iterator will stop yielding entries.
@@ -266,28 +289,63 @@ export interface FileSystemFileHandleLike extends FileSystemHandleLike {
 
 /**
  * Options for `mkTemp`.
+ *
+ * The `isDirectory` and `extname` options are mutually exclusive.
+ * Setting both will result in a compile-time error; at runtime `extname` is ignored for directories.
+ *
+ * @example
+ * ```typescript
+ * // Create a temporary file
+ * await mkTemp();
+ *
+ * // Create a temporary directory
+ * await mkTemp({ isDirectory: true });
+ *
+ * // Create a temporary file with extension
+ * await mkTemp({ extname: '.txt' });
+ * ```
  */
-export interface TempOptions {
-    /**
-     * Whether to create a directory.
-     * eg: `mktemp -d`
-     * @defaultValue `false`
-     */
-    isDirectory?: boolean;
+export type TempOptions =
+    | {
+        /**
+         * Whether to create a directory.
+         * eg: `mktemp -d`
+         * @defaultValue `false`
+         */
+        isDirectory?: boolean;
 
-    /**
-     * The basename of the file or directory.
-     * eg: `mktemp -t basename.XXX`
-     * @defaultValue `tmp`
-     */
-    basename?: string;
+        /**
+         * The basename of the file or directory.
+         * eg: `mktemp -t basename.XXX`
+         * @defaultValue `tmp`
+         */
+        basename?: string;
 
-    /**
-     * The extension of the file.
-     * eg: `mktemp --suffix .txt`
-     */
-    extname?: string;
-}
+        /**
+         * Must be omitted when `isDirectory` is `true`.
+         */
+        extname?: never;
+    }
+    | {
+        /**
+         * Must be `false` or omitted when `extname` is provided.
+         * @defaultValue `false`
+         */
+        isDirectory?: false;
+
+        /**
+         * The basename of the file or directory.
+         * eg: `mktemp -t basename.XXX`
+         * @defaultValue `tmp`
+         */
+        basename?: string;
+
+        /**
+         * The extension of the file.
+         * eg: `mktemp --suffix .txt`
+         */
+        extname?: string;
+    };
 
 // ==================== Archive Options ====================
 
@@ -325,6 +383,17 @@ export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>;
 export interface UploadRequestInit extends FsRequestInit {
     /**
      * The filename to use when uploading the file.
+     */
+    filename?: string;
+}
+
+/**
+ * Request init options for {@link zipFromUrl}.
+ */
+export interface ZipFromUrlRequestInit extends FsRequestInit {
+    /**
+     * The filename to use in the zip archive.
+     * Defaults to the basename of the URL pathname, or 'file' if the pathname is '/'.
      */
     filename?: string;
 }
