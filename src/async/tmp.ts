@@ -30,7 +30,7 @@ export function generateTempPath(options?: TempOptions): string {
     const ext = isDirectory ? '' : extname;
 
     // use uuid to generate a unique name
-    return join(TMP_DIR, `${ base }${ crypto.randomUUID() }${ ext }`);
+    return join(TMP_DIR, base + crypto.randomUUID() + ext);
 }
 
 /**
@@ -45,7 +45,7 @@ export function generateTempPath(options?: TempOptions): string {
  * ```
  */
 export function isTempPath(path: string): boolean {
-    return path.startsWith(`${ TMP_DIR }${ SEPARATOR }`);
+    return path.startsWith(TMP_DIR + SEPARATOR);
 }
 
 /**
@@ -68,9 +68,9 @@ export function isTempPath(path: string): boolean {
  * ```
  */
 export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
+    const path = generateTempPath(options);
     const { isDirectory = false } = options ?? {};
 
-    const path = generateTempPath(options);
     const res = await (isDirectory ? mkdir : createFile)(path);
 
     return res.and(Ok(path));
@@ -113,6 +113,7 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
     const tmpDirHandleRes = await getDirHandle(TMP_DIR);
 
     return tmpDirHandleRes.andTryAsync(async tmpDirHandle => {
+        const expiredTime = expired.getTime();
         const tasks: Promise<void>[] = [];
 
         // Only process direct children (no recursive), since mkTemp only creates top-level items
@@ -123,7 +124,7 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
 
             tasks.push((async () => {
                 const file = await handle.getFile();
-                if (file.lastModified <= expired.getTime()) {
+                if (file.lastModified <= expiredTime) {
                     return removeHandle(handle, tmpDirHandle);
                 }
             })());

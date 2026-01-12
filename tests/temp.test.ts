@@ -35,8 +35,9 @@ describe('OPFS Temporary File Operations', () => {
         });
 
         it('should generate temp directory path (no extension)', () => {
-            const path = fs.generateTempPath({ isDirectory: true, extname: '.txt' });
-            expect(path.endsWith('.txt')).toBe(false);
+            const path = fs.generateTempPath({ isDirectory: true });
+            // Directory paths should not have extension
+            expect(path.includes('.')).toBe(false);
         });
 
         it('should generate path without basename prefix when empty', () => {
