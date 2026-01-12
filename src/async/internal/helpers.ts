@@ -146,6 +146,10 @@ export function isNotFoundError(err: Error): boolean {
  * @internal
  */
 export async function aggregateResults(tasks: AsyncVoidIOResult[]): AsyncVoidIOResult {
+    if (tasks.length === 0) {
+        return RESULT_VOID;
+    }
+
     const allRes = await Promise.all(tasks);
     return allRes.find(x => x.isErr()) ?? RESULT_VOID;
 }
@@ -176,6 +180,28 @@ export function createEmptyBodyError(): Error {
     error.name = EMPTY_BODY_ERROR;
 
     return error;
+}
+
+/**
+ * Marks all parent directories of a path as non-empty.
+ * Used to optimize directory creation by skipping directories that will be
+ * implicitly created when writing files.
+ *
+ * @param path - The relative file path.
+ * @param nonEmptyDirs - Set to track non-empty directories.
+ * @internal
+ */
+export function markParentDirsNonEmpty(
+    path: string,
+    nonEmptyDirs: Set<string>,
+): void {
+    let slashIndex = path.lastIndexOf(SEPARATOR);
+    while (slashIndex > 0) {
+        const parent = path.slice(0, slashIndex);
+        if (nonEmptyDirs.has(parent)) break;
+        nonEmptyDirs.add(parent);
+        slashIndex = path.lastIndexOf(SEPARATOR, slashIndex - 1);
+    }
 }
 
 /**
