@@ -3,7 +3,7 @@ import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import type { DownloadFileTempResponse, FsRequestInit } from '../../shared/mod.ts';
 import { writeFile } from '../core/mod.ts';
-import { assertAbsolutePath, assertFileUrl, createAbortError, createEmptyBodyError, getUrlPathname } from '../internal/mod.ts';
+import { assertAbsolutePath, assertValidUrl, createAbortError, createEmptyBodyError } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
 
 /**
@@ -26,6 +26,7 @@ import { generateTempPath } from '../tmp.ts';
  * ```
  */
 export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit): FetchTask<DownloadFileTempResponse>;
+
 /**
  * Downloads a file from a URL and saves it to the specified path.
  *
@@ -46,7 +47,7 @@ export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit)
  */
 export function downloadFile(fileUrl: string | URL, filePath: string, requestInit?: FsRequestInit): FetchTask<Response>;
 export function downloadFile(fileUrl: string | URL, filePath?: string | FsRequestInit, requestInit?: FsRequestInit): FetchTask<Response | DownloadFileTempResponse> {
-    assertFileUrl(fileUrl);
+    fileUrl = assertValidUrl(fileUrl);
 
     let saveToTemp = false;
 
@@ -56,7 +57,7 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
         requestInit = filePath;
         // save to a temporary file, preserve the extension from URL
         filePath = generateTempPath({
-            extname: extname(getUrlPathname(fileUrl)),
+            extname: extname(fileUrl.pathname),
         });
         saveToTemp = true;
     }
@@ -89,7 +90,7 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
                     ? {
                         tempFilePath: filePath,
                         rawResponse,
-                    }
+                    } satisfies DownloadFileTempResponse
                     : rawResponse,
             ));
         });

@@ -1,7 +1,6 @@
 import { normalize } from '@std/path/posix';
 import invariant from 'tiny-invariant';
 import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
-import { isValidUrl } from './url.ts';
 
 /**
  * Asserts that the provided path is an absolute path and normalizes it.
@@ -23,18 +22,24 @@ export function assertAbsolutePath(path: string): string {
 }
 
 /**
- * Asserts that the provided URL is a valid file URL.
+ * Asserts that the provided URL is valid and returns a URL object.
+ * Supports relative URLs by using current location as base.
  *
- * @param fileUrl - The file URL to validate.
- * @throws Will throw an error if the URL is not a valid file URL.
+ * @param url - The URL string or URL object to validate.
+ * @returns The URL object.
+ * @throws Will throw a TypeError if the URL is invalid.
  * @internal
  */
-export function assertFileUrl(fileUrl: string | URL): void {
-    if (fileUrl instanceof URL) {
-        return;
+export function assertValidUrl(url: string | URL): URL {
+    if (url instanceof URL) {
+        return url;
     }
-    invariant(typeof fileUrl === 'string', () => `fileUrl must be a string or URL but received ${ fileUrl }`);
-    invariant(isValidUrl(fileUrl), () => `fileUrl must be a valid URL but received ${ fileUrl }`);
+
+    try {
+        return new URL(url, location.href);
+    } catch {
+        throw new TypeError(`Invalid URL: ${ url }`);
+    }
 }
 
 /**

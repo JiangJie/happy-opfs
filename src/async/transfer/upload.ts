@@ -3,7 +3,7 @@ import { basename } from '@std/path/posix';
 import { Err } from 'happy-rusty';
 import type { UploadRequestInit } from '../../shared/mod.ts';
 import { readBlobFile } from '../ext.ts';
-import { assertAbsolutePath, assertFileUrl, createAbortError } from '../internal/mod.ts';
+import { assertAbsolutePath, assertValidUrl, createAbortError } from '../internal/mod.ts';
 
 /**
  * Uploads a file from the specified path to a URL.
@@ -27,15 +27,13 @@ import { assertAbsolutePath, assertFileUrl, createAbortError } from '../internal
  * ```
  */
 export function uploadFile(filePath: string, uploadUrl: string | URL, requestInit?: UploadRequestInit): FetchTask<Response> {
-    type T = Response;
-
     filePath = assertAbsolutePath(filePath);
-    assertFileUrl(uploadUrl);
+    uploadUrl = assertValidUrl(uploadUrl);
 
     let aborted = false;
-    let fetchTask: FetchTask<T>;
+    let fetchTask: FetchTask<Response>;
 
-    const response = (async (): FetchResponse<T> => {
+    const response = (async (): FetchResponse<Response> => {
         const fileRes = await readBlobFile(filePath);
 
         return fileRes.andThenAsync(async file => {
@@ -75,7 +73,7 @@ export function uploadFile(filePath: string, uploadUrl: string | URL, requestIni
             return aborted;
         },
 
-        get response(): FetchResponse<T> {
+        get response(): FetchResponse<Response> {
             return response;
         },
     };

@@ -1,9 +1,9 @@
 /**
  * Assertions module tests using Vitest
- * Tests: assertAbsolutePath, assertFileUrl
+ * Tests: assertAbsolutePath, assertValidUrl
  */
 import { describe, expect, it } from 'vitest';
-import { assertAbsolutePath, assertFileUrl } from '../src/async/internal/assertions.ts';
+import { assertAbsolutePath, assertValidUrl } from '../src/async/internal/assertions.ts';
 
 describe('Assertions', () => {
     describe('assertAbsolutePath', () => {
@@ -97,63 +97,38 @@ describe('Assertions', () => {
         });
     });
 
-    describe('assertFileUrl', () => {
-        it('should pass for valid http URLs', () => {
-            expect(() => assertFileUrl('http://example.com/file.txt')).not.toThrow();
-            expect(() => assertFileUrl('https://example.com/file.txt')).not.toThrow();
+    describe('assertValidUrl', () => {
+        it('should return URL for valid http URLs', () => {
+            expect(assertValidUrl('http://example.com/file.txt')).toBeInstanceOf(URL);
+            expect(assertValidUrl('https://example.com/file.txt')).toBeInstanceOf(URL);
         });
 
-        it('should pass for URLs with query strings', () => {
-            expect(() => assertFileUrl('https://example.com/file.txt?v=1')).not.toThrow();
-            expect(() => assertFileUrl('https://example.com/file?a=1&b=2')).not.toThrow();
+        it('should handle URLs with query strings', () => {
+            const url = assertValidUrl('https://example.com/file.txt?v=1');
+            expect(url.search).toBe('?v=1');
         });
 
-        it('should pass for URLs with hash', () => {
-            expect(() => assertFileUrl('https://example.com/file.txt#section')).not.toThrow();
+        it('should handle URLs with hash', () => {
+            const url = assertValidUrl('https://example.com/file.txt#section');
+            expect(url.hash).toBe('#section');
         });
 
-        it('should throw for non-string values', () => {
-            // @ts-expect-error Testing invalid input
-            expect(() => assertFileUrl(null)).toThrow();
-            // @ts-expect-error Testing invalid input
-            expect(() => assertFileUrl(undefined)).toThrow();
-            // @ts-expect-error Testing invalid input
-            expect(() => assertFileUrl(123)).toThrow();
-            // @ts-expect-error Testing invalid input
-            expect(() => assertFileUrl({})).toThrow();
+        it('should return URL objects as-is', () => {
+            const url = new URL('https://example.com');
+            expect(assertValidUrl(url)).toBe(url);
         });
 
-        it('should throw for invalid URL format', () => {
-            // assertFileUrl now validates URL format
-            expect(() => assertFileUrl('any-string')).toThrow();
-            expect(() => assertFileUrl('')).toThrow();
-            expect(() => assertFileUrl('/relative/path')).toThrow();
+        it('should handle relative URLs using current location', () => {
+            // Relative URLs should be resolved against location.href
+            const url = assertValidUrl('./api/data.json');
+            expect(url).toBeInstanceOf(URL);
+            expect(url.pathname).toContain('api/data.json');
         });
 
-        it('should pass for URL objects', () => {
-            expect(() => assertFileUrl(new URL('https://example.com'))).not.toThrow();
-        });
-
-        it('should work when URL.canParse is not available (fallback)', () => {
-            // Save original URL.canParse
-            const originalCanParse = URL.canParse;
-
-            try {
-                // Remove URL.canParse to simulate older browsers
-                // @ts-expect-error Simulating older browser
-                delete URL.canParse;
-
-                // Valid URLs should still pass
-                expect(() => assertFileUrl('https://example.com/file.txt')).not.toThrow();
-                expect(() => assertFileUrl('http://localhost:8080/path')).not.toThrow();
-
-                // Invalid URLs should still throw
-                expect(() => assertFileUrl('not-a-url')).toThrow();
-                expect(() => assertFileUrl('')).toThrow();
-            } finally {
-                // Restore URL.canParse
-                URL.canParse = originalCanParse;
-            }
+        it('should handle absolute path URLs', () => {
+            const url = assertValidUrl('/api/data.json');
+            expect(url).toBeInstanceOf(URL);
+            expect(url.pathname).toBe('/api/data.json');
         });
     });
 });

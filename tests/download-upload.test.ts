@@ -157,10 +157,14 @@ describe('OPFS Download/Upload Operations', () => {
             expect(task.aborted).toBe(true);
         });
 
-        it('should throw for invalid URL format', () => {
-            // assertFileUrl now validates URL format, so invalid URLs throw immediately
-            const invalidUrl = '/relative/path/file.json?query=1#hash';
-            expect(() => fs.downloadFile(invalidUrl)).toThrow();
+        it('should support relative URLs', () => {
+            // Relative URLs are now supported via location.href as base
+            const relativeUrl = '/api/data.json';
+            // Should not throw - just check the task is created
+            const task = fs.downloadFile(relativeUrl);
+            expect(task).toBeDefined();
+            expect(task.abort).toBeDefined();
+            task.abort(); // Clean up
         });
 
         it('should return AbortError when aborted before completion', async () => {
