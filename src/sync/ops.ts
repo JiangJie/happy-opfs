@@ -8,7 +8,7 @@
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { assertAbsolutePath, assertExistsOptions, assertExpiredDate } from '../async/internal/assertions.ts';
 import { textDecode, textEncode } from '../shared/codec.ts';
-import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirOptions, type ReadOptions, type ReadSyncFileContent, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
+import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp, type SyncMessenger } from './protocol.ts';
@@ -125,14 +125,10 @@ function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array<ArrayBuff
  */
 function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
     if (getSyncChannelState() !== 'ready') {
-        // too early
         return Err(new Error('Sync channel not connected'));
     }
 
-    const messenger = getMessenger();
-    if (!messenger) {
-        return Err(new Error('Sync channel not connected'));
-    }
+    const messenger = getMessenger() as SyncMessenger;
 
     // Serialize request: [operation, ...arguments]
     const request = [op, ...args];
@@ -233,7 +229,7 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  *     .inspect(entries => entries.forEach(e => console.log(e.path, e.handle.kind)));
  * ```
  */
-export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult<DirEntryLike[]> {
+export function readDirSync(dirPath: string, options?: ReadDirSyncOptions): IOResult<DirEntryLike[]> {
     dirPath = assertAbsolutePath(dirPath);
     return callWorkerOp(WorkerOp.readDir, dirPath, options);
 }
@@ -251,7 +247,7 @@ export function readDirSync(dirPath: string, options?: ReadDirOptions): IOResult
  *     .inspect(file => console.log(file.name, file.size));
  * ```
  */
-export function readFileSync(filePath: string, options: ReadOptions & {
+export function readFileSync(filePath: string, options: ReadSyncOptions & {
     encoding: 'blob';
 }): IOResult<File>;
 /**
@@ -267,7 +263,7 @@ export function readFileSync(filePath: string, options: ReadOptions & {
  *     .inspect(content => console.log(content));
  * ```
  */
-export function readFileSync(filePath: string, options: ReadOptions & {
+export function readFileSync(filePath: string, options: ReadSyncOptions & {
     encoding: 'utf8';
 }): IOResult<string>;
 /**
@@ -283,7 +279,7 @@ export function readFileSync(filePath: string, options: ReadOptions & {
  *     .inspect(bytes => console.log('First byte:', bytes[0]));
  * ```
  */
-export function readFileSync(filePath: string, options?: ReadOptions & {
+export function readFileSync(filePath: string, options?: ReadSyncOptions & {
     encoding?: 'bytes';
 }): IOResult<Uint8Array<ArrayBuffer>>;
 /**
@@ -311,7 +307,7 @@ export function readFileSync(filePath: string, options?: ReadOptions & {
  *     });
  * ```
  */
-export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ReadSyncFileContent>;
+export function readFileSync(filePath: string, options?: ReadSyncOptions): IOResult<ReadSyncFileContent>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file with the specified encoding.
@@ -321,28 +317,22 @@ export function readFileSync(filePath: string, options?: ReadOptions): IOResult<
  * @returns An `IOResult` containing the file content.
  * @see {@link readFile} for the async version.
  */
-export function readFileSync(filePath: string, options?: ReadOptions): IOResult<ReadSyncFileContent> {
-    const encoding = options?.encoding;
-
-    // Runtime guard: sync API cannot return a ReadableStream
-    if (encoding === 'stream') {
-        return Err(new Error(`readFileSync does not support 'stream' encoding`));
-    }
-
+export function readFileSync(filePath: string, options?: ReadSyncOptions): IOResult<ReadSyncFileContent> {
     filePath = assertAbsolutePath(filePath);
+
+    const encoding = options?.encoding;
 
     // blob encoding: use readBlobFile for File object with metadata
     if (encoding === 'blob') {
         // Response is [metadata, Uint8Array] from binary protocol
-        const res = callWorkerOp<[FileMetadata, Uint8Array<ArrayBuffer>]>(WorkerOp.readBlobFile, filePath);
-        return res.map(([metadata, data]) => deserializeFile(metadata, data));
+        const readRes = callWorkerOp<[FileMetadata, Uint8Array<ArrayBuffer>]>(WorkerOp.readBlobFile, filePath);
+        return readRes.map(([metadata, data]) => deserializeFile(metadata, data));
     }
 
     // bytes/utf8: always request bytes encoding from worker
     // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
-    const res = callWorkerOp<Uint8Array<ArrayBuffer>>(WorkerOp.readFile, filePath);
-
-    return res.map(bytes => {
+    const readRes = callWorkerOp<Uint8Array<ArrayBuffer>>(WorkerOp.readFile, filePath);
+    return readRes.map(bytes => {
         if (encoding === 'utf8') {
             return textDecode(bytes);
         }
