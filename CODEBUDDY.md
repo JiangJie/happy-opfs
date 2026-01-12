@@ -14,7 +14,6 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 - `fflate` - For zip/unzip operations (uses `fflate/browser` for browser-optimized build)
 - `@happy-ts/fetch-t` - For download/upload operations
 - `tiny-future` - For Promise-based future/deferred patterns
-- `tiny-invariant` - For runtime assertions
 
 ## Development Commands
 

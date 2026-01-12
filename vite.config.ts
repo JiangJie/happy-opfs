@@ -41,7 +41,6 @@ export default defineConfig({
             external: [
                 /^@std\/path/,
                 'happy-rusty',
-                'tiny-invariant',
                 '@happy-ts/fetch-t',
                 'tiny-future',
                 'fflate/browser',
