@@ -1,99 +1,112 @@
 /**
  * Assertions module tests using Vitest
- * Tests: assertAbsolutePath, assertValidUrl
+ * Tests: validateAbsolutePath, assertValidUrl
  */
 import { describe, expect, it } from 'vitest';
-import { assertAbsolutePath, assertValidUrl } from '../src/async/internal/assertions.ts';
+import { assertValidUrl, validateAbsolutePath } from '../src/async/internal/assertions.ts';
 
 describe('Assertions', () => {
-    describe('assertAbsolutePath', () => {
-        it('should pass for valid absolute paths', () => {
-            expect(() => assertAbsolutePath('/')).not.toThrow();
-            expect(() => assertAbsolutePath('/file.txt')).not.toThrow();
-            expect(() => assertAbsolutePath('/path/to/file')).not.toThrow();
-            expect(() => assertAbsolutePath('/a/b/c/d/e')).not.toThrow();
+    describe('validateAbsolutePath', () => {
+        it('should return Ok for valid absolute paths', () => {
+            expect(validateAbsolutePath('/').isOk()).toBe(true);
+            expect(validateAbsolutePath('/file.txt').isOk()).toBe(true);
+            expect(validateAbsolutePath('/path/to/file').isOk()).toBe(true);
+            expect(validateAbsolutePath('/a/b/c/d/e').isOk()).toBe(true);
         });
 
-        it('should throw for relative paths', () => {
-            expect(() => assertAbsolutePath('file.txt')).toThrow();
-            expect(() => assertAbsolutePath('path/to/file')).toThrow();
-            expect(() => assertAbsolutePath('./file.txt')).toThrow();
-            expect(() => assertAbsolutePath('../file.txt')).toThrow();
+        it('should return Err for relative paths', () => {
+            expect(validateAbsolutePath('file.txt').isErr()).toBe(true);
+            expect(validateAbsolutePath('path/to/file').isErr()).toBe(true);
+            expect(validateAbsolutePath('./file.txt').isErr()).toBe(true);
+            expect(validateAbsolutePath('../file.txt').isErr()).toBe(true);
         });
 
-        it('should throw for empty string', () => {
-            expect(() => assertAbsolutePath('')).toThrow();
+        it('should return Err for empty string', () => {
+            expect(validateAbsolutePath('').isErr()).toBe(true);
         });
 
-        it('should throw for non-string values', () => {
+        it('should return Err for non-string values', () => {
             // @ts-expect-error Testing invalid input
-            expect(() => assertAbsolutePath(null)).toThrow();
+            expect(validateAbsolutePath(null).isErr()).toBe(true);
             // @ts-expect-error Testing invalid input
-            expect(() => assertAbsolutePath(undefined)).toThrow();
+            expect(validateAbsolutePath(undefined).isErr()).toBe(true);
             // @ts-expect-error Testing invalid input
-            expect(() => assertAbsolutePath(123)).toThrow();
+            expect(validateAbsolutePath(123).isErr()).toBe(true);
             // @ts-expect-error Testing invalid input
-            expect(() => assertAbsolutePath({})).toThrow();
+            expect(validateAbsolutePath({}).isErr()).toBe(true);
             // @ts-expect-error Testing invalid input
-            expect(() => assertAbsolutePath([])).toThrow();
+            expect(validateAbsolutePath([]).isErr()).toBe(true);
         });
 
-        it('should pass for paths with special characters', () => {
-            expect(() => assertAbsolutePath('/file with spaces.txt')).not.toThrow();
-            expect(() => assertAbsolutePath('/file-with-dashes.txt')).not.toThrow();
-            expect(() => assertAbsolutePath('/file_with_underscores.txt')).not.toThrow();
-            expect(() => assertAbsolutePath('/file.multiple.dots.txt')).not.toThrow();
-            expect(() => assertAbsolutePath('/中文文件.txt')).not.toThrow();
+        it('should return Ok for paths with special characters', () => {
+            expect(validateAbsolutePath('/file with spaces.txt').isOk()).toBe(true);
+            expect(validateAbsolutePath('/file-with-dashes.txt').isOk()).toBe(true);
+            expect(validateAbsolutePath('/file_with_underscores.txt').isOk()).toBe(true);
+            expect(validateAbsolutePath('/file.multiple.dots.txt').isOk()).toBe(true);
+            expect(validateAbsolutePath('/中文文件.txt').isOk()).toBe(true);
         });
 
         it('should normalize and return canonical paths', () => {
             // Root paths
-            expect(assertAbsolutePath('/')).toBe('/');
-            expect(assertAbsolutePath('//')).toBe('/');
-            expect(assertAbsolutePath('///')).toBe('/');
-            expect(assertAbsolutePath('////')).toBe('/');
+            expect(validateAbsolutePath('/').unwrap()).toBe('/');
+            expect(validateAbsolutePath('//').unwrap()).toBe('/');
+            expect(validateAbsolutePath('///').unwrap()).toBe('/');
+            expect(validateAbsolutePath('////').unwrap()).toBe('/');
 
             // Trailing slashes should be removed (except root)
-            expect(assertAbsolutePath('/a/')).toBe('/a');
-            expect(assertAbsolutePath('/a/b/')).toBe('/a/b');
-            expect(assertAbsolutePath('/a/b/c/')).toBe('/a/b/c');
+            expect(validateAbsolutePath('/a/').unwrap()).toBe('/a');
+            expect(validateAbsolutePath('/a/b/').unwrap()).toBe('/a/b');
+            expect(validateAbsolutePath('/a/b/c/').unwrap()).toBe('/a/b/c');
 
             // Multiple slashes should be collapsed
-            expect(assertAbsolutePath('//a')).toBe('/a');
-            expect(assertAbsolutePath('/a//b')).toBe('/a/b');
-            expect(assertAbsolutePath('/a///b')).toBe('/a/b');
-            expect(assertAbsolutePath('///a//b//c///')).toBe('/a/b/c');
+            expect(validateAbsolutePath('//a').unwrap()).toBe('/a');
+            expect(validateAbsolutePath('/a//b').unwrap()).toBe('/a/b');
+            expect(validateAbsolutePath('/a///b').unwrap()).toBe('/a/b');
+            expect(validateAbsolutePath('///a//b//c///').unwrap()).toBe('/a/b/c');
 
             // Dot segments should be resolved
-            expect(assertAbsolutePath('/a/./b')).toBe('/a/b');
-            expect(assertAbsolutePath('/a/b/./c')).toBe('/a/b/c');
-            expect(assertAbsolutePath('/./a/./b/.')).toBe('/a/b');
+            expect(validateAbsolutePath('/a/./b').unwrap()).toBe('/a/b');
+            expect(validateAbsolutePath('/a/b/./c').unwrap()).toBe('/a/b/c');
+            expect(validateAbsolutePath('/./a/./b/.').unwrap()).toBe('/a/b');
 
             // Parent directory segments should be resolved
-            expect(assertAbsolutePath('/a/../b')).toBe('/b');
-            expect(assertAbsolutePath('/a/b/../c')).toBe('/a/c');
-            expect(assertAbsolutePath('/a/b/c/../../d')).toBe('/a/d');
-            expect(assertAbsolutePath('/a/b/../../../c')).toBe('/c');
+            expect(validateAbsolutePath('/a/../b').unwrap()).toBe('/b');
+            expect(validateAbsolutePath('/a/b/../c').unwrap()).toBe('/a/c');
+            expect(validateAbsolutePath('/a/b/c/../../d').unwrap()).toBe('/a/d');
+            expect(validateAbsolutePath('/a/b/../../../c').unwrap()).toBe('/c');
 
             // Mixed cases
-            expect(assertAbsolutePath('//a/./b/../c//')).toBe('/a/c');
-            expect(assertAbsolutePath('///foo//bar///')).toBe('/foo/bar');
-            expect(assertAbsolutePath('/a/b/./c/../d/')).toBe('/a/b/d');
+            expect(validateAbsolutePath('//a/./b/../c//').unwrap()).toBe('/a/c');
+            expect(validateAbsolutePath('///foo//bar///').unwrap()).toBe('/foo/bar');
+            expect(validateAbsolutePath('/a/b/./c/../d/').unwrap()).toBe('/a/b/d');
         });
 
         it('should handle edge cases for path normalization', () => {
             // Going above root should stay at root
-            expect(assertAbsolutePath('/../')).toBe('/');
-            expect(assertAbsolutePath('/../../')).toBe('/');
-            expect(assertAbsolutePath('/../a')).toBe('/a');
+            expect(validateAbsolutePath('/../').unwrap()).toBe('/');
+            expect(validateAbsolutePath('/../../').unwrap()).toBe('/');
+            expect(validateAbsolutePath('/../a').unwrap()).toBe('/a');
 
             // Single segment paths
-            expect(assertAbsolutePath('/a')).toBe('/a');
-            expect(assertAbsolutePath('/a/')).toBe('/a');
-            expect(assertAbsolutePath('//a//')).toBe('/a');
+            expect(validateAbsolutePath('/a').unwrap()).toBe('/a');
+            expect(validateAbsolutePath('/a/').unwrap()).toBe('/a');
+            expect(validateAbsolutePath('//a//').unwrap()).toBe('/a');
 
             // Complex nested paths
-            expect(assertAbsolutePath('/a/b/c/d/e/../../../f/g')).toBe('/a/b/f/g');
+            expect(validateAbsolutePath('/a/b/c/d/e/../../../f/g').unwrap()).toBe('/a/b/f/g');
+        });
+
+        it('should return proper error types', () => {
+            // Non-string should return TypeError
+            // @ts-expect-error Testing invalid input
+            const typeErr = validateAbsolutePath(123).unwrapErr();
+            expect(typeErr).toBeInstanceOf(TypeError);
+            expect(typeErr.message).toContain('string');
+
+            // Relative path should return Error
+            const pathErr = validateAbsolutePath('relative/path').unwrapErr();
+            expect(pathErr).toBeInstanceOf(Error);
+            expect(pathErr.message).toContain('absolute');
         });
     });
 

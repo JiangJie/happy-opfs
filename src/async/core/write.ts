@@ -2,7 +2,7 @@ import type { AsyncIOResult, AsyncVoidIOResult } from 'happy-rusty';
 import { textEncode } from '../../shared/codec.ts';
 import { readBlobBytesSync } from '../../shared/helpers.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
-import { assertAbsolutePath, getFileHandle } from '../internal/mod.ts';
+import { getFileHandle, validateAbsolutePath } from '../internal/mod.ts';
 
 /**
  * Writes content to a file at the specified path.
@@ -95,8 +95,11 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
 /**
  * Gets a file handle for writing, with optional creation.
  */
-function getWriteFileHandle(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemFileHandle> {
-    filePath = assertAbsolutePath(filePath);
+async function getWriteFileHandle(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemFileHandle> {
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
+
     const { create = true } = options ?? {};
     return getFileHandle(filePath, { create });
 }

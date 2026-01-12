@@ -3,7 +3,7 @@ import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { textDecode } from '../../shared/codec.ts';
 import { readBlobBytes } from '../../shared/helpers.ts';
 import { isDirectoryHandle, type DirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions } from '../../shared/mod.ts';
-import { assertAbsolutePath, createAbortError, getDirHandle, getFileHandle } from '../internal/mod.ts';
+import { createAbortError, getDirHandle, getFileHandle, validateAbsolutePath } from '../internal/mod.ts';
 
 /**
  * Reads the contents of a directory at the specified path.
@@ -26,7 +26,9 @@ import { assertAbsolutePath, createAbortError, getDirHandle, getFileHandle } fro
  * ```
  */
 export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<DirEntry>> {
-    dirPath = assertAbsolutePath(dirPath);
+    const dirPathRes = validateAbsolutePath(dirPath);
+    if (dirPathRes.isErr()) return dirPathRes.asErr();
+    dirPath = dirPathRes.unwrap();
 
     const dirHandleRes = await getDirHandle(dirPath);
     if (dirHandleRes.isErr()) {
@@ -171,7 +173,9 @@ export function readFile(filePath: string, options?: ReadOptions): AsyncIOResult
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content.
  */
 export async function readFile(filePath: string, options?: ReadOptions): AsyncIOResult<ReadFileContent> {
-    filePath = assertAbsolutePath(filePath);
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
 
     const fileHandleRes = await getFileHandle(filePath);
 

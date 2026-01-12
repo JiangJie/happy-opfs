@@ -1,6 +1,6 @@
 import { basename } from '@std/path/posix';
 import { tryAsyncResult, type AsyncIOResult } from 'happy-rusty';
-import { assertAbsolutePath, getParentDirHandle, isRootDir } from '../internal/mod.ts';
+import { getParentDirHandle, isRootDir, validateAbsolutePath } from '../internal/mod.ts';
 
 /**
  * Retrieves the `FileSystemHandle` for a file or directory at the specified path.
@@ -15,7 +15,9 @@ import { assertAbsolutePath, getParentDirHandle, isRootDir } from '../internal/m
  * ```
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
-    path = assertAbsolutePath(path);
+    const pathRes = validateAbsolutePath(path);
+    if (pathRes.isErr()) return pathRes.asErr();
+    path = pathRes.unwrap();
 
     const dirHandleRes = await getParentDirHandle(path);
     if (isRootDir(path)) {

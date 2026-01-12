@@ -5,7 +5,7 @@ import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import type { FsRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
-import { aggregateResults, assertAbsolutePath, assertValidUrl, createEmptyBodyError, markParentDirsNonEmpty } from '../internal/mod.ts';
+import { aggregateResults, assertValidUrl, createEmptyBodyError, markParentDirsNonEmpty, validateAbsolutePath } from '../internal/mod.ts';
 
 /**
  * Unzip a buffer then write to the destination directory.
@@ -66,7 +66,9 @@ function unzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIORe
  * ```
  */
 export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIOResult {
-    destDir = assertAbsolutePath(destDir);
+    const destDirRes = validateAbsolutePath(destDir);
+    if (destDirRes.isErr()) return destDirRes.asErr();
+    destDir = destDirRes.unwrap();
 
     const fileRes = await readFile(zipFilePath);
 
@@ -96,7 +98,10 @@ export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIORe
  */
 export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
     zipFileUrl = assertValidUrl(zipFileUrl);
-    destDir = assertAbsolutePath(destDir);
+
+    const destDirRes = validateAbsolutePath(destDir);
+    if (destDirRes.isErr()) return destDirRes.asErr();
+    destDir = destDirRes.unwrap();
 
     const fetchRes = await fetchT(zipFileUrl, {
         redirect: 'follow',

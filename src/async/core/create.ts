@@ -1,5 +1,5 @@
 import { RESULT_VOID, type AsyncVoidIOResult } from 'happy-rusty';
-import { assertAbsolutePath, getDirHandle, getFileHandle } from '../internal/mod.ts';
+import { getDirHandle, getFileHandle, validateAbsolutePath } from '../internal/mod.ts';
 
 /**
  * Creates a new empty file at the specified path, similar to the `touch` command.
@@ -18,13 +18,15 @@ import { assertAbsolutePath, getDirHandle, getFileHandle } from '../internal/mod
  * ```
  */
 export async function createFile(filePath: string): AsyncVoidIOResult {
-    filePath = assertAbsolutePath(filePath);
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
 
-    const res = await getFileHandle(filePath, {
+    const handleRes = await getFileHandle(filePath, {
         create: true,
     });
 
-    return res.and(RESULT_VOID);
+    return handleRes.and(RESULT_VOID);
 }
 
 /**
@@ -43,11 +45,13 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
  * ```
  */
 export async function mkdir(dirPath: string): AsyncVoidIOResult {
-    dirPath = assertAbsolutePath(dirPath);
+    const dirPathRes = validateAbsolutePath(dirPath);
+    if (dirPathRes.isErr()) return dirPathRes.asErr();
+    dirPath = dirPathRes.unwrap();
 
-    const res = await getDirHandle(dirPath, {
+    const handleRes = await getDirHandle(dirPath, {
         create: true,
     });
 
-    return res.and(RESULT_VOID);
+    return handleRes.and(RESULT_VOID);
 }

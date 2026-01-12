@@ -1,6 +1,6 @@
 import { basename } from '@std/path/posix';
 import { Err, RESULT_VOID, type AsyncVoidIOResult } from 'happy-rusty';
-import { assertAbsolutePath, getParentDirHandle, isNotFoundError, isRootDir, removeHandle } from '../internal/mod.ts';
+import { getParentDirHandle, isNotFoundError, isRootDir, removeHandle, validateAbsolutePath } from '../internal/mod.ts';
 
 /**
  * Removes a file or directory at the specified path, similar to `rm -rf`.
@@ -15,7 +15,9 @@ import { assertAbsolutePath, getParentDirHandle, isNotFoundError, isRootDir, rem
  * ```
  */
 export async function remove(path: string): AsyncVoidIOResult {
-    path = assertAbsolutePath(path);
+    const pathRes = validateAbsolutePath(path);
+    if (pathRes.isErr()) return pathRes.asErr();
+    path = pathRes.unwrap();
 
     const parentDirHandleRes = await getParentDirHandle(path);
 

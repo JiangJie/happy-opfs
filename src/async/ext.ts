@@ -2,7 +2,7 @@ import { basename, join, SEPARATOR } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import { aggregateResults, assertAbsolutePath, assertExistsOptions, getParentDirHandle, isNotFoundError, isRootDir, markParentDirsNonEmpty } from './internal/mod.ts';
+import { aggregateResults, assertExistsOptions, getParentDirHandle, isNotFoundError, isRootDir, markParentDirsNonEmpty, validateAbsolutePath } from './internal/mod.ts';
 
 /**
  * Extended FileSystemHandle interface with move method.
@@ -76,8 +76,13 @@ async function mkDestFromSrc(
     opName: 'copy' | 'move',
     overwrite = true,
 ): AsyncVoidIOResult {
-    srcPath = assertAbsolutePath(srcPath);
-    destPath = assertAbsolutePath(destPath);
+    const srcPathRes = validateAbsolutePath(srcPath);
+    if (srcPathRes.isErr()) return srcPathRes.asErr();
+    srcPath = srcPathRes.unwrap();
+
+    const destPathRes = validateAbsolutePath(destPath);
+    if (destPathRes.isErr()) return destPathRes.asErr();
+    destPath = destPathRes.unwrap();
 
     // Prevent copying/moving a directory into itself
     // For root directory, any destPath is a subdirectory

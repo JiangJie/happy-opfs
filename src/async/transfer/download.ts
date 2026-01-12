@@ -3,7 +3,7 @@ import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import type { DownloadFileTempResponse, FsRequestInit } from '../../shared/mod.ts';
 import { writeFile } from '../core/mod.ts';
-import { assertAbsolutePath, assertValidUrl, createAbortError, createEmptyBodyError } from '../internal/mod.ts';
+import { assertValidUrl, createAbortError, createEmptyBodyError, validateAbsolutePath } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
 
 /**
@@ -47,12 +47,26 @@ export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit)
  */
 export function downloadFile(fileUrl: string | URL, filePath: string, requestInit?: FsRequestInit): FetchTask<Response>;
 export function downloadFile(fileUrl: string | URL, filePath?: string | FsRequestInit, requestInit?: FsRequestInit): FetchTask<Response | DownloadFileTempResponse> {
+    type T = FetchResponse<Response | DownloadFileTempResponse>;
+
     fileUrl = assertValidUrl(fileUrl);
 
     let saveToTemp = false;
 
     if (typeof filePath === 'string') {
-        filePath = assertAbsolutePath(filePath);
+        const filePathRes = validateAbsolutePath(filePath);
+        if (filePathRes.isErr()) {
+            return {
+                abort(): void { /* noop */ },
+                get aborted(): boolean {
+                    return false;
+                },
+                get response(): T {
+                    return Promise.resolve(filePathRes.asErr());
+                },
+            };
+        }
+        filePath = filePathRes.unwrap();
     } else {
         requestInit = filePath;
         // save to a temporary file, preserve the extension from URL
@@ -68,7 +82,7 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
         abortable: true,
     });
 
-    const response = (async (): FetchResponse<Response | DownloadFileTempResponse> => {
+    const response = (async (): T => {
         const responseRes = await fetchTask.response;
 
         return responseRes.andThenAsync(async rawResponse => {
@@ -106,7 +120,7 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
             return fetchTask.aborted;
         },
 
-        get response(): FetchResponse<Response | DownloadFileTempResponse> {
+        get response(): T {
             return response;
         },
     };

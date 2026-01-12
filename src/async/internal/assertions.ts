@@ -1,24 +1,32 @@
 import { normalize } from '@std/path/posix';
+import { Err, Ok, type IOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
 
 /**
- * Asserts that the provided path is an absolute path and normalizes it.
+ * Validates that the provided path is an absolute path and normalizes it.
+ * Returns a Result instead of throwing.
  *
  * @param path - The file path to validate.
- * @returns The normalized absolute path.
- * @throws Will throw an error if the path is not an absolute path.
+ * @returns An `IOResult` containing the normalized absolute path, or an error.
  * @internal
  */
-export function assertAbsolutePath(path: string): string {
-    invariant(typeof path === 'string', () => `path must be a string but received ${ path }`);
-    invariant(path[0] === ROOT_DIR, () => `path must start with / but received ${ path }`);
+export function validateAbsolutePath(path: string): IOResult<string> {
+    if (typeof path !== 'string') {
+        return Err(new TypeError(`path must be a string but received ${ typeof path }`));
+    }
 
+    if (path[0] !== ROOT_DIR) {
+        return Err(new Error(`path must be absolute (start with '/'): '${ path }'`));
+    }
+
+    // Normalize and remove trailing slash except for root
     const normalized = normalize(path);
-    // Remove trailing slash except for root
-    return normalized.length > 1 && normalized[normalized.length - 1] === ROOT_DIR
+    const result = normalized.length > 1 && normalized[normalized.length - 1] === ROOT_DIR
         ? normalized.slice(0, -1)
         : normalized;
+
+    return Ok(result);
 }
 
 /**
@@ -38,7 +46,7 @@ export function assertValidUrl(url: string | URL): URL {
     try {
         return new URL(url, location.href);
     } catch {
-        throw new TypeError(`Invalid URL: ${ url }`);
+        throw new TypeError(`Invalid URL: '${ url }'`);
     }
 }
 

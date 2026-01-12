@@ -80,7 +80,7 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
     }
 
     // Iterate through each path segment
-    // Path is already normalized by assertAbsolutePath, no empty segments
+    // Path is already normalized by validateAbsolutePath, no empty segments
     // Remove leading '/' and start traversing
     for (const childDirName of dirPath.slice(1).split(SEPARATOR)) {
         // Get or create child directory

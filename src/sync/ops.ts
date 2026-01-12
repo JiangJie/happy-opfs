@@ -6,7 +6,7 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { assertAbsolutePath, assertExistsOptions, assertExpiredDate } from '../async/internal/assertions.ts';
+import { assertExistsOptions, assertExpiredDate, validateAbsolutePath } from '../async/internal/assertions.ts';
 import { textDecode, textEncode } from '../shared/codec.ts';
 import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
@@ -167,7 +167,10 @@ function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
  * ```
  */
 export function createFileSync(filePath: string): VoidIOResult {
-    filePath = assertAbsolutePath(filePath);
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
+
     return callWorkerOp(WorkerOp.createFile, filePath);
 }
 
@@ -185,7 +188,10 @@ export function createFileSync(filePath: string): VoidIOResult {
  * ```
  */
 export function mkdirSync(dirPath: string): VoidIOResult {
-    dirPath = assertAbsolutePath(dirPath);
+    const dirPathRes = validateAbsolutePath(dirPath);
+    if (dirPathRes.isErr()) return dirPathRes.asErr();
+    dirPath = dirPathRes.unwrap();
+
     return callWorkerOp(WorkerOp.mkdir, dirPath);
 }
 
@@ -205,8 +211,14 @@ export function mkdirSync(dirPath: string): VoidIOResult {
  * ```
  */
 export function moveSync(srcPath: string, destPath: string, options?: MoveOptions): VoidIOResult {
-    srcPath = assertAbsolutePath(srcPath);
-    destPath = assertAbsolutePath(destPath);
+    const srcPathRes = validateAbsolutePath(srcPath);
+    if (srcPathRes.isErr()) return srcPathRes.asErr();
+    srcPath = srcPathRes.unwrap();
+
+    const destPathRes = validateAbsolutePath(destPath);
+    if (destPathRes.isErr()) return destPathRes.asErr();
+    destPath = destPathRes.unwrap();
+
     return callWorkerOp(WorkerOp.move, srcPath, destPath, options);
 }
 
@@ -230,7 +242,10 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  * ```
  */
 export function readDirSync(dirPath: string, options?: ReadDirSyncOptions): IOResult<DirEntryLike[]> {
-    dirPath = assertAbsolutePath(dirPath);
+    const dirPathRes = validateAbsolutePath(dirPath);
+    if (dirPathRes.isErr()) return dirPathRes.asErr();
+    dirPath = dirPathRes.unwrap();
+
     return callWorkerOp(WorkerOp.readDir, dirPath, options);
 }
 
@@ -318,7 +333,9 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions): IORes
  * @see {@link readFile} for the async version.
  */
 export function readFileSync(filePath: string, options?: ReadSyncOptions): IOResult<ReadSyncFileContent> {
-    filePath = assertAbsolutePath(filePath);
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
 
     const encoding = options?.encoding;
 
@@ -355,7 +372,10 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions): IORes
  * ```
  */
 export function removeSync(path: string): VoidIOResult {
-    path = assertAbsolutePath(path);
+    const pathRes = validateAbsolutePath(path);
+    if (pathRes.isErr()) return pathRes.asErr();
+    path = pathRes.unwrap();
+
     return callWorkerOp(WorkerOp.remove, path);
 }
 
@@ -379,7 +399,10 @@ export function removeSync(path: string): VoidIOResult {
  * ```
  */
 export function statSync(path: string): IOResult<FileSystemHandleLike> {
-    path = assertAbsolutePath(path);
+    const pathRes = validateAbsolutePath(path);
+    if (pathRes.isErr()) return pathRes.asErr();
+    path = pathRes.unwrap();
+
     return callWorkerOp(WorkerOp.stat, path);
 }
 
@@ -424,7 +447,10 @@ function serializeWriteContents(contents: WriteSyncFileContent): Uint8Array<Arra
  * ```
  */
 export function writeFileSync(filePath: string, contents: WriteSyncFileContent, options?: WriteOptions): VoidIOResult {
-    filePath = assertAbsolutePath(filePath);
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
+
     // Put Uint8Array as the last argument for binary protocol
     return callWorkerOp(WorkerOp.writeFile, filePath, options, serializeWriteContents(contents));
 }
@@ -443,7 +469,10 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  * ```
  */
 export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
-    filePath = assertAbsolutePath(filePath);
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
+
     // Put Uint8Array as the last argument for binary protocol
     return callWorkerOp(WorkerOp.appendFile, filePath, serializeWriteContents(contents));
 }
@@ -467,8 +496,14 @@ export function appendFileSync(filePath: string, contents: WriteSyncFileContent)
  * ```
  */
 export function copySync(srcPath: string, destPath: string, options?: CopyOptions): VoidIOResult {
-    srcPath = assertAbsolutePath(srcPath);
-    destPath = assertAbsolutePath(destPath);
+    const srcPathRes = validateAbsolutePath(srcPath);
+    if (srcPathRes.isErr()) return srcPathRes.asErr();
+    srcPath = srcPathRes.unwrap();
+
+    const destPathRes = validateAbsolutePath(destPath);
+    if (destPathRes.isErr()) return destPathRes.asErr();
+    destPath = destPathRes.unwrap();
+
     return callWorkerOp(WorkerOp.copy, srcPath, destPath, options);
 }
 
@@ -485,7 +520,10 @@ export function copySync(srcPath: string, destPath: string, options?: CopyOption
  * ```
  */
 export function emptyDirSync(dirPath: string): VoidIOResult {
-    dirPath = assertAbsolutePath(dirPath);
+    const dirPathRes = validateAbsolutePath(dirPath);
+    if (dirPathRes.isErr()) return dirPathRes.asErr();
+    dirPath = dirPathRes.unwrap();
+
     return callWorkerOp(WorkerOp.emptyDir, dirPath);
 }
 
@@ -504,7 +542,10 @@ export function emptyDirSync(dirPath: string): VoidIOResult {
  * ```
  */
 export function existsSync(path: string, options?: ExistsOptions): IOResult<boolean> {
-    path = assertAbsolutePath(path);
+    const pathRes = validateAbsolutePath(path);
+    if (pathRes.isErr()) return pathRes.asErr();
+    path = pathRes.unwrap();
+
     assertExistsOptions(options);
     return callWorkerOp(WorkerOp.exists, path, options);
 }
@@ -653,8 +694,14 @@ export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
  * ```
  */
 export function unzipSync(zipFilePath: string, destDir: string): VoidIOResult {
-    zipFilePath = assertAbsolutePath(zipFilePath);
-    destDir = assertAbsolutePath(destDir);
+    const zipFilePathRes = validateAbsolutePath(zipFilePath);
+    if (zipFilePathRes.isErr()) return zipFilePathRes.asErr();
+    zipFilePath = zipFilePathRes.unwrap();
+
+    const destDirRes = validateAbsolutePath(destDir);
+    if (destDirRes.isErr()) return destDirRes.asErr();
+    destDir = destDirRes.unwrap();
+
     return callWorkerOp(WorkerOp.unzip, zipFilePath, destDir);
 }
 
@@ -697,11 +744,17 @@ export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint
  * @see {@link zip} for the async version.
  */
 export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer> | void> {
-    sourcePath = assertAbsolutePath(sourcePath);
+    const sourcePathRes = validateAbsolutePath(sourcePath);
+    if (sourcePathRes.isErr()) return sourcePathRes.asErr();
+    sourcePath = sourcePathRes.unwrap();
+
     // If zipFilePath is a string path, validate it too
     if (typeof zipFilePath === 'string') {
-        zipFilePath = assertAbsolutePath(zipFilePath);
+        const zipFilePathRes = validateAbsolutePath(zipFilePath);
+        if (zipFilePathRes.isErr()) return zipFilePathRes.asErr();
+        zipFilePath = zipFilePathRes.unwrap();
     }
+
     // Result is Uint8Array directly as the last element from binary protocol, or undefined for void result
     return callWorkerOp(WorkerOp.zip, sourcePath, zipFilePath, options);
 }
