@@ -1,29 +1,46 @@
-import { basename, join } from '@std/path/posix';
+import { basename, join, SEPARATOR } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import { aggregateResults, assertAbsolutePath, assertExistsOptions, getParentDirHandle, isNotFoundError } from './internal/mod.ts';
+import { aggregateResults, assertAbsolutePath, assertExistsOptions, getParentDirHandle, isNotFoundError, isRootDir, markParentDirsNonEmpty } from './internal/mod.ts';
+
+/**
+ * Extended FileSystemHandle interface with move method.
+ * The move() method is not yet in TypeScript's lib.dom.d.ts.
+ * @see https://github.com/mdn/browser-compat-data/issues/20341
+ */
+interface MovableHandle extends FileSystemHandle {
+    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
+}
+
+/**
+ * Copies a file handle to a new path by reading and writing the file content.
+ *
+ * @param fileHandle - The file handle to copy.
+ * @param destFilePath - The destination absolute path for the file.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ */
+async function copyFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
+    const fileRes = await tryAsyncResult(fileHandle.getFile());
+    return fileRes.andThenAsync(file => writeFile(destFilePath, file));
+}
 
 /**
  * Moves a file handle to a new path using the FileSystemFileHandle.move() method.
  * This is an optimized operation that avoids data copying.
  *
  * @param fileHandle - The file handle to move.
- * @param newPath - The new absolute path for the file.
+ * @param destFilePath - The new absolute path for the file.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
-async function moveFileHandle(fileHandle: FileSystemFileHandle, newPath: string): AsyncVoidIOResult {
-    const dirRes = await getParentDirHandle(newPath, {
+async function moveFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
+    const dirRes = await getParentDirHandle(destFilePath, {
         create: true,
     });
 
-    return dirRes.andTryAsync(newDirHandle => {
-        const newName = basename(newPath);
-
-        // TODO ts not support yet
-        return (fileHandle as FileSystemFileHandle & {
-            move(newParent: FileSystemDirectoryHandle, newName: string): Promise<void>;
-        }).move(newDirHandle, newName);
+    return dirRes.andTryAsync(destDirHandle => {
+        const destName = basename(destFilePath);
+        return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
     });
 }
 
@@ -48,6 +65,7 @@ type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
  * @param srcPath - The source file/directory path.
  * @param destPath - The destination file/directory path.
  * @param handler - The function to handle file transfer (copy or move).
+ * @param opName - The operation name for error messages ('copy' or 'move').
  * @param overwrite - Whether to overwrite existing files. Default: `true`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
@@ -55,9 +73,17 @@ async function mkDestFromSrc(
     srcPath: string,
     destPath: string,
     handler: HandleSrcFileToDest,
+    opName: 'copy' | 'move',
     overwrite = true,
 ): AsyncVoidIOResult {
+    srcPath = assertAbsolutePath(srcPath);
     destPath = assertAbsolutePath(destPath);
+
+    // Prevent copying/moving a directory into itself
+    // For root directory, any destPath is a subdirectory
+    if (isRootDir(srcPath) || destPath.startsWith(srcPath + SEPARATOR) || destPath === srcPath) {
+        return Err(new Error(`Cannot ${ opName } '${ srcPath }' into itself '${ destPath }'`));
+    }
 
     const statRes = await stat(srcPath);
     if (statRes.isErr()) {
@@ -101,37 +127,51 @@ async function mkDestFromSrc(
 
     // Collect all tasks for parallel execution
     const tasks: AsyncVoidIOResult[] = [];
-
-    if (!destExists) {
-        // Ensure destination directory exists first
-        tasks.push(mkdir(destPath));
-    }
+    const dirs: string[] = [];
+    const nonEmptyDirs = new Set<string>();
 
     try {
         for await (const { path, handle } of readDirRes.unwrap()) {
-            const newEntryPath = join(destPath, path);
-            // Wrap each entry processing in an async IIFE for parallel execution
-            tasks.push((async () => {
-                let newPathExists = false;
+            if (isFileHandle(handle)) {
+                const newFilePath = join(destPath, path);
 
-                if (destExists) {
+                // Wrap file processing in an async IIFE for parallel execution
+                tasks.push((async () => {
+                    let newPathExists = false;
+
+                    if (destExists) {
                     // Destination dir exists, need to check each file individually
-                    const existsRes = await exists(newEntryPath);
-                    if (existsRes.isErr()) {
-                        return existsRes.asErr();
+                        const existsRes = await exists(newFilePath);
+                        if (existsRes.isErr()) {
+                            return existsRes.asErr();
+                        }
+
+                        newPathExists = existsRes.unwrap();
                     }
 
-                    newPathExists = existsRes.unwrap();
-                }
+                    return overwrite || !newPathExists ? handler(handle, newFilePath) : RESULT_VOID;
+                })());
 
-                // For files: apply handler; for directories: just create them
-                return isFileHandle(handle)
-                    ? (overwrite || !newPathExists ? handler(handle, newEntryPath) : RESULT_VOID)
-                    : mkdir(newEntryPath);
-            })());
+                // Mark all parent directories as non-empty
+                markParentDirsNonEmpty(path, nonEmptyDirs);
+            } else {
+                dirs.push(path);
+            }
         }
     } catch (e) {
         return Err(e as Error);
+    }
+
+    // Only create truly empty directories
+    for (const dir of dirs) {
+        if (!nonEmptyDirs.has(dir)) {
+            tasks.push(mkdir(join(destPath, dir)));
+        }
+    }
+
+    // Handle empty source directory case
+    if (tasks.length === 0 && !destExists) {
+        return mkdir(destPath);
     }
 
     // Wait for all tasks and return first error if any
@@ -178,13 +218,7 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncV
  * ```
  */
 export function copy(srcPath: string, destPath: string, options?: CopyOptions): AsyncVoidIOResult {
-    const { overwrite = true } = options ?? {};
-
-    return mkDestFromSrc(srcPath, destPath, async (srcHandle, destPath) => {
-        // write file to new path
-        const fileRes = await tryAsyncResult(srcHandle.getFile());
-        return fileRes.andThenAsync(file => writeFile(destPath, file));
-    }, overwrite);
+    return mkDestFromSrc(srcPath, destPath, copyFileHandle, 'copy', options?.overwrite);
 }
 
 /**
@@ -199,26 +233,27 @@ export function copy(srcPath: string, destPath: string, options?: CopyOptions): 
  * ```
  */
 export async function emptyDir(dirPath: string): AsyncVoidIOResult {
-    const readDirRes = await readDir(dirPath);
+    // For root directory, remove() clears all contents
+    if (isRootDir(dirPath)) {
+        return remove(dirPath);
+    }
 
-    if (readDirRes.isErr()) {
-        // create if not exist
-        return isNotFoundError(readDirRes.unwrapErr())
+    // Check if path is a directory
+    const statRes = await stat(dirPath);
+    if (statRes.isErr()) {
+        // Create if not exist
+        return isNotFoundError(statRes.unwrapErr())
             ? mkdir(dirPath)
-            : readDirRes.asErr();
+            : statRes.asErr();
     }
 
-    const tasks: AsyncVoidIOResult[] = [];
-
-    try {
-        for await (const { path } of readDirRes.unwrap()) {
-            tasks.push(remove(join(dirPath, path)));
-        }
-    } catch (e) {
-        return Err(e as Error);
+    if (isFileHandle(statRes.unwrap())) {
+        return Err(new Error(`'${ dirPath }' is not a directory`));
     }
 
-    return aggregateResults(tasks);
+    // Remove and recreate directory (OPFS has no metadata to preserve)
+    const removeRes = await remove(dirPath);
+    return removeRes.andThenAsync(() => mkdir(dirPath));
 }
 
 /**
@@ -276,10 +311,7 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
  * ```
  */
 export async function move(srcPath: string, destPath: string, options?: MoveOptions): AsyncVoidIOResult {
-    const { overwrite = true } = options ?? {};
-
-    const mkRes = await mkDestFromSrc(srcPath, destPath, moveFileHandle, overwrite);
-    // finally remove src
+    const mkRes = await mkDestFromSrc(srcPath, destPath, moveFileHandle, 'move', options?.overwrite);
     return mkRes.andThenAsync(() => remove(srcPath));
 }
 
