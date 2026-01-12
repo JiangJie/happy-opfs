@@ -1,6 +1,5 @@
 import { normalize } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type IOResult, type VoidIOResult } from 'happy-rusty';
-import invariant from 'tiny-invariant';
 import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
 
 /**
@@ -67,12 +66,16 @@ export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
 }
 
 /**
- * Asserts that the provided value is a valid Date for pruneTemp expiration.
+ * Validates that the provided value is a valid Date for pruneTemp expiration.
+ * Returns a Result instead of throwing.
  *
- * @param expired - The value to validate.
- * @throws Will throw an error if the value is not a Date instance.
+ * @param expired - The Date to validate.
+ * @returns A `VoidIOResult` indicating success, or an error if not a Date instance.
  * @internal
  */
-export function assertExpiredDate(expired: unknown): asserts expired is Date {
-    invariant(expired instanceof Date, () => `expired must be a Date but received ${ expired }`);
+export function validateExpiredDate(expired: Date): VoidIOResult {
+    if (expired instanceof Date) {
+        return RESULT_VOID;
+    }
+    return Err(new TypeError(`expired must be a Date but received ${ typeof expired }`));
 }

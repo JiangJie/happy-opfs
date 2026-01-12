@@ -1,9 +1,9 @@
 /**
  * Assertions module tests using Vitest
- * Tests: validateAbsolutePath, validateUrl, validateExistsOptions
+ * Tests: validateAbsolutePath, validateUrl, validateExistsOptions, validateExpiredDate
  */
 import { describe, expect, it } from 'vitest';
-import { validateAbsolutePath, validateExistsOptions, validateUrl } from '../src/async/internal/assertions.ts';
+import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateUrl } from '../src/async/internal/assertions.ts';
 
 describe('Assertions', () => {
     describe('validateAbsolutePath', () => {
@@ -183,6 +183,41 @@ describe('Assertions', () => {
             const res = validateExistsOptions({ isDirectory: true, isFile: true });
             expect(res.isErr()).toBe(true);
             expect(res.unwrapErr().message).toContain('cannot both be true');
+        });
+    });
+
+    describe('validateExpiredDate', () => {
+        it('should return Ok for valid Date', () => {
+            const date = new Date();
+            const res = validateExpiredDate(date);
+            expect(res.isOk()).toBe(true);
+        });
+
+        it('should return Ok for past Date', () => {
+            const date = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            expect(validateExpiredDate(date).isOk()).toBe(true);
+        });
+
+        it('should return Err for non-Date values', () => {
+            // @ts-expect-error Testing invalid input
+            expect(validateExpiredDate(null).isErr()).toBe(true);
+            // @ts-expect-error Testing invalid input
+            expect(validateExpiredDate(undefined).isErr()).toBe(true);
+            // @ts-expect-error Testing invalid input
+            expect(validateExpiredDate('2024-01-01').isErr()).toBe(true);
+            // @ts-expect-error Testing invalid input
+            expect(validateExpiredDate(1234567890).isErr()).toBe(true);
+            // @ts-expect-error Testing invalid input
+            expect(validateExpiredDate({}).isErr()).toBe(true);
+        });
+
+        it('should return proper error type', () => {
+            // @ts-expect-error Testing invalid input
+            const res = validateExpiredDate('not a date');
+            expect(res.isErr()).toBe(true);
+            const err = res.unwrapErr();
+            expect(err).toBeInstanceOf(TypeError);
+            expect(err.message).toContain('Date');
         });
     });
 });

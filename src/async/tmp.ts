@@ -2,7 +2,7 @@ import { join, SEPARATOR } from '@std/path/posix';
 import { Ok, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { isFileHandle, TMP_DIR, type TempOptions } from '../shared/mod.ts';
 import { createFile, mkdir, remove } from './core/mod.ts';
-import { assertExpiredDate } from './internal/assertions.ts';
+import { validateExpiredDate } from './internal/assertions.ts';
 import { getDirHandle, removeHandle } from './internal/helpers.ts';
 
 /**
@@ -107,7 +107,8 @@ export function deleteTemp(): AsyncVoidIOResult {
  * ```
  */
 export async function pruneTemp(expired: Date): AsyncVoidIOResult {
-    assertExpiredDate(expired);
+    const expiredRes = validateExpiredDate(expired);
+    if (expiredRes.isErr()) return expiredRes;
 
     // Get TMP_DIR handle to iterate and reuse for removal
     const tmpDirHandleRes = await getDirHandle(TMP_DIR);

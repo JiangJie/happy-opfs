@@ -179,9 +179,11 @@ describe('Error Handling', () => {
 
     describe('Temp operations errors', () => {
         it('should handle pruneTemp with invalid date', async () => {
-            // pruneTemp requires a Date, should throw for invalid input
+            // pruneTemp requires a Date, should return Err for invalid input
             // @ts-expect-error Testing invalid input
-            await expect(fs.pruneTemp('not-a-date')).rejects.toThrow();
+            const result = await fs.pruneTemp('not-a-date');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr()).toBeInstanceOf(TypeError);
         });
 
         it('should succeed deleteTemp when tmp dir does not exist', async () => {
