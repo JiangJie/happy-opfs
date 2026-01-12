@@ -1,9 +1,9 @@
 /**
  * Assertions module tests using Vitest
- * Tests: validateAbsolutePath, validateUrl
+ * Tests: validateAbsolutePath, validateUrl, validateExistsOptions
  */
 import { describe, expect, it } from 'vitest';
-import { validateAbsolutePath, validateUrl } from '../src/async/internal/assertions.ts';
+import { validateAbsolutePath, validateExistsOptions, validateUrl } from '../src/async/internal/assertions.ts';
 
 describe('Assertions', () => {
     describe('validateAbsolutePath', () => {
@@ -153,6 +153,36 @@ describe('Assertions', () => {
             expect(res.isOk()).toBe(true);
             expect(res.unwrap()).toBeInstanceOf(URL);
             expect(res.unwrap().pathname).toBe('/api/data.json');
+        });
+    });
+
+    describe('validateExistsOptions', () => {
+        it('should return Ok for undefined options', () => {
+            expect(validateExistsOptions().isOk()).toBe(true);
+            expect(validateExistsOptions(undefined).isOk()).toBe(true);
+        });
+
+        it('should return Ok for empty options', () => {
+            expect(validateExistsOptions({}).isOk()).toBe(true);
+        });
+
+        it('should return Ok when only isDirectory is true', () => {
+            expect(validateExistsOptions({ isDirectory: true }).isOk()).toBe(true);
+        });
+
+        it('should return Ok when only isFile is true', () => {
+            expect(validateExistsOptions({ isFile: true }).isOk()).toBe(true);
+        });
+
+        it('should return Ok when both are false', () => {
+            expect(validateExistsOptions({ isDirectory: false, isFile: false }).isOk()).toBe(true);
+        });
+
+        it('should return Err when both isDirectory and isFile are true', () => {
+            // @ts-expect-error Testing invalid input
+            const res = validateExistsOptions({ isDirectory: true, isFile: true });
+            expect(res.isErr()).toBe(true);
+            expect(res.unwrapErr().message).toContain('cannot both be true');
         });
     });
 });

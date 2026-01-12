@@ -6,7 +6,7 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { assertExistsOptions, assertExpiredDate, validateAbsolutePath } from '../async/internal/assertions.ts';
+import { assertExpiredDate, validateAbsolutePath, validateExistsOptions } from '../async/internal/assertions.ts';
 import { textDecode, textEncode } from '../shared/codec.ts';
 import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
@@ -546,7 +546,9 @@ export function existsSync(path: string, options?: ExistsOptions): IOResult<bool
     if (pathRes.isErr()) return pathRes.asErr();
     path = pathRes.unwrap();
 
-    assertExistsOptions(options);
+    const optionsRes = validateExistsOptions(options);
+    if (optionsRes.isErr()) return optionsRes.asErr();
+
     return callWorkerOp(WorkerOp.exists, path, options);
 }
 

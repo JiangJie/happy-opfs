@@ -2,7 +2,7 @@ import { basename, join, SEPARATOR } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import { aggregateResults, assertExistsOptions, getParentDirHandle, isNotFoundError, isRootDir, markParentDirsNonEmpty, validateAbsolutePath } from './internal/mod.ts';
+import { aggregateResults, getParentDirHandle, isNotFoundError, isRootDir, markParentDirsNonEmpty, validateAbsolutePath, validateExistsOptions } from './internal/mod.ts';
 
 /**
  * Extended FileSystemHandle interface with move method.
@@ -282,7 +282,8 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
  * ```
  */
 export async function exists(path: string, options?: ExistsOptions): AsyncIOResult<boolean> {
-    assertExistsOptions(options);
+    const optionsRes = validateExistsOptions(options);
+    if (optionsRes.isErr()) return optionsRes.asErr();
 
     const statRes = await stat(path);
 

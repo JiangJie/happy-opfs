@@ -1,5 +1,5 @@
 import { normalize } from '@std/path/posix';
-import { Err, Ok, type IOResult } from 'happy-rusty';
+import { Err, Ok, RESULT_VOID, type IOResult, type VoidIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
 
@@ -51,16 +51,19 @@ export function validateUrl(url: string | URL): IOResult<URL> {
 }
 
 /**
- * Asserts that the provided ExistsOptions are valid.
+ * Validates that the provided ExistsOptions are valid.
  * `isDirectory` and `isFile` cannot both be `true`.
  *
  * @param options - The ExistsOptions to validate.
- * @throws Will throw an error if both `isDirectory` and `isFile` are `true`.
+ * @returns A `VoidIOResult` indicating success, or an error if options are invalid.
  * @internal
  */
-export function assertExistsOptions(options?: ExistsOptions): void {
+export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
     const { isDirectory = false, isFile = false } = options ?? {};
-    invariant(!(isDirectory && isFile), () => 'isDirectory and isFile cannot both be true');
+    if (isDirectory && isFile) {
+        return Err(new Error('isDirectory and isFile cannot both be true'));
+    }
+    return RESULT_VOID;
 }
 
 /**
