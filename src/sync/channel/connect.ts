@@ -38,7 +38,6 @@ export function connectSyncChannel(worker: Worker | URL | string, options?: Conn
     const state = getSyncChannelState();
     invariant(state !== 'ready', () => 'Sync channel already connected');
     invariant(state !== 'connecting', () => 'Sync channel is connecting');
-    setSyncChannelState('connecting');
 
     const {
         sharedBufferLength = 1024 * 1024,
@@ -52,16 +51,19 @@ export function connectSyncChannel(worker: Worker | URL | string, options?: Conn
     invariant(sharedBufferLength >= 256 && sharedBufferLength % 4 === 0, () => 'sharedBufferLength must be at least 256 and a multiple of 4');
     invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be a positive integer');
 
+    // May throw if worker url is invalid
+    const workerAdapter = worker instanceof Worker
+        ? worker
+        : new Worker(worker);
+
+    // Set state after all validations pass
+    setSyncChannelState('connecting');
     setGlobalSyncOpTimeout(opTimeout);
 
     const sab = new SharedArrayBuffer(sharedBufferLength);
     const channel = new MessageChannel();
 
     const future = new Future<SharedArrayBuffer>();
-
-    const workerAdapter = worker instanceof Worker
-        ? worker
-        : new Worker(worker);
 
     // Use MessageChannel for isolated communication
     // port1 stays in main thread, port2 is transferred to worker
