@@ -3,7 +3,7 @@ import { basename } from '@std/path/posix';
 import { Err } from 'happy-rusty';
 import type { UploadRequestInit } from '../../shared/mod.ts';
 import { readBlobFile } from '../ext.ts';
-import { assertValidUrl, createAbortError, validateAbsolutePath } from '../internal/mod.ts';
+import { createAbortError, createFailedFetchTask, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 
 /**
  * Uploads a file from the specified path to a URL.
@@ -27,28 +27,18 @@ import { assertValidUrl, createAbortError, validateAbsolutePath } from '../inter
  * ```
  */
 export function uploadFile(filePath: string, uploadUrl: string | URL, requestInit?: UploadRequestInit): FetchTask<Response> {
-    type T = FetchResponse<Response>;
-
     const filePathRes = validateAbsolutePath(filePath);
-    if (filePathRes.isErr()) {
-        return {
-            abort(): void { /* noop */ },
-            get aborted(): boolean {
-                return false;
-            },
-            get response(): T {
-                return Promise.resolve(filePathRes.asErr());
-            },
-        };
-    }
+    if (filePathRes.isErr()) return createFailedFetchTask(filePathRes);
     filePath = filePathRes.unwrap();
 
-    uploadUrl = assertValidUrl(uploadUrl);
+    const uploadUrlRes = validateUrl(uploadUrl);
+    if (uploadUrlRes.isErr()) return createFailedFetchTask(uploadUrlRes);
+    uploadUrl = uploadUrlRes.unwrap();
 
     let aborted = false;
     let fetchTask: FetchTask<Response>;
 
-    const response = (async (): T => {
+    const response = (async (): FetchResponse<Response> => {
         const fileRes = await readBlobFile(filePath);
 
         return fileRes.andThenAsync(async file => {
@@ -88,7 +78,7 @@ export function uploadFile(filePath: string, uploadUrl: string | URL, requestIni
             return aborted;
         },
 
-        get response(): T {
+        get response(): FetchResponse<Response> {
             return response;
         },
     };

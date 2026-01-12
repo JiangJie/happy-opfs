@@ -30,23 +30,23 @@ export function validateAbsolutePath(path: string): IOResult<string> {
 }
 
 /**
- * Asserts that the provided URL is valid and returns a URL object.
+ * Validates that the provided URL is valid and returns a URL object.
  * Supports relative URLs by using current location as base.
+ * Returns a Result instead of throwing.
  *
  * @param url - The URL string or URL object to validate.
- * @returns The URL object.
- * @throws Will throw a TypeError if the URL is invalid.
+ * @returns An `IOResult` containing the URL object, or an error.
  * @internal
  */
-export function assertValidUrl(url: string | URL): URL {
+export function validateUrl(url: string | URL): IOResult<URL> {
     if (url instanceof URL) {
-        return url;
+        return Ok(url);
     }
 
     try {
-        return new URL(url, location.href);
+        return Ok(new URL(url, location.href));
     } catch {
-        throw new TypeError(`Invalid URL: '${ url }'`);
+        return Err(new TypeError(`url is invalid: '${ url }'`));
     }
 }
 

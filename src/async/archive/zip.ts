@@ -6,7 +6,7 @@ import { Future } from 'tiny-future';
 import { readBlobBytes, readBlobBytesSync } from '../../shared/helpers.ts';
 import { isFileHandle, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
-import { assertValidUrl, createEmptyBodyError, validateAbsolutePath } from '../internal/mod.ts';
+import { createEmptyBodyError, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 
 type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
 
@@ -202,7 +202,9 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  */
 export function zipFromUrl(sourceUrl: string | URL, requestInit?: ZipFromUrlRequestInit): AsyncIOResult<Uint8Array<ArrayBuffer>>;
 export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string | ZipFromUrlRequestInit, requestInit?: ZipFromUrlRequestInit): Promise<ZipIOResult> {
-    sourceUrl = assertValidUrl(sourceUrl);
+    const sourceUrlRes = validateUrl(sourceUrl);
+    if (sourceUrlRes.isErr()) return sourceUrlRes.asErr() as ZipIOResult;
+    sourceUrl = sourceUrlRes.unwrap();
 
     if (typeof zipFilePath === 'string') {
         const zipFilePathRes = validateAbsolutePath(zipFilePath);

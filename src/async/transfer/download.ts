@@ -3,7 +3,7 @@ import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import type { DownloadFileTempResponse, FsRequestInit } from '../../shared/mod.ts';
 import { writeFile } from '../core/mod.ts';
-import { assertValidUrl, createAbortError, createEmptyBodyError, validateAbsolutePath } from '../internal/mod.ts';
+import { createAbortError, createEmptyBodyError, createFailedFetchTask, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
 
 /**
@@ -49,23 +49,15 @@ export function downloadFile(fileUrl: string | URL, filePath: string, requestIni
 export function downloadFile(fileUrl: string | URL, filePath?: string | FsRequestInit, requestInit?: FsRequestInit): FetchTask<Response | DownloadFileTempResponse> {
     type T = FetchResponse<Response | DownloadFileTempResponse>;
 
-    fileUrl = assertValidUrl(fileUrl);
+    const fileUrlRes = validateUrl(fileUrl);
+    if (fileUrlRes.isErr()) return createFailedFetchTask(fileUrlRes);
+    fileUrl = fileUrlRes.unwrap();
 
     let saveToTemp = false;
 
     if (typeof filePath === 'string') {
         const filePathRes = validateAbsolutePath(filePath);
-        if (filePathRes.isErr()) {
-            return {
-                abort(): void { /* noop */ },
-                get aborted(): boolean {
-                    return false;
-                },
-                get response(): T {
-                    return Promise.resolve(filePathRes.asErr());
-                },
-            };
-        }
+        if (filePathRes.isErr()) return createFailedFetchTask(filePathRes);
         filePath = filePathRes.unwrap();
     } else {
         requestInit = filePath;

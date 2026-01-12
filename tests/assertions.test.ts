@@ -1,9 +1,9 @@
 /**
  * Assertions module tests using Vitest
- * Tests: validateAbsolutePath, assertValidUrl
+ * Tests: validateAbsolutePath, validateUrl
  */
 import { describe, expect, it } from 'vitest';
-import { assertValidUrl, validateAbsolutePath } from '../src/async/internal/assertions.ts';
+import { validateAbsolutePath, validateUrl } from '../src/async/internal/assertions.ts';
 
 describe('Assertions', () => {
     describe('validateAbsolutePath', () => {
@@ -110,38 +110,49 @@ describe('Assertions', () => {
         });
     });
 
-    describe('assertValidUrl', () => {
-        it('should return URL for valid http URLs', () => {
-            expect(assertValidUrl('http://example.com/file.txt')).toBeInstanceOf(URL);
-            expect(assertValidUrl('https://example.com/file.txt')).toBeInstanceOf(URL);
+    describe('validateUrl', () => {
+        it('should return Ok with URL for valid http URLs', () => {
+            const httpRes = validateUrl('http://example.com/file.txt');
+            expect(httpRes.isOk()).toBe(true);
+            expect(httpRes.unwrap()).toBeInstanceOf(URL);
+
+            const httpsRes = validateUrl('https://example.com/file.txt');
+            expect(httpsRes.isOk()).toBe(true);
+            expect(httpsRes.unwrap()).toBeInstanceOf(URL);
         });
 
         it('should handle URLs with query strings', () => {
-            const url = assertValidUrl('https://example.com/file.txt?v=1');
-            expect(url.search).toBe('?v=1');
+            const res = validateUrl('https://example.com/file.txt?v=1');
+            expect(res.isOk()).toBe(true);
+            expect(res.unwrap().search).toBe('?v=1');
         });
 
         it('should handle URLs with hash', () => {
-            const url = assertValidUrl('https://example.com/file.txt#section');
-            expect(url.hash).toBe('#section');
+            const res = validateUrl('https://example.com/file.txt#section');
+            expect(res.isOk()).toBe(true);
+            expect(res.unwrap().hash).toBe('#section');
         });
 
         it('should return URL objects as-is', () => {
             const url = new URL('https://example.com');
-            expect(assertValidUrl(url)).toBe(url);
+            const res = validateUrl(url);
+            expect(res.isOk()).toBe(true);
+            expect(res.unwrap()).toBe(url);
         });
 
         it('should handle relative URLs using current location', () => {
             // Relative URLs should be resolved against location.href
-            const url = assertValidUrl('./api/data.json');
-            expect(url).toBeInstanceOf(URL);
-            expect(url.pathname).toContain('api/data.json');
+            const res = validateUrl('./api/data.json');
+            expect(res.isOk()).toBe(true);
+            expect(res.unwrap()).toBeInstanceOf(URL);
+            expect(res.unwrap().pathname).toContain('api/data.json');
         });
 
         it('should handle absolute path URLs', () => {
-            const url = assertValidUrl('/api/data.json');
-            expect(url).toBeInstanceOf(URL);
-            expect(url.pathname).toBe('/api/data.json');
+            const res = validateUrl('/api/data.json');
+            expect(res.isOk()).toBe(true);
+            expect(res.unwrap()).toBeInstanceOf(URL);
+            expect(res.unwrap().pathname).toBe('/api/data.json');
         });
     });
 });

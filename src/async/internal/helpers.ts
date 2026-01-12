@@ -1,5 +1,6 @@
+import type { FetchTask } from '@happy-ts/fetch-t';
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
-import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import { ABORT_ERROR, EMPTY_BODY_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from '../../shared/mod.ts';
 
 /**
@@ -180,6 +181,22 @@ export function createEmptyBodyError(): Error {
     error.name = EMPTY_BODY_ERROR;
 
     return error;
+}
+
+/**
+ * Creates a failed FetchTask that immediately resolves with an error.
+ * Used when validation fails before making the actual fetch request.
+ *
+ * @param errResult - The error result to return.
+ * @returns A FetchTask that resolves with the error.
+ * @internal
+ */
+export function createFailedFetchTask<T>(errResult: IOResult<unknown>): FetchTask<T> {
+    return {
+        abort(): void { /* noop */ },
+        get aborted(): boolean { return false; },
+        get response() { return Promise.resolve(errResult.asErr<T>()); },
+    };
 }
 
 /**
