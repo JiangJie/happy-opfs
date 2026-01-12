@@ -5,16 +5,16 @@
 import { SyncChannel } from '../src/mod.ts';
 
 self.addEventListener('message', async () => {
-    try {
-        await SyncChannel.connect(
-            self as unknown as Worker,
-            {
-                sharedBufferLength: 1024,
-                opTimeout: 1000,
-            },
-        );
+    const result = await SyncChannel.connect(
+        self as unknown as Worker,
+        {
+            sharedBufferLength: 1024,
+            opTimeout: 1000,
+        },
+    );
+    if (result.isErr()) {
+        self.postMessage({ error: result.unwrapErr().message });
+    } else {
         self.postMessage({ error: null });
-    } catch (error) {
-        self.postMessage({ error: (error as Error).message });
     }
 });

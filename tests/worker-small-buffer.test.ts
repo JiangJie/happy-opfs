@@ -15,7 +15,7 @@ describe('Worker Adapter with Small Buffer', () => {
     beforeAll(async () => {
         // Connect with a normal buffer first to save the SAB
         if (!SyncChannel.isReady()) {
-            originalSab = await SyncChannel.connect(
+            const connectRes = await SyncChannel.connect(
                 new Worker(new URL('./worker.ts', import.meta.url), {
                     type: 'module',
                 }),
@@ -24,6 +24,9 @@ describe('Worker Adapter with Small Buffer', () => {
                     opTimeout: 5000,
                 },
             );
+            if (connectRes.isOk()) {
+                originalSab = connectRes.unwrap();
+            }
         }
     });
 

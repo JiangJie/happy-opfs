@@ -1,5 +1,4 @@
-import type { AsyncIOResult } from 'happy-rusty';
-import invariant from 'tiny-invariant';
+import { Err, RESULT_VOID, type AsyncIOResult, type VoidIOResult } from 'happy-rusty';
 import {
     appendFile,
     copy, createFile,
@@ -149,17 +148,24 @@ let isListening = false;
  * Starts listening for sync channel requests in a Web Worker.
  * Waits for a SharedArrayBuffer from the main thread and begins processing requests.
  *
- * @throws {Error} If called outside a Worker context or if already listening.
+ * @returns A `VoidIOResult` indicating success or failure.
  * @example
  * ```typescript
  * // In worker.js
  * import { SyncChannel } from 'happy-opfs';
- * SyncChannel.listen();
+ * const result = SyncChannel.listen();
+ * if (result.isErr()) {
+ *     console.error('Failed to start listening:', result.unwrapErr());
+ * }
  * ```
  */
-export function listenSyncChannel(): void {
-    invariant(typeof window === 'undefined', () => 'listenSyncChannel can only be called in Worker');
-    invariant(!isListening, () => 'Sync channel already listening');
+export function listenSyncChannel(): VoidIOResult {
+    if (typeof window !== 'undefined') {
+        return Err(new Error('listenSyncChannel can only be called in Worker'));
+    }
+    if (isListening) {
+        return Err(new Error('Sync channel already listening'));
+    }
 
     isListening = true;
 
@@ -186,6 +192,8 @@ export function listenSyncChannel(): void {
     };
 
     addEventListener('message', messageHandler);
+
+    return RESULT_VOID;
 }
 
 /**

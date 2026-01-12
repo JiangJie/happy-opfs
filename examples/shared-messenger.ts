@@ -50,22 +50,25 @@ document.getElementById('connect')!.addEventListener('click', async () => {
         return;
     }
 
-    try {
-        sharedBuffer = await SyncChannel.connect(
-            new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
-            {
-                sharedBufferLength: 10 * 1024 * 1024,
-                opTimeout: 5000,
-            },
-        );
-        log('Connected to sync channel', 'success');
+    const connectRes = await SyncChannel.connect(
+        new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
+        {
+            sharedBufferLength: 10 * 1024 * 1024,
+            opTimeout: 5000,
+        },
+    );
 
-        // Create shared directory
-        mkdirSync('/shared-example');
-        log('Created /shared-example directory', 'success');
-    } catch (err) {
-        log(`Failed to connect: ${(err as Error).message}`, 'error');
+    if (connectRes.isErr()) {
+        log(`Failed to connect: ${connectRes.unwrapErr().message}`, 'error');
+        return;
     }
+
+    sharedBuffer = connectRes.unwrap();
+    log('Connected to sync channel', 'success');
+
+    // Create shared directory
+    mkdirSync('/shared-example');
+    log('Created /shared-example directory', 'success');
 });
 
 // 2. Share SharedArrayBuffer to iframe

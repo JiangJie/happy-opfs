@@ -5,8 +5,8 @@
  * @module
  */
 
+import { Err, Ok, RESULT_VOID, type AsyncIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
-import invariant from 'tiny-invariant';
 import type { AttachSyncChannelOptions, ConnectSyncChannelOptions } from '../../shared/mod.ts';
 import { SyncMessenger } from '../protocol.ts';
 import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChannelState } from './state.ts';
@@ -17,27 +17,33 @@ import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChann
  *
  * @param worker - The worker to communicate with. Can be a `Worker` instance, a `URL`, or a URL string.
  * @param options - Optional configuration options for the sync channel.
- * @returns A promise that resolves with the `SharedArrayBuffer` when the worker is ready.
+ * @returns A promise that resolves with an `AsyncIOResult` containing the `SharedArrayBuffer` when the worker is ready.
  *          The returned buffer can be shared with other contexts (e.g., iframes) via `postMessage`.
- * @throws {Error} If called outside the main thread or if already connected.
  * @example
  * ```typescript
  * // Connect to worker and get SharedArrayBuffer
- * const sharedBuffer = await SyncChannel.connect(
+ * const result = await SyncChannel.connect(
  *     new URL('./worker.js', import.meta.url),
  *     { sharedBufferLength: 1024 * 1024, opTimeout: 5000 }
  * );
- *
- * // Share with iframe
- * iframe.contentWindow.postMessage({ sharedBuffer }, '*');
+ * result.inspect(sharedBuffer => {
+ *     // Share with iframe
+ *     iframe.contentWindow.postMessage({ sharedBuffer }, '*');
+ * });
  * ```
  */
-export function connectSyncChannel(worker: Worker | URL | string, options?: ConnectSyncChannelOptions): Promise<SharedArrayBuffer> {
-    invariant(typeof window !== 'undefined', () => 'connectSyncChannel can only be called in main thread');
+export async function connectSyncChannel(worker: Worker | URL | string, options?: ConnectSyncChannelOptions): AsyncIOResult<SharedArrayBuffer> {
+    if (typeof window === 'undefined') {
+        return Err(new Error('connectSyncChannel can only be called in main thread'));
+    }
 
     const state = getSyncChannelState();
-    invariant(state !== 'ready', () => 'Sync channel already connected');
-    invariant(state !== 'connecting', () => 'Sync channel is connecting');
+    if (state === 'ready') {
+        return Err(new Error('Sync channel already connected'));
+    }
+    if (state === 'connecting') {
+        return Err(new Error('Sync channel is connecting'));
+    }
 
     const {
         sharedBufferLength = 1024 * 1024,
@@ -45,16 +51,27 @@ export function connectSyncChannel(worker: Worker | URL | string, options?: Conn
     } = options ?? {};
 
     // check parameters
-    invariant(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker), () => 'worker must be a Worker, URL, or non-empty string');
+    if (!(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker))) {
+        return Err(new TypeError('worker must be a Worker, URL, or non-empty string'));
+    }
     // Minimum buffer size: 16 bytes header + ~131 bytes for largest error response = 147 bytes
     // Using 256 (power of 2) for better memory alignment
-    invariant(sharedBufferLength >= 256 && sharedBufferLength % 4 === 0, () => 'sharedBufferLength must be at least 256 and a multiple of 4');
-    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be a positive integer');
+    if (!(sharedBufferLength >= 256 && sharedBufferLength % 4 === 0)) {
+        return Err(new TypeError('sharedBufferLength must be at least 256 and a multiple of 4'));
+    }
+    if (!(Number.isInteger(opTimeout) && opTimeout > 0)) {
+        return Err(new TypeError('opTimeout must be a positive integer'));
+    }
 
     // May throw if worker url is invalid
-    const workerAdapter = worker instanceof Worker
-        ? worker
-        : new Worker(worker);
+    let workerAdapter: Worker;
+    try {
+        workerAdapter = worker instanceof Worker
+            ? worker
+            : new Worker(worker);
+    } catch (e) {
+        return Err(e as Error);
+    }
 
     // Set state after all validations pass
     setSyncChannelState('connecting');
@@ -74,7 +91,7 @@ export function connectSyncChannel(worker: Worker | URL | string, options?: Conn
 
     workerAdapter.postMessage({ port: channel.port2, sab }, [channel.port2]);
 
-    return future.promise;
+    return Ok(await future.promise);
 }
 
 /**
@@ -101,25 +118,33 @@ export function isSyncChannelReady(): boolean {
  *
  * @param sharedBuffer - The `SharedArrayBuffer` received from another context.
  * @param options - Optional configuration options.
- * @throws {Error} If sharedBuffer is not a valid SharedArrayBuffer.
+ * @returns A `VoidIOResult` indicating success or failure.
  * @example
  * ```typescript
  * // In iframe: receive SharedArrayBuffer from main page
  * window.addEventListener('message', (event) => {
  *     if (event.data.sharedBuffer) {
- *         SyncChannel.attach(event.data.sharedBuffer, { opTimeout: 5000 });
- *         // Now sync APIs can be used
- *         const result = readTextFileSync('/data/file.txt');
+ *         const result = SyncChannel.attach(event.data.sharedBuffer, { opTimeout: 5000 });
+ *         if (result.isOk()) {
+ *             // Now sync APIs can be used
+ *             const fileResult = readTextFileSync('/data/file.txt');
+ *         }
  *     }
  * });
  * ```
  */
-export function attachSyncChannel(sharedBuffer: SharedArrayBuffer, options?: AttachSyncChannelOptions): void {
-    invariant(sharedBuffer instanceof SharedArrayBuffer, () => 'sharedBuffer must be a SharedArrayBuffer');
+export function attachSyncChannel(sharedBuffer: SharedArrayBuffer, options?: AttachSyncChannelOptions): VoidIOResult {
+    if (!(sharedBuffer instanceof SharedArrayBuffer)) {
+        return Err(new TypeError('sharedBuffer must be a SharedArrayBuffer'));
+    }
 
     const { opTimeout = 1000 } = options ?? {};
-    invariant(Number.isInteger(opTimeout) && opTimeout > 0, () => 'opTimeout must be a positive integer');
+    if (!(Number.isInteger(opTimeout) && opTimeout > 0)) {
+        return Err(new TypeError('opTimeout must be a positive integer'));
+    }
 
     setGlobalSyncOpTimeout(opTimeout);
     setMessenger(new SyncMessenger(sharedBuffer));
+
+    return RESULT_VOID;
 }

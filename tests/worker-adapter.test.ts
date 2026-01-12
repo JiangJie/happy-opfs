@@ -222,16 +222,18 @@ describe('Worker Adapter Edge Cases', () => {
     });
 
     describe('SyncChannel.connect error cases', () => {
-        it('should throw error when called again (already connected)', () => {
-            // messenger is already set from beforeAll, calling again should throw
-            expect(() => fs.SyncChannel.connect(
+        it('should return Err when called again (already connected)', async () => {
+            // messenger is already set from beforeAll, calling again should return Err
+            const result = await fs.SyncChannel.connect(
                 new Worker(new URL('./worker.ts', import.meta.url), {
                     type: 'module',
                 }),
-            )).toThrow('already connected');
+            );
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('already connected');
         });
 
-        it('should throw error when called from worker thread', async () => {
+        it('should return Err when called from worker thread', async () => {
             // Create a worker that tries to call SyncChannel.connect
             const worker = new Worker(new URL('./worker-connect-error.ts', import.meta.url), {
                 type: 'module',

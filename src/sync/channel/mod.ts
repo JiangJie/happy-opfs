@@ -10,10 +10,11 @@
  * SyncChannel.listen();
  *
  * // Main thread: connect to worker
- * const sharedBuffer = await SyncChannel.connect(worker);
- *
- * // Iframe: attach to existing channel
- * SyncChannel.attach(sharedBuffer);
+ * const result = await SyncChannel.connect(worker);
+ * result.inspect(sharedBuffer => {
+ *     // Iframe: attach to existing channel
+ *     SyncChannel.attach(sharedBuffer);
+ * });
  *
  * // Check if ready
  * if (SyncChannel.isReady()) { ... }
