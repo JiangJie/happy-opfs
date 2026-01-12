@@ -1,3 +1,11 @@
+/**
+ * Internal validation functions for async operations.
+ * These functions return Result types instead of throwing exceptions.
+ *
+ * @internal
+ * @module
+ */
+
 import { normalize } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
@@ -8,7 +16,6 @@ import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
  *
  * @param path - The file path to validate.
  * @returns An `IOResult` containing the normalized absolute path, or an error.
- * @internal
  */
 export function validateAbsolutePath(path: string): IOResult<string> {
     if (typeof path !== 'string') {
@@ -35,7 +42,6 @@ export function validateAbsolutePath(path: string): IOResult<string> {
  *
  * @param url - The URL string or URL object to validate.
  * @returns An `IOResult` containing the URL object, or an error.
- * @internal
  */
 export function validateUrl(url: string | URL): IOResult<URL> {
     if (url instanceof URL) {
@@ -55,7 +61,6 @@ export function validateUrl(url: string | URL): IOResult<URL> {
  *
  * @param options - The ExistsOptions to validate.
  * @returns A `VoidIOResult` indicating success, or an error if options are invalid.
- * @internal
  */
 export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
     const { isDirectory = false, isFile = false } = options ?? {};
@@ -71,7 +76,6 @@ export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
  *
  * @param expired - The Date to validate.
  * @returns A `VoidIOResult` indicating success, or an error if not a Date instance.
- * @internal
  */
 export function validateExpiredDate(expired: Date): VoidIOResult {
     if (expired instanceof Date) {

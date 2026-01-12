@@ -1,4 +1,11 @@
 /**
+ * Type definitions for sync API binary protocol.
+ *
+ * @internal
+ * @module
+ */
+
+/**
  * File metadata for binary protocol.
  * Contains all file properties except the binary data.
  *
@@ -6,8 +13,6 @@
  * When transferring files via binary protocol, metadata and binary data
  * are separated. Metadata is JSON-serialized while binary data is
  * transferred as the last element for efficiency.
- *
- * @internal
  */
 export interface FileMetadata {
     /**
@@ -42,7 +47,6 @@ export interface FileMetadata {
  * - Allows sync API to return proper `Err(error)` results
  *
  * @see {@link Error} - The native JavaScript Error
- * @internal
  */
 export interface ErrorLike {
     /**

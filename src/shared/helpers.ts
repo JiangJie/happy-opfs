@@ -1,6 +1,7 @@
 /**
  * Shared helper utilities for both async and sync APIs.
  *
+ * @internal
  * @module
  */
 
@@ -10,7 +11,6 @@
  *
  * @param blob - The Blob to read.
  * @returns A promise that resolves to a Uint8Array containing the blob's binary data.
- * @internal
  */
 export async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>> {
     return typeof blob.bytes === 'function'
@@ -27,7 +27,6 @@ export async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>
  *
  * @param blob - The Blob to read.
  * @returns A Uint8Array containing the blob's binary data.
- * @internal
  */
 export function readBlobBytesSync(blob: Blob): Uint8Array<ArrayBuffer> {
     const reader = new FileReaderSync();

@@ -1,3 +1,11 @@
+/**
+ * Internal helper utilities for async file operations.
+ * These functions are not exported publicly.
+ *
+ * @internal
+ * @module
+ */
+
 import type { FetchTask } from '@happy-ts/fetch-t';
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
@@ -14,7 +22,6 @@ const fsRoot = LazyAsync(() => navigator.storage.getDirectory());
  *
  * @param path - The path to check.
  * @returns `true` if the path equals `'/'`, otherwise `false`.
- * @internal
  */
 export function isRootDir(path: string): boolean {
     return path === ROOT_DIR;
@@ -67,7 +74,6 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFil
  * @param dirPath - The absolute path of the directory to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create intermediate directories).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
- * @internal
  */
 export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     // Start from root
@@ -103,7 +109,6 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  * @param path - The absolute path whose parent directory handle is to be retrieved.
  * @param options - Optional parameters (e.g., `{ create: true }` to create intermediate directories).
  * @returns A promise that resolves to an `AsyncIOResult` containing the parent `FileSystemDirectoryHandle`.
- * @internal
  */
 export function getParentDirHandle(path: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
     return getDirHandle(dirname(path), options);
@@ -115,7 +120,6 @@ export function getParentDirHandle(path: string, options?: FileSystemGetDirector
  * @param filePath - The absolute path of the file to retrieve.
  * @param options - Optional parameters (e.g., `{ create: true }` to create the file if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
- * @internal
  */
 export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
     const dirHandleRes = await getParentDirHandle(filePath, options);
@@ -131,7 +135,6 @@ export async function getFileHandle(filePath: string, options?: FileSystemGetFil
  *
  * @param err - The error to check.
  * @returns `true` if the error's name is `'NotFoundError'`, otherwise `false`.
- * @internal
  */
 export function isNotFoundError(err: Error): boolean {
     return err.name === NOT_FOUND_ERROR;
@@ -144,7 +147,6 @@ export function isNotFoundError(err: Error): boolean {
  *
  * @param tasks - The list of async void I/O result promises to aggregate.
  * @returns A promise that resolves to the first error result, or `RESULT_VOID` if all tasks succeed.
- * @internal
  */
 export async function aggregateResults(tasks: AsyncVoidIOResult[]): AsyncVoidIOResult {
     if (tasks.length === 0) {
@@ -160,7 +162,6 @@ export async function aggregateResults(tasks: AsyncVoidIOResult[]): AsyncVoidIOR
  * Used to signal that an operation was aborted.
  *
  * @returns An `Error` object with the name set to `'AbortError'`.
- * @internal
  */
 export function createAbortError(): Error {
     const error = new Error('Operation was aborted');
@@ -174,7 +175,6 @@ export function createAbortError(): Error {
  * Used to signal that a response body is empty (null).
  *
  * @returns An `Error` object with the name set to `'EmptyBodyError'`.
- * @internal
  */
 export function createEmptyBodyError(): Error {
     const error = new Error('Response body is empty');
@@ -189,7 +189,6 @@ export function createEmptyBodyError(): Error {
  *
  * @param errResult - The error result to return.
  * @returns A FetchTask that resolves with the error.
- * @internal
  */
 export function createFailedFetchTask<T>(errResult: IOResult<unknown>): FetchTask<T> {
     return {
@@ -206,7 +205,6 @@ export function createFailedFetchTask<T>(errResult: IOResult<unknown>): FetchTas
  *
  * @param path - The relative file path.
  * @param nonEmptyDirs - Set to track non-empty directories.
- * @internal
  */
 export function markParentDirsNonEmpty(
     path: string,
@@ -242,7 +240,6 @@ interface RemovableHandle extends FileSystemHandle {
  * @param parentDirHandle - The parent directory handle.
  * @param options - Optional remove options (e.g., `{ recursive: true }`).
  * @returns A promise that resolves when the entry is removed.
- * @internal
  */
 export async function removeHandle(
     handleOrName: FileSystemHandle | string,

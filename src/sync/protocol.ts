@@ -1,3 +1,11 @@
+/**
+ * Binary protocol for synchronous communication between main thread and worker.
+ * Uses SharedArrayBuffer with lock-based synchronization via Atomics.
+ *
+ * @internal
+ * @module
+ */
+
 import { textDecode, textEncode } from '../shared/codec.ts';
 
 /**
@@ -20,7 +28,6 @@ const PayloadType = {
 /**
  * Operations that can be called from main thread to worker thread.
  * Each value corresponds to a specific file system operation.
- * @internal
  */
 export const WorkerOp = {
     // core
@@ -47,48 +54,41 @@ export const WorkerOp = {
 
 /**
  * Worker operation type.
- * @internal
  */
 export type WorkerOp = typeof WorkerOp[keyof typeof WorkerOp];
 
 /**
  * Main thread lock index in the Int32Array view of SharedArrayBuffer.
  * Used to synchronize main thread state.
- * @internal
  */
 export const MAIN_LOCK_INDEX = 0;
 
 /**
  * Worker thread lock index in the Int32Array view of SharedArrayBuffer.
  * Used to synchronize worker thread state.
- * @internal
  */
 export const WORKER_LOCK_INDEX = 1;
 
 /**
  * Data length index in the Int32Array view of SharedArrayBuffer.
  * Stores the byte length of the current payload.
- * @internal
  */
 export const DATA_INDEX = 2;
 
 /**
  * Main thread locked value (waiting for response).
- * @internal
  */
 export const MAIN_LOCKED = 1;
 
 /**
  * Main thread unlocked value (response ready or idle).
  * This is the default/initial state.
- * @internal
  */
 export const MAIN_UNLOCKED = 0;
 
 /**
  * Worker thread unlocked value (request ready to process).
  * Intentionally equals MAIN_LOCKED to simplify state machine.
- * @internal
  */
 export const WORKER_UNLOCKED = MAIN_LOCKED;
 
@@ -103,7 +103,6 @@ export const WORKER_UNLOCKED = MAIN_LOCKED;
  *
  * @param value - The array data to encode.
  * @returns A `Uint8Array` containing the encoded payload.
- * @internal
  */
 export function encodePayload(value: unknown[]): Uint8Array<ArrayBuffer> {
     const lastItem = value[value.length - 1];
@@ -140,7 +139,6 @@ export function encodePayload(value: unknown[]): Uint8Array<ArrayBuffer> {
  * @template T - The expected type of the decoded data (must be an array type).
  * @param payload - The binary payload from SharedArrayBuffer to decode.
  * @returns The decoded array with Uint8Array<ArrayBuffer> restored as the last element if applicable.
- * @internal
  */
 export function decodePayload<T extends unknown[]>(payload: Uint8Array<SharedArrayBuffer>): T {
     const type = payload[0];
