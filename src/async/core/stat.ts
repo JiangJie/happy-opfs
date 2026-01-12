@@ -27,15 +27,15 @@ export async function stat(path: string): AsyncIOResult<FileSystemHandle> {
         // Try to get the handle directly instead of iterating
         // First try as file, then as directory
         const childName = basename(path);
-        let res = await tryAsyncResult<FileSystemHandle>(dirHandle.getFileHandle(childName));
-        if (res.isOk()) {
-            return res;
+        let findRes = await tryAsyncResult<FileSystemHandle, DOMException>(dirHandle.getFileHandle(childName));
+        if (findRes.isOk()) {
+            return findRes;
         }
 
         // Not a file, try as directory
-        res = await tryAsyncResult<FileSystemHandle>(dirHandle.getDirectoryHandle(childName));
+        findRes = await tryAsyncResult<FileSystemHandle, DOMException>(dirHandle.getDirectoryHandle(childName));
 
-        return res.mapErr(err => {
+        return findRes.mapErr(err => {
             const error = new Error(`${ err.name }: '${ childName }' does not exist. Full path is '${ path }'`);
             error.name = err.name;
             return error;

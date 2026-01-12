@@ -1,9 +1,9 @@
 import { join } from '@std/path/posix';
-import type { AsyncIOResult } from 'happy-rusty';
+import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { textDecode } from '../../shared/codec.ts';
 import { readBlobBytes } from '../../shared/helpers.ts';
 import { isDirectoryHandle, type DirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions } from '../../shared/mod.ts';
-import { assertAbsolutePath, getDirHandle, getFileHandle } from '../internal/mod.ts';
+import { assertAbsolutePath, createAbortError, getDirHandle, getFileHandle } from '../internal/mod.ts';
 
 /**
  * Reads the contents of a directory at the specified path.
@@ -29,18 +29,28 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
     dirPath = assertAbsolutePath(dirPath);
 
     const dirHandleRes = await getDirHandle(dirPath);
+    if (dirHandleRes.isErr()) {
+        return dirHandleRes.asErr();
+    }
 
-    async function* read(dirHandle: FileSystemDirectoryHandle, subDirPath: string): AsyncIterableIterator<DirEntry> {
-        const entries = dirHandle.entries();
+    // Check if aborted after getting handle
+    if (options?.signal?.aborted) {
+        const { reason } = options.signal;
+        return Err(reason instanceof Error ? reason : createAbortError());
+    }
 
-        for await (const [name, handle] of entries) {
+    async function* read(dirHandle: FileSystemDirectoryHandle, relativePath?: string): AsyncIterableIterator<DirEntry> {
+        if (options?.signal?.aborted) {
+            return;
+        }
+
+        for await (const [name, handle] of dirHandle.entries()) {
             // Check if aborted before yielding each entry
             if (options?.signal?.aborted) {
                 return;
             }
 
-            // relative path from `dirPath`
-            const path = subDirPath === dirPath ? name : join(subDirPath, name);
+            const path = relativePath ? join(relativePath, name) : name;
             yield {
                 path,
                 handle,
@@ -52,7 +62,7 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         }
     }
 
-    return dirHandleRes.map(x => read(x, dirPath));
+    return Ok(read(dirHandleRes.unwrap()));
 }
 
 /**
@@ -170,12 +180,10 @@ export async function readFile(filePath: string, options?: ReadOptions): AsyncIO
 
         // Prefer sync access in Worker for better performance
         // Only for encodings that don't require File object or streaming
-        if (encoding !== 'blob' && encoding !== 'stream' && typeof fileHandle.createSyncAccessHandle === 'function') {
-            return readViaSyncAccess(fileHandle, encoding);
-        }
-
-        // Main thread fallback or blob/stream encoding
-        return readViaFile(fileHandle, encoding);
+        return encoding !== 'blob' && encoding !== 'stream' && typeof fileHandle.createSyncAccessHandle === 'function'
+            ? readViaSyncAccess(fileHandle, encoding)
+            // Main thread fallback or blob/stream encoding
+            : readViaFile(fileHandle, encoding);
     });
 }
 
@@ -191,14 +199,14 @@ async function readViaSyncAccess(
 
     try {
         const size = accessHandle.getSize();
-        const buffer = new Uint8Array(size);
-        accessHandle.read(buffer, { at: 0 });
+        const bytes = new Uint8Array(size);
+        accessHandle.read(bytes, { at: 0 });
 
         if (encoding === 'utf8') {
-            return textDecode(buffer);
+            return textDecode(bytes);
         }
         // 'bytes' or undefined (default)
-        return buffer;
+        return bytes;
     } finally {
         accessHandle.close();
     }

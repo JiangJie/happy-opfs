@@ -27,16 +27,11 @@ import { assertAbsolutePath, getFileHandle } from '../internal/mod.ts';
  * ```
  */
 export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncVoidIOResult {
-    filePath = assertAbsolutePath(filePath);
-
-    // create as default
-    const { append = false, create = true } = options ?? {};
-
-    const fileHandleRes = await getFileHandle(filePath, {
-        create,
-    });
+    const fileHandleRes = await getWriteFileHandle(filePath, options);
 
     return fileHandleRes.andTryAsync(fileHandle => {
+        const { append = false } = options ?? {};
+
         // Prefer sync access in Worker for better performance
         if (typeof fileHandle.createSyncAccessHandle === 'function') {
             return isBinaryReadableStream(contents)
@@ -73,15 +68,11 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
  * ```
  */
 export async function openWritableFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
-    filePath = assertAbsolutePath(filePath);
-
-    const { append = false, create = true } = options ?? {};
-
-    const fileHandleRes = await getFileHandle(filePath, {
-        create,
-    });
+    const fileHandleRes = await getWriteFileHandle(filePath, options);
 
     return fileHandleRes.andTryAsync(async fileHandle => {
+        const { append = false } = options ?? {};
+
         const writable = await fileHandle.createWritable({
             keepExistingData: append,
         });
@@ -99,6 +90,15 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
 
         return writable;
     });
+}
+
+/**
+ * Gets a file handle for writing, with optional creation.
+ */
+function getWriteFileHandle(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemFileHandle> {
+    filePath = assertAbsolutePath(filePath);
+    const { create = true } = options ?? {};
+    return getFileHandle(filePath, { create });
 }
 
 /**
@@ -196,17 +196,17 @@ async function writeDataViaSyncAccess(
 
     try {
         // Always write as Uint8Array to avoid copying buffer.
-        let data: Uint8Array<ArrayBuffer>;
+        let bytes: Uint8Array<ArrayBuffer>;
         if (typeof contents === 'string') {
-            data = textEncode(contents);
+            bytes = textEncode(contents);
         } else if (contents instanceof Blob) {
-            data = readBlobBytesSync(contents);
+            bytes = readBlobBytesSync(contents);
         } else if (contents instanceof ArrayBuffer) {
-            data = new Uint8Array(contents);
+            bytes = new Uint8Array(contents);
         } else if (contents instanceof Uint8Array) {
-            data = contents as Uint8Array<ArrayBuffer>;
+            bytes = contents as Uint8Array<ArrayBuffer>;
         } else {
-            data = new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
+            bytes = new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
         }
 
         if (!append) {
@@ -214,7 +214,7 @@ async function writeDataViaSyncAccess(
         }
 
         const position = append ? accessHandle.getSize() : 0;
-        writeBytesWithRetry(accessHandle, data, position);
+        writeBytesWithRetry(accessHandle, bytes, position);
     } finally {
         accessHandle.close();
     }
@@ -226,10 +226,10 @@ async function writeDataViaSyncAccess(
  */
 function writeBytesWithRetry(
     accessHandle: FileSystemSyncAccessHandle,
-    data: Uint8Array<ArrayBuffer>,
+    bytes: Uint8Array<ArrayBuffer>,
     position: number,
 ): number {
-    let remaining = data;
+    let remaining = bytes;
     let currentPosition = position;
 
     while (remaining.byteLength > 0) {

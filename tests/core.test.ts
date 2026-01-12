@@ -224,7 +224,7 @@ describe('OPFS Core Operations', () => {
             expect(result.isErr()).toBe(true);
         });
 
-        it('should stop iteration when signal is aborted before start', async () => {
+        it('should return Err when signal is aborted before start', async () => {
             await fs.mkdir('/test-readdir-abort');
             await fs.writeFile('/test-readdir-abort/file1.txt', 'a');
             await fs.writeFile('/test-readdir-abort/file2.txt', 'b');
@@ -233,8 +233,8 @@ describe('OPFS Core Operations', () => {
             controller.abort(); // Abort before iteration
 
             const result = await fs.readDir('/test-readdir-abort', { signal: controller.signal });
-            const entries = await Array.fromAsync(result.unwrap());
-            expect(entries.length).toBe(0);
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('AbortError');
         });
 
         it('should stop iteration when signal is aborted during traversal', async () => {
@@ -271,7 +271,7 @@ describe('OPFS Core Operations', () => {
             expect(signal.aborted).toBe(false);
         });
 
-        it('should stop with already-timed-out signal', async () => {
+        it('should return Err with already-timed-out signal', async () => {
             await fs.mkdir('/test-readdir-timeout-expired');
             await fs.writeFile('/test-readdir-timeout-expired/file1.txt', 'a');
 
@@ -282,9 +282,8 @@ describe('OPFS Core Operations', () => {
             expect(signal.aborted).toBe(true);
 
             const result = await fs.readDir('/test-readdir-timeout-expired', { signal });
-            const entries = await Array.fromAsync(result.unwrap());
-
-            expect(entries.length).toBe(0);
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('TimeoutError');
         });
     });
 
