@@ -1,16 +1,14 @@
 import type { AsyncIOResult } from 'happy-rusty';
 import invariant from 'tiny-invariant';
 import {
-    appendFile, copy,
-    createFile,
+    appendFile,
+    copy, createFile,
     deleteTemp,
     emptyDir, exists,
-    mkdir,
-    mkTemp,
-    move,
+    mkdir, mkTemp, move,
     pruneTemp,
-    readBlobFile,
-    readDir, readFile, remove, stat,
+    readBlobFile, readDir, readFile, remove,
+    stat,
     unzip,
     writeFile,
     zip,
@@ -246,21 +244,29 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
  * @param args - The arguments to deserialize.
  */
 function deserializeArgs(op: WorkerOp, args: unknown[]): void {
-    if (op === WorkerOp.writeFile) {
-        // Request format: [filePath, options?, Uint8Array]
-        // Expected args: [filePath, Uint8Array, options?]
-        // Move Uint8Array from last position to second position
-        const data = args.pop();
-        const options = args[1];
-        args[1] = data;
-        args[2] = options;
-    } else if (op === WorkerOp.readFile) {
-        // Always use bytes encoding (default) - adapter handles encoding conversion
-        // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
-        args.length = 1;
-    } else if (op === WorkerOp.pruneTemp) {
-        // Date was serialized as ISO string, reconstruct Date object
-        args[0] = new Date(args[0] as Date);
+    switch (op) {
+        case WorkerOp.writeFile: {
+            // Request format: [filePath, options?, Uint8Array]
+            // Expected args: [filePath, Uint8Array, options?]
+            // Move Uint8Array from last position to second position
+            const data = args.pop();
+            const options = args[1];
+            args[1] = data;
+            args[2] = options;
+            break;
+        }
+        case WorkerOp.readFile: {
+            // Always use bytes encoding (default) - adapter handles encoding conversion
+            // This avoids double encoding/decoding for utf8 (string -> bytes -> string)
+            args.length = 1;
+            break;
+        }
+        case WorkerOp.pruneTemp: {
+            // Date was serialized as ISO string, reconstruct Date object
+            args[0] = new Date(args[0] as Date);
+            break;
+        }
+        // Other operations need no deserialization
     }
 }
 
@@ -286,33 +292,18 @@ async function serializeReadDirResult(iterator: AsyncIterableIterator<DirEntry>)
 }
 
 /**
- * Serializes operation result based on operation type.
- * Different operations return different types that need specific serialization.
- * Binary data is returned directly as the last element for binary protocol.
+ * Serializes readBlobFile result to [metadata, Uint8Array] for binary protocol.
  *
- * Note: readDir and stat require async serialization and are handled separately in processRequest.
- *
- * @param op - The operation type.
- * @param result - The unwrapped result value.
- * @returns Serializable response data.
+ * @param file - The File object from readBlobFile.
+ * @returns Array of [metadata, bytes] to be spread into response.
  */
-function serializeResult(op: WorkerOp, result: unknown): unknown {
-    if (op === WorkerOp.readBlobFile) {
-        // Split file into [metadata, Uint8Array]
-        // Caller will receive metadata as first element, Uint8Array as last
-        const file = result as File;
-        const metadata: FileMetadata = {
-            name: file.name,
-            type: file.type,
-            lastModified: file.lastModified,
-        };
-        // Return as array - encodePayload will handle [null, metadata, Uint8Array]
-        return [metadata, readBlobBytesSync(file)];
-    }
-
-    // readFile returns Uint8Array, zip returns Uint8Array or undefined
-    // Other operations return boolean or void (undefined)
-    return result;
+function serializeReadBlobFileResult(file: File): [FileMetadata, Uint8Array<ArrayBuffer>] {
+    const metadata: FileMetadata = {
+        name: file.name,
+        type: file.type,
+        lastModified: file.lastModified,
+    };
+    return [metadata, readBlobBytesSync(file)];
 }
 
 /**
@@ -341,17 +332,22 @@ async function processRequest(data: Uint8Array<SharedArrayBuffer>): Promise<Uint
         const response: [null, ...unknown[]] = [null];
 
         // Serialize result based on operation type
-        if (op === WorkerOp.readDir) {
-            response.push(await serializeReadDirResult(result as AsyncIterableIterator<DirEntry>));
-        } else if (op === WorkerOp.stat) {
-            response.push(await serializeFileSystemHandle(result as FileSystemHandle));
-        } else {
-            const rawResponse = serializeResult(op, result) as unknown[];
-            // For readBlobFile, rawResponse is [metadata, Uint8Array], spread it
-            if (op === WorkerOp.readBlobFile) {
-                response.push(...rawResponse);
-            } else {
-                response.push(rawResponse);
+        switch (op) {
+            case WorkerOp.stat: {
+                response.push(await serializeFileSystemHandle(result as FileSystemHandle));
+                break;
+            }
+            case WorkerOp.readDir: {
+                response.push(await serializeReadDirResult(result as AsyncIterableIterator<DirEntry>));
+                break;
+            }
+            case WorkerOp.readBlobFile: {
+                response.push(...serializeReadBlobFileResult(result as File));
+                break;
+            }
+            default: {
+                // Result is void, boolean, string, or Uint8Array
+                response.push(result);
             }
         }
 
