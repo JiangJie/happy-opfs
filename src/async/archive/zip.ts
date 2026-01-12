@@ -4,9 +4,9 @@ import { zip as compress, type AsyncZippable } from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { readBlobBytes, readBlobBytesSync } from '../../shared/helpers.ts';
-import { isFileHandle, type FsRequestInit, type ZipOptions } from '../../shared/mod.ts';
+import { isFileHandle, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
-import { assertAbsolutePath, assertFileUrl, createEmptyBodyError, getUrlPathname } from '../internal/mod.ts';
+import { assertAbsolutePath, assertValidUrl, createEmptyBodyError } from '../internal/mod.ts';
 
 type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
 
@@ -165,7 +165,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
  * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
  *
  * This API is built on `@happy-ts/fetch-t` for downloading the source.
- * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
+ * `requestInit` supports `timeout`, `onProgress`, and `filename` via {@link ZipFromUrlRequestInit}.
  *
  * @param sourceUrl - The url to be zipped.
  * @param zipFilePath - The path to the zip file.
@@ -178,7 +178,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
  *     .inspect(() => console.log('Remote file zipped successfully'));
  * ```
  */
-export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, requestInit?: FsRequestInit): AsyncVoidIOResult;
+export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, requestInit?: ZipFromUrlRequestInit): AsyncVoidIOResult;
 
 /**
  * Zip a remote file and return the zip file data.
@@ -186,7 +186,7 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  * Use [fflate](https://github.com/101arrowz/fflate) as the zip backend.
  *
  * This API is built on `@happy-ts/fetch-t` for downloading the source.
- * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
+ * `requestInit` supports `timeout`, `onProgress`, and `filename` via {@link ZipFromUrlRequestInit}.
  *
  * @param sourceUrl - The url to be zipped.
  * @param requestInit - Optional request initialization parameters.
@@ -198,9 +198,9 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
  * ```
  */
-export function zipFromUrl(sourceUrl: string | URL, requestInit?: FsRequestInit): AsyncIOResult<Uint8Array<ArrayBuffer>>;
-export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string | FsRequestInit, requestInit?: FsRequestInit): Promise<ZipIOResult> {
-    assertFileUrl(sourceUrl);
+export function zipFromUrl(sourceUrl: string | URL, requestInit?: ZipFromUrlRequestInit): AsyncIOResult<Uint8Array<ArrayBuffer>>;
+export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string | ZipFromUrlRequestInit, requestInit?: ZipFromUrlRequestInit): Promise<ZipIOResult> {
+    sourceUrl = assertValidUrl(sourceUrl);
 
     if (typeof zipFilePath === 'string') {
         zipFilePath = assertAbsolutePath(zipFilePath);
@@ -227,7 +227,9 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
         return Err(createEmptyBodyError()) as ZipIOResult;
     }
 
-    const sourceName = basename(getUrlPathname(sourceUrl));
+    const { filename } = requestInit ?? {};
+    // Use provided filename, or basename of pathname, or 'file' as fallback
+    const sourceName = filename ?? (sourceUrl.pathname !== '/' ? basename(sourceUrl.pathname) : 'file');
 
     return zipTo({
         [sourceName]: bytes,

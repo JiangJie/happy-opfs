@@ -5,7 +5,7 @@ import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import type { FsRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
-import { aggregateResults, assertAbsolutePath, assertFileUrl, createEmptyBodyError } from '../internal/mod.ts';
+import { aggregateResults, assertAbsolutePath, assertValidUrl, createEmptyBodyError, markParentDirsNonEmpty } from '../internal/mod.ts';
 
 /**
  * Unzip a buffer then write to the destination directory.
@@ -21,26 +21,20 @@ function unzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIORe
             return;
         }
 
+        // Collect all tasks for parallel execution
         const tasks: AsyncVoidIOResult[] = [];
         const dirs: string[] = [];
         const nonEmptyDirs = new Set<string>();
 
         for (const path in unzipped) {
             if (path.at(-1) === SEPARATOR) {
-                // Collect directory entries, process later
-                dirs.push(path);
+                // Collect directory entries without trailing slash
+                dirs.push(path.slice(0, -1));
             } else {
                 // File entry - writeFile will create parent directories automatically
                 tasks.push(writeFile(join(destDir, path), unzipped[path] as Uint8Array<ArrayBuffer>));
-
                 // Mark all parent directories as non-empty
-                let slashIndex = path.lastIndexOf(SEPARATOR);
-                while (slashIndex > 0) {
-                    const parent = path.slice(0, slashIndex + 1);
-                    if (nonEmptyDirs.has(parent)) break;
-                    nonEmptyDirs.add(parent);
-                    slashIndex = path.lastIndexOf(SEPARATOR, slashIndex - 1);
-                }
+                markParentDirsNonEmpty(path, nonEmptyDirs);
             }
         }
 
@@ -101,7 +95,7 @@ export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIORe
  * ```
  */
 export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
-    assertFileUrl(zipFileUrl);
+    zipFileUrl = assertValidUrl(zipFileUrl);
     destDir = assertAbsolutePath(destDir);
 
     const fetchRes = await fetchT(zipFileUrl, {
@@ -113,10 +107,8 @@ export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, re
 
     return fetchRes.andThenAsync(bytes => {
         // body can be null for 204/304 responses or HEAD requests
-        if (bytes.byteLength === 0) {
-            return Err(createEmptyBodyError());
-        }
-
-        return unzipTo(bytes, destDir);
+        return bytes.byteLength === 0
+            ? Err(createEmptyBodyError())
+            : unzipTo(bytes, destDir);
     });
 }
