@@ -1,11 +1,109 @@
 import { fetchT } from '@happy-ts/fetch-t';
 import { join, SEPARATOR } from '@std/path/posix';
 import { unzip as decompress } from 'fflate/browser';
-import { Err, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
+import { Err, type AsyncIOResult, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import type { FsRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
+import { exists } from '../ext.ts';
 import { aggregateResults, createEmptyBodyError, markParentDirsNonEmpty, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+
+/**
+ * Unzip a zip file to a directory.
+ * Equivalent to `unzip -o <zipFilePath> -d <destDir>
+ *
+ * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
+ * @param zipFilePath - Zip file path.
+ * @param destDir - The directory to unzip to.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ * @example
+ * ```typescript
+ * (await unzip('/downloads/archive.zip', '/extracted'))
+ *     .inspect(() => console.log('Unzipped successfully'));
+ * ```
+ */
+export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIOResult {
+    const destDirRes = await validateDestDir(destDir);
+    if (destDirRes.isErr()) return destDirRes.asErr();
+    destDir = destDirRes.unwrap();
+
+    const fileRes = await readFile(zipFilePath);
+
+    return fileRes.andThenAsync(bytes => {
+        return unzipTo(bytes, destDir);
+    });
+}
+
+/**
+ * Unzip a remote zip file to a directory.
+ * Equivalent to `unzip -o <zipFilePath> -d <destDir>
+ *
+ * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
+ *
+ * This API is built on `@happy-ts/fetch-t` for downloading the zip file.
+ * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
+ *
+ * @param zipFileUrl - Zip file url.
+ * @param destDir - The directory to unzip to.
+ * @param requestInit - Optional request initialization parameters.
+ * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
+ * @example
+ * ```typescript
+ * (await unzipFromUrl('https://example.com/archive.zip', '/extracted'))
+ *     .inspect(() => console.log('Remote zip file unzipped successfully'));
+ * ```
+ */
+export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
+    const zipFileUrlRes = validateUrl(zipFileUrl);
+    if (zipFileUrlRes.isErr()) return zipFileUrlRes.asErr();
+    zipFileUrl = zipFileUrlRes.unwrap();
+
+    const destDirRes = await validateDestDir(destDir);
+    if (destDirRes.isErr()) return destDirRes.asErr();
+    destDir = destDirRes.unwrap();
+
+    const fetchRes = await fetchT(zipFileUrl, {
+        redirect: 'follow',
+        ...requestInit,
+        responseType: 'bytes',
+        abortable: false,
+    });
+
+    return fetchRes.andThenAsync(bytes => {
+        // body can be null for 204/304 responses or HEAD requests
+        return bytes.byteLength === 0
+            ? Err(createEmptyBodyError())
+            : unzipTo(bytes, destDir);
+    });
+}
+
+// ============================================================================
+// Internal Functions
+// ============================================================================
+
+/**
+ * Validates that destDir is an absolute path and is not an existing file.
+ * If destDir doesn't exist, that's fine (it will be created).
+ * If destDir exists and is a directory, that's fine.
+ * If destDir exists and is a file, return an error.
+ *
+ * @param destDir - The destination directory path to validate.
+ * @returns An `AsyncIOResult` containing the normalized path, or an error.
+ */
+async function validateDestDir(destDir: string): AsyncIOResult<string> {
+    const pathRes = validateAbsolutePath(destDir);
+    if (pathRes.isErr()) return pathRes;
+    destDir = pathRes.unwrap();
+
+    const existsRes = await exists(destDir, { isFile: true });
+    if (existsRes.isErr()) return existsRes.asErr();
+
+    if (existsRes.unwrap()) {
+        return Err(new Error(`destDir '${ destDir }' exists but is a file, not a directory`));
+    }
+
+    return pathRes;
+}
 
 /**
  * Unzip a buffer then write to the destination directory.
@@ -49,73 +147,4 @@ function unzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIORe
     });
 
     return future.promise;
-}
-
-/**
- * Unzip a zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <destDir>
- *
- * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
- * @param zipFilePath - Zip file path.
- * @param destDir - The directory to unzip to.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
- * @example
- * ```typescript
- * (await unzip('/downloads/archive.zip', '/extracted'))
- *     .inspect(() => console.log('Unzipped successfully'));
- * ```
- */
-export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIOResult {
-    const destDirRes = validateAbsolutePath(destDir);
-    if (destDirRes.isErr()) return destDirRes.asErr();
-    destDir = destDirRes.unwrap();
-
-    const fileRes = await readFile(zipFilePath);
-
-    return fileRes.andThenAsync(bytes => {
-        return unzipTo(bytes, destDir);
-    });
-}
-
-/**
- * Unzip a remote zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <destDir>
- *
- * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
- *
- * This API is built on `@happy-ts/fetch-t` for downloading the zip file.
- * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
- *
- * @param zipFileUrl - Zip file url.
- * @param destDir - The directory to unzip to.
- * @param requestInit - Optional request initialization parameters.
- * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
- * @example
- * ```typescript
- * (await unzipFromUrl('https://example.com/archive.zip', '/extracted'))
- *     .inspect(() => console.log('Remote zip file unzipped successfully'));
- * ```
- */
-export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
-    const zipFileUrlRes = validateUrl(zipFileUrl);
-    if (zipFileUrlRes.isErr()) return zipFileUrlRes.asErr();
-    zipFileUrl = zipFileUrlRes.unwrap();
-
-    const destDirRes = validateAbsolutePath(destDir);
-    if (destDirRes.isErr()) return destDirRes.asErr();
-    destDir = destDirRes.unwrap();
-
-    const fetchRes = await fetchT(zipFileUrl, {
-        redirect: 'follow',
-        ...requestInit,
-        responseType: 'bytes',
-        abortable: false,
-    });
-
-    return fetchRes.andThenAsync(bytes => {
-        // body can be null for 204/304 responses or HEAD requests
-        return bytes.byteLength === 0
-            ? Err(createEmptyBodyError())
-            : unzipTo(bytes, destDir);
-    });
 }

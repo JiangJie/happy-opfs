@@ -157,6 +157,24 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/invalid.zip');
             await fs.remove('/invalid-dest');
         });
+
+        it('should fail when destDir is a file', async () => {
+            // Create a zip file first
+            await fs.mkdir('/unzip-src');
+            await fs.writeFile('/unzip-src/file.txt', 'content');
+            await fs.zip('/unzip-src', '/unzip-test.zip');
+
+            // Create a file at the destDir path
+            await fs.writeFile('/unzip-dest-file', 'I am a file');
+
+            // Unzip should fail because destDir is a file
+            const result = await fs.unzip('/unzip-test.zip', '/unzip-dest-file');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('is a file, not a directory');
+
+            // Clean up
+            await fs.remove('/unzip-dest-file');
+        });
     });
 
     describe('unzipFromUrl', () => {
