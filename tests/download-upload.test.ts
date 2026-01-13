@@ -43,7 +43,7 @@ describe('OPFS Download/Upload Operations', () => {
                 timeout: 10000,
             });
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             const response = result.unwrap();
@@ -69,7 +69,7 @@ describe('OPFS Download/Upload Operations', () => {
                 },
             });
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             // Progress should have been called with some bytes
@@ -81,7 +81,7 @@ describe('OPFS Download/Upload Operations', () => {
         it('should download file to temp path when no path specified', async () => {
             const task = fs.downloadFile(`${mockServer}/api/product`);
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             const { tempFilePath, rawResponse } = result.unwrap();
@@ -98,7 +98,7 @@ describe('OPFS Download/Upload Operations', () => {
                 timeout: 10000,
             });
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             const content = await fs.readFile('/binary.bin');
@@ -109,7 +109,7 @@ describe('OPFS Download/Upload Operations', () => {
         it('should extract extension from URL path', async () => {
             const task = fs.downloadFile(`${mockServer}/files/data.json`);
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             const { tempFilePath } = result.unwrap();
@@ -122,7 +122,7 @@ describe('OPFS Download/Upload Operations', () => {
             const url = new URL(`${mockServer}/files/data.json`);
             const task = fs.downloadFile(url);
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             const { tempFilePath } = result.unwrap();
@@ -139,7 +139,7 @@ describe('OPFS Download/Upload Operations', () => {
             // Abort immediately
             task.abort();
 
-            const result = await task.response;
+            const result = await task.result;
             // Should result in an error (AbortError)
             expect(result.isErr()).toBe(true);
         });
@@ -176,7 +176,7 @@ describe('OPFS Download/Upload Operations', () => {
             // Small delay then abort
             setTimeout(() => task.abort(), 100);
 
-            const result = await task.response;
+            const result = await task.result;
 
             // Should fail with AbortError
             expect(result.isErr()).toBe(true);
@@ -189,7 +189,7 @@ describe('OPFS Download/Upload Operations', () => {
                 timeout: 10000,
             });
 
-            const result = await task.response;
+            const result = await task.result;
             // Fetch itself succeeds but with 404 status
             if (result.isOk()) {
                 const response = result.unwrap();
@@ -202,7 +202,7 @@ describe('OPFS Download/Upload Operations', () => {
                 timeout: 10000,
             });
 
-            const result = await task.response;
+            const result = await task.result;
             // Fetch itself succeeds but with 500 status
             if (result.isOk()) {
                 const response = result.unwrap();
@@ -215,8 +215,34 @@ describe('OPFS Download/Upload Operations', () => {
                 timeout: 10000,
             });
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isErr()).toBe(true);
+        });
+
+        it('should fail on empty body response by default', async () => {
+            // Response with Content-Length: 0
+            const task = fs.downloadFile(`${ mockServer }/api/204`, '/empty.bin');
+
+            const result = await task.result;
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('EmptyBodyError');
+        });
+
+        it('should keep empty body response with keepEmptyBody option', async () => {
+            // Response with Content-Length: 0, keepEmptyBody allows it
+            const task = fs.downloadFile(`${ mockServer }/api/empty-body`, '/empty.bin', {
+                keepEmptyBody: true,
+            });
+
+            const result = await task.result;
+            expect(result.isOk()).toBe(true);
+
+            // Verify empty file was created
+            const content = await fs.readFile('/empty.bin');
+            expect(content.isOk()).toBe(true);
+            expect(content.unwrap().byteLength).toBe(0);
+
+            await fs.remove('/empty.bin');
         });
     });
 
@@ -227,7 +253,7 @@ describe('OPFS Download/Upload Operations', () => {
 
             const task = fs.uploadFile('/upload-test.json', `${mockServer}/api/upload`);
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             const response = result.unwrap();
@@ -245,7 +271,7 @@ describe('OPFS Download/Upload Operations', () => {
                 filename: 'custom-name.json',
             });
 
-            const result = await task.response;
+            const result = await task.result;
             expect(result.isOk()).toBe(true);
 
             const response = result.unwrap();
@@ -270,7 +296,7 @@ describe('OPFS Download/Upload Operations', () => {
             // Abort immediately
             task.abort();
 
-            const result = await task.response;
+            const result = await task.result;
             // Should result in an error
             expect(result.isErr()).toBe(true);
         });

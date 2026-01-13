@@ -132,6 +132,44 @@ export const handlers = [
         return new HttpResponse(null, { status: 500 });
     }),
 
+    // Empty response (204 No Content)
+    http.get('https://mock.test/api/empty', () => {
+        return new HttpResponse(null, { status: 204 });
+    }),
+
+    // Empty body with 200 status (for testing allowEmpty option)
+    http.get('https://mock.test/api/empty-body', () => {
+        return new HttpResponse(new Uint8Array(0), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/octet-stream',
+                'Content-Length': '0',
+            },
+        });
+    }),
+
+    // HEAD request - returns null body (for testing keepEmptyBody option)
+    http.head('https://mock.test/api/data', () => {
+        return new HttpResponse(null, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }),
+
+    // GET /api/204 - returns 204 No Content for GET request
+    http.get('https://mock.test/api/204', () => {
+        return new HttpResponse(null, {
+            status: 204,
+            headers: {
+                'Content-Length': '0',
+            },
+        });
+    }),
+
+    // GET /api/empty - returns 200 with empty body
+    http.get('https://mock.test/api/empty/200', () => {
+        return new HttpResponse(null, { status: 200 });
+    }),
+
     // Network error simulation
     http.get('https://mock.test/api/network-error', () => {
         return HttpResponse.error();

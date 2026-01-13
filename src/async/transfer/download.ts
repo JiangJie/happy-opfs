@@ -1,8 +1,8 @@
-import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
+import { fetchT, type FetchResult, type FetchTask } from '@happy-ts/fetch-t';
 import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
-import type { DownloadFileTempResponse, FsRequestInit } from '../../shared/mod.ts';
-import { writeFile } from '../core/mod.ts';
+import type { DownloadFileTempResponse, DownloadRequestInit } from '../../shared/mod.ts';
+import { createFile, writeFile } from '../core/mod.ts';
 import { createAbortError, createEmptyBodyError, createFailedFetchTask, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
 
@@ -11,7 +11,8 @@ import { generateTempPath } from '../tmp.ts';
  * The returned response will contain the temporary file path.
  *
  * This API is built on `@happy-ts/fetch-t`.
- * - Supports `timeout` and `onProgress` via {@link FsRequestInit}
+ * - Supports `timeout` and `onProgress` via {@link DownloadRequestInit}
+ * - Supports `keepEmptyBody` to allow saving empty responses
  * - Returns an abortable {@link FetchTask}
  *
  * @param fileUrl - The URL of the file to download.
@@ -21,11 +22,11 @@ import { generateTempPath } from '../tmp.ts';
  * ```typescript
  * // Download to a temporary file
  * const task = downloadFile('https://example.com/file.pdf');
- * (await task.response)
+ * (await task.result)
  *     .inspect(({ tempFilePath }) => console.log(`File downloaded to: ${tempFilePath}`));
  * ```
  */
-export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit): FetchTask<DownloadFileTempResponse>;
+export function downloadFile(fileUrl: string | URL, requestInit?: DownloadRequestInit): FetchTask<DownloadFileTempResponse>;
 
 /**
  * Downloads a file from a URL and saves it to the specified path.
@@ -38,16 +39,16 @@ export function downloadFile(fileUrl: string | URL, requestInit?: FsRequestInit)
  * ```typescript
  * // Download to a specific path
  * const task = downloadFile('https://example.com/file.pdf', '/downloads/file.pdf');
- * (await task.response)
+ * (await task.result)
  *     .inspect(() => console.log('File downloaded successfully'));
  *
  * // Abort the download
  * task.abort();
  * ```
  */
-export function downloadFile(fileUrl: string | URL, filePath: string, requestInit?: FsRequestInit): FetchTask<Response>;
-export function downloadFile(fileUrl: string | URL, filePath?: string | FsRequestInit, requestInit?: FsRequestInit): FetchTask<Response | DownloadFileTempResponse> {
-    type T = FetchResponse<Response | DownloadFileTempResponse>;
+export function downloadFile(fileUrl: string | URL, filePath: string, requestInit?: DownloadRequestInit): FetchTask<Response>;
+export function downloadFile(fileUrl: string | URL, filePath?: string | DownloadRequestInit, requestInit?: DownloadRequestInit): FetchTask<Response | DownloadFileTempResponse> {
+    type T = FetchResult<Response | DownloadFileTempResponse>;
 
     const fileUrlRes = validateUrl(fileUrl);
     if (fileUrlRes.isErr()) return createFailedFetchTask(fileUrlRes);
@@ -74,8 +75,8 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
         abortable: true,
     });
 
-    const response = (async (): T => {
-        const responseRes = await fetchTask.response;
+    const result = (async (): T => {
+        const responseRes = await fetchTask.result;
 
         return responseRes.andThenAsync(async rawResponse => {
             // maybe aborted
@@ -83,22 +84,38 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
                 return Err(createAbortError());
             }
 
-            // body can be null for 204/304 responses or HEAD requests
-            if (!rawResponse.body) {
-                return Err(createEmptyBodyError());
+            function okResult() {
+                return Ok(
+                    saveToTemp
+                        ? {
+                            tempFilePath: filePath as string,
+                            rawResponse,
+                        } satisfies DownloadFileTempResponse
+                        : rawResponse,
+                );
             }
 
-            // Use stream to avoid loading entire file into memory
-            const writeRes = await writeFile(filePath, rawResponse.body);
+            // Use blob to reliably detect empty body
+            // Note: browsers don't conform to spec (body should be null for 204/HEAD responses)
+            // See: https://developer.mozilla.org/en-US/docs/Web/API/Response/body
+            const blob = await rawResponse.blob();
+            const isEmptyBody = blob.size === 0;
 
-            return writeRes.and(Ok(
-                saveToTemp
-                    ? {
-                        tempFilePath: filePath,
-                        rawResponse,
-                    } satisfies DownloadFileTempResponse
-                    : rawResponse,
-            ));
+            if (isEmptyBody) {
+                const { keepEmptyBody = false } = requestInit ?? {};
+                if (!keepEmptyBody) {
+                    return Err(createEmptyBodyError());
+                }
+
+                // Create empty file when keepEmptyBody is true
+                const createRes = await createFile(filePath);
+                return createRes.and(okResult());
+            }
+
+            // Use blob.stream() for streaming write
+            const writeRes = await writeFile(filePath, blob.stream());
+
+            return writeRes.and(okResult());
         });
     })();
 
@@ -112,8 +129,8 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | FsReques
             return fetchTask.aborted;
         },
 
-        get response(): T {
-            return response;
+        get result(): T {
+            return result;
         },
     };
 }
