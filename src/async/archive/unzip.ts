@@ -6,7 +6,7 @@ import { Future } from 'tiny-future';
 import type { FsRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
 import { exists } from '../ext.ts';
-import { aggregateResults, createEmptyBodyError, markParentDirsNonEmpty, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 
 /**
  * Unzip a zip file to a directory.
@@ -30,7 +30,10 @@ export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIORe
     const fileRes = await readFile(zipFilePath);
 
     return fileRes.andThenAsync(bytes => {
-        return unzipTo(bytes, destDir);
+        // Empty file is not a valid zip
+        return bytes.byteLength === 0
+            ? Err(createEmptyFileError())
+            : unzipTo(bytes, destDir);
     });
 }
 
@@ -96,13 +99,11 @@ async function validateDestDir(destDir: string): AsyncIOResult<string> {
     destDir = pathRes.unwrap();
 
     const existsRes = await exists(destDir, { isFile: true });
-    if (existsRes.isErr()) return existsRes.asErr();
-
-    if (existsRes.unwrap()) {
-        return Err(new Error(`destDir '${ destDir }' exists but is a file, not a directory`));
-    }
-
-    return pathRes;
+    return existsRes.andThen(exist => {
+        return exist
+            ? Err(new Error(`destDir '${ destDir }' exists but is a file, not a directory`))
+            : pathRes;
+    });
 }
 
 /**

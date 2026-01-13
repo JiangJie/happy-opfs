@@ -12,6 +12,11 @@ export const NOT_FOUND_ERROR = 'NotFoundError' as const;
 export const EMPTY_BODY_ERROR = 'EmptyBodyError' as const;
 
 /**
+ * File content is empty (0 bytes).
+ */
+export const EMPTY_FILE_ERROR = 'EmptyFileError' as const;
+
+/**
  * A constant representing the root directory path.
  */
 export const ROOT_DIR = '/' as const;

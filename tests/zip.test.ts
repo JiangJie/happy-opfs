@@ -175,6 +175,19 @@ describe('OPFS Zip Operations', () => {
             // Clean up
             await fs.remove('/unzip-dest-file');
         });
+
+        it('should fail when zip file is empty', async () => {
+            // Create an empty file
+            await fs.createFile('/empty.zip');
+
+            // Attempt to unzip should fail with EmptyFileError
+            const result = await fs.unzip('/empty.zip', '/empty-dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('EmptyFileError');
+
+            // Clean up
+            await fs.remove('/empty.zip');
+        });
     });
 
     describe('unzipFromUrl', () => {

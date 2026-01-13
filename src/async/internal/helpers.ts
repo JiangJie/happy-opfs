@@ -9,7 +9,7 @@
 import type { FetchTask } from '@happy-ts/fetch-t';
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
-import { ABORT_ERROR, EMPTY_BODY_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from '../../shared/mod.ts';
+import { ABORT_ERROR, EMPTY_BODY_ERROR, EMPTY_FILE_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from '../../shared/mod.ts';
 
 /**
  * Lazily initialized root directory handle of the file system.
@@ -145,6 +145,19 @@ export function createAbortError(): Error {
 export function createEmptyBodyError(): Error {
     const error = new Error('Response body is empty');
     error.name = EMPTY_BODY_ERROR;
+
+    return error;
+}
+
+/**
+ * Creates an `EmptyFileError` instance.
+ * Used to signal that a file content is empty (0 bytes).
+ *
+ * @returns An `Error` object with the name set to `'EmptyFileError'`.
+ */
+export function createEmptyFileError(): Error {
+    const error = new Error('File content is empty');
+    error.name = EMPTY_FILE_ERROR;
 
     return error;
 }
