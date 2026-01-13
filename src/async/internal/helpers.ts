@@ -173,7 +173,7 @@ export function createFailedFetchTask<T>(errResult: IOResult<unknown>): FetchTas
     return {
         abort(): void { /* noop */ },
         get aborted(): boolean { return false; },
-        get response() { return Promise.resolve(errResult.asErr<T>()); },
+        get result() { return Promise.resolve(errResult.asErr<T>()); },
     };
 }
 

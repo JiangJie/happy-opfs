@@ -67,7 +67,7 @@ async function runDownloadExample(): Promise<void> {
         },
     });
 
-    const result = await currentTask.response;
+    const result = await currentTask.result;
 
     downloadBtn.disabled = false;
     cancelBtn.disabled = true;

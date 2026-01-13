@@ -1,4 +1,4 @@
-import { fetchT, type FetchResponse, type FetchTask } from '@happy-ts/fetch-t';
+import { fetchT, type FetchResult, type FetchTask } from '@happy-ts/fetch-t';
 import { basename } from '@std/path/posix';
 import { Err } from 'happy-rusty';
 import type { UploadRequestInit } from '../../shared/mod.ts';
@@ -19,7 +19,7 @@ import { createAbortError, createFailedFetchTask, validateAbsolutePath, validate
  * @example
  * ```typescript
  * const task = uploadFile('/documents/report.pdf', 'https://example.com/upload');
- * (await task.response)
+ * (await task.result)
  *     .inspect(() => console.log('File uploaded successfully'));
  *
  * // Abort the upload
@@ -38,7 +38,7 @@ export function uploadFile(filePath: string, uploadUrl: string | URL, requestIni
     let aborted = false;
     let fetchTask: FetchTask<Response>;
 
-    const response = (async (): FetchResponse<Response> => {
+    const result = (async (): FetchResult<Response> => {
         const fileRes = await readBlobFile(filePath);
 
         return fileRes.andThenAsync(async file => {
@@ -63,7 +63,7 @@ export function uploadFile(filePath: string, uploadUrl: string | URL, requestIni
                 body: formData,
             });
 
-            return fetchTask.response;
+            return fetchTask.result;
         });
     })();
 
@@ -78,8 +78,8 @@ export function uploadFile(filePath: string, uploadUrl: string | URL, requestIni
             return aborted;
         },
 
-        get response(): FetchResponse<Response> {
-            return response;
+        get result(): FetchResult<Response> {
+            return result;
         },
     };
 }
