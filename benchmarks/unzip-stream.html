@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch vs Streaming Unzip Benchmark</title>
+    <style>
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #00d4ff;
+        }
+        button {
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00a8cc;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            background: #16213e;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 200px;
+        }
+        .info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #0f3460;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Batch vs Streaming Unzip</h1>
+    <div class="info">
+        Compares the performance overhead of batch decompression vs streaming decompression.
+        <br><br>
+        <strong>Batch:</strong> Load entire zip into memory, decompress all at once<br>
+        <strong>Stream:</strong> Process zip in chunks, decompress incrementally
+    </div>
+    <button id="run">Run Benchmark</button>
+    <div id="output">Click "Run Benchmark" to start...</div>
+    <script type="module" src="./unzip-stream.ts"></script>
+</body>
+</html>
