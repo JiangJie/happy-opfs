@@ -265,9 +265,8 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
  * Checks whether a file or directory exists at the specified path.
  *
  * @param path - The absolute path to check.
- * @param options - Optional existence options.
- * @param options.isDirectory - If `true`, returns `true` only if the path is a directory.
- * @param options.isFile - If `true`, returns `true` only if the path is a file.
+ * @param options - Optional existence options. Set `isDirectory: true` to check for directory,
+ *                  or `isFile: true` to check for file. Cannot set both to `true`.
  * @returns A promise that resolves to an `AsyncIOResult<boolean>` indicating existence.
  * @example
  * ```typescript

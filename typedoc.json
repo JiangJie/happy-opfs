@@ -9,6 +9,11 @@
   },
   "categorizeByGroup": true,
   "exclude": ["**/node_modules/**"],
+  "externalSymbolLinkMappings": {
+    "@happy-ts/fetch-t": {
+      "FetchTask": "https://github.com/JiangJie/fetch-t"
+    }
+  },
   "navigationLinks": {
     "GitHub": "https://github.com/JiangJie/happy-opfs",
     "npm": "https://www.npmjs.com/package/happy-opfs",
