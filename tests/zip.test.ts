@@ -88,7 +88,7 @@ describe('OPFS Zip Operations', () => {
             const result = await fs.zip('/empty-dir', '/empty.zip');
             expect(result.isOk()).toBe(true);
 
-            // Empty zip should still be created
+            // Empty zip should still be created (contains root directory entry)
             expect((await fs.exists('/empty.zip')).unwrap()).toBe(true);
 
             // Verify it's a valid but minimal zip file
@@ -98,6 +98,18 @@ describe('OPFS Zip Operations', () => {
             // Clean up
             await fs.remove('/empty-dir');
             await fs.remove('/empty.zip');
+        });
+
+        it('should fail to zip empty directory with preserveRoot=false', async () => {
+            await fs.mkdir('/empty-dir-no-root');
+
+            // With preserveRoot=false, empty directory has nothing to zip
+            const result = await fs.zip('/empty-dir-no-root', { preserveRoot: false });
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toBe('Nothing to zip');
+
+            // Clean up
+            await fs.remove('/empty-dir-no-root');
         });
 
         it('should include directory entries in zip', async () => {

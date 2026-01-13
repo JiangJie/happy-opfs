@@ -133,6 +133,11 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
         }
     }
 
+    // Nothing to zip - matches standard zip command behavior
+    if (Object.keys(zippable).length === 0) {
+        return Err(new Error('Nothing to zip')) as ZipIOResult;
+    }
+
     return zipTo(zippable, zipFilePath);
 }
 
