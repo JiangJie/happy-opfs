@@ -6,5 +6,6 @@
  * @module
  */
 
+export * from './unzip-stream.ts';
 export * from './unzip.ts';
 export * from './zip.ts';

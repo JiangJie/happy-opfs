@@ -3,16 +3,20 @@ import { join, SEPARATOR } from '@std/path/posix';
 import { unzip as decompress } from 'fflate/browser';
 import { Err, type AsyncIOResult, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
-import type { FsRequestInit } from '../../shared/mod.ts';
+import type { UnzipFromUrlRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
-import { exists } from '../ext.ts';
-import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty, validateUrl } from '../internal/mod.ts';
+import { validateDestDir } from './helpers.ts';
 
 /**
- * Unzip a zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <destDir>
+ * Unzip a zip file to a directory using batch decompression.
+ * Equivalent to `unzip -o <zipFilePath> -d <destDir>`
+ *
+ * This function loads the entire zip file into memory before decompression.
+ * Faster for small files (<5MB). For large files, consider using {@link unzipStream} instead.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
+ *
  * @param zipFilePath - Zip file path.
  * @param destDir - The directory to unzip to.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
@@ -23,86 +27,77 @@ import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParen
  * ```
  */
 export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIOResult {
-    const destDirRes = await validateDestDir(destDir);
-    if (destDirRes.isErr()) return destDirRes.asErr();
-    destDir = destDirRes.unwrap();
-
-    const fileRes = await readFile(zipFilePath);
-
-    return fileRes.andThenAsync(bytes => {
-        // Empty file is not a valid zip
-        return bytes.byteLength === 0
-            ? Err(createEmptyFileError())
-            : unzipTo(bytes, destDir);
-    });
+    return unzipWith(
+        () => readFile(zipFilePath),
+        destDir,
+        createEmptyFileError,
+    );
 }
 
 /**
- * Unzip a remote zip file to a directory.
- * Equivalent to `unzip -o <zipFilePath> -d <destDir>
+ * Unzip a remote zip file to a directory using batch decompression.
+ * Equivalent to `unzip -o <zipFilePath> -d <destDir>`
+ *
+ * This function loads the entire zip file into memory before decompression.
+ * Faster for small files (<5MB). For large files, consider using {@link unzipStreamFromUrl} instead.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
  *
  * This API is built on `@happy-ts/fetch-t` for downloading the zip file.
- * `requestInit` supports `timeout` and `onProgress` via {@link FsRequestInit}.
+ * `options` supports `timeout` and `onProgress` options.
  *
  * @param zipFileUrl - Zip file url.
  * @param destDir - The directory to unzip to.
- * @param requestInit - Optional request initialization parameters.
+ * @param requestInit - Optional request options.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @example
  * ```typescript
  * (await unzipFromUrl('https://example.com/archive.zip', '/extracted'))
  *     .inspect(() => console.log('Remote zip file unzipped successfully'));
+ *
+ * // With timeout
+ * (await unzipFromUrl('https://example.com/archive.zip', '/extracted', { timeout: 5000 }))
+ *     .inspect(() => console.log('Remote zip file unzipped successfully'));
  * ```
  */
-export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: FsRequestInit): AsyncVoidIOResult {
+export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: UnzipFromUrlRequestInit): AsyncVoidIOResult {
     const zipFileUrlRes = validateUrl(zipFileUrl);
     if (zipFileUrlRes.isErr()) return zipFileUrlRes.asErr();
     zipFileUrl = zipFileUrlRes.unwrap();
 
+    return unzipWith(
+        () => fetchT(zipFileUrl, {
+            redirect: 'follow',
+            ...requestInit,
+            responseType: 'bytes',
+            abortable: false,
+        }),
+        destDir,
+        createEmptyBodyError,
+    );
+}
+
+/**
+ * Common unzip implementation for both local and remote sources.
+ * @param getBytes - Function to get zip data.
+ * @param destDir - Destination directory path.
+ * @param createEmptyError - Function to create error for empty data.
+ */
+async function unzipWith(
+    getBytes: () => AsyncIOResult<Uint8Array<ArrayBuffer>>,
+    destDir: string,
+    createEmptyError: () => Error,
+): AsyncVoidIOResult {
     const destDirRes = await validateDestDir(destDir);
     if (destDirRes.isErr()) return destDirRes.asErr();
     destDir = destDirRes.unwrap();
 
-    const fetchRes = await fetchT(zipFileUrl, {
-        redirect: 'follow',
-        ...requestInit,
-        responseType: 'bytes',
-        abortable: false,
-    });
+    const bytesRes = await getBytes();
 
-    return fetchRes.andThenAsync(bytes => {
-        // body can be null for 204/304 responses or HEAD requests
+    return bytesRes.andThenAsync(bytes => {
         return bytes.byteLength === 0
-            ? Err(createEmptyBodyError())
-            : unzipTo(bytes, destDir);
-    });
-}
-
-// ============================================================================
-// Internal Functions
-// ============================================================================
-
-/**
- * Validates that destDir is an absolute path and is not an existing file.
- * If destDir doesn't exist, that's fine (it will be created).
- * If destDir exists and is a directory, that's fine.
- * If destDir exists and is a file, return an error.
- *
- * @param destDir - The destination directory path to validate.
- * @returns An `AsyncIOResult` containing the normalized path, or an error.
- */
-async function validateDestDir(destDir: string): AsyncIOResult<string> {
-    const pathRes = validateAbsolutePath(destDir);
-    if (pathRes.isErr()) return pathRes;
-    destDir = pathRes.unwrap();
-
-    const existsRes = await exists(destDir, { isFile: true });
-    return existsRes.andThen(exist => {
-        return exist
-            ? Err(new Error(`destDir '${ destDir }' exists but is a file, not a directory`))
-            : pathRes;
+            ? Err(createEmptyError())
+            : batchUnzipTo(bytes, destDir);
     });
 }
 
@@ -111,7 +106,7 @@ async function validateDestDir(destDir: string): AsyncIOResult<string> {
  * @param bytes - Zipped Uint8Array.
  * @param destDir - Destination directory path.
  */
-function unzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIOResult {
+function batchUnzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoidIOResult {
     const future = new Future<VoidIOResult>();
 
     decompress(bytes, async (err, unzipped) => {
