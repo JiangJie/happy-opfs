@@ -2,12 +2,28 @@
  * Zip/Unzip operations tests using Vitest
  * Tests: zip, unzip, zipFromUrl, unzipFromUrl
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import * as fs from '../src/mod.ts';
+import { worker } from './mocks/browser.ts';
 
 const mockZipUrl = 'https://raw.githubusercontent.com/JiangJie/happy-opfs/main/tests/test.zip';
 
 describe('OPFS Zip Operations', () => {
+    beforeAll(async () => {
+        // Start MSW worker for mock server tests
+        await worker.start({
+            serviceWorker: {
+                url: 'https://localhost:8443/mockServiceWorker.js',
+            },
+            onUnhandledRequest: 'bypass',
+            quiet: true,
+        });
+    });
+
+    afterAll(() => {
+        worker.stop();
+    });
+
     afterEach(async () => {
         await fs.remove('/zip-test');
         await fs.remove('/test.zip');
@@ -240,6 +256,23 @@ describe('OPFS Zip Operations', () => {
 
             expect(buffer instanceof Uint8Array).toBe(true);
             expect(buffer.byteLength).toBeGreaterThan(0);
+        });
+
+        it('should fail on empty response by default', async () => {
+            const result = await fs.zipFromUrl('https://mock.test/api/empty-body');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('EmptyBodyError');
+        });
+
+        it('should keep empty response with keepEmptyBody option', async () => {
+            const result = await fs.zipFromUrl('https://mock.test/api/empty-body', {
+                keepEmptyBody: true,
+                filename: 'empty.txt',
+            });
+            expect(result.isOk()).toBe(true);
+
+            const zipData = result.unwrap();
+            expect(zipData.byteLength).toBeGreaterThan(0);
         });
     });
 });

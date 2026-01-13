@@ -208,12 +208,13 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
 
     const bytes = fetchRes.unwrap();
 
+    const { filename, keepEmptyBody = false } = requestInit ?? {};
+
     // body can be null for 204/304 responses or HEAD requests
-    if (bytes.byteLength === 0) {
+    if (!keepEmptyBody && bytes.byteLength === 0) {
         return Err(createEmptyBodyError()) as ZipIOResult;
     }
 
-    const { filename } = requestInit ?? {};
     // Use provided filename, or basename of pathname, or 'file' as fallback
     const sourceName = filename ?? (sourceUrl.pathname !== '/' ? basename(sourceUrl.pathname) : 'file');
 

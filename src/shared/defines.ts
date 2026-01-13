@@ -388,6 +388,19 @@ export interface UploadRequestInit extends FsRequestInit {
 }
 
 /**
+ * Request init options for {@link downloadFile}.
+ */
+export interface DownloadRequestInit extends FsRequestInit {
+    /**
+     * Whether to keep empty response body (0 bytes) and save as an empty file.
+     * - `true`: Empty response saves as an empty file
+     * - `false`: Empty response returns an `EmptyBodyError`
+     * @defaultValue `false`
+     */
+    keepEmptyBody?: boolean;
+}
+
+/**
  * Request init options for {@link zipFromUrl}.
  */
 export interface ZipFromUrlRequestInit extends FsRequestInit {
@@ -396,6 +409,14 @@ export interface ZipFromUrlRequestInit extends FsRequestInit {
      * Defaults to the basename of the URL pathname, or 'file' if the pathname is '/'.
      */
     filename?: string;
+
+    /**
+     * Whether to keep empty response body (0 bytes) and create a zip with an empty file entry.
+     * - `true`: Empty response creates a zip with an empty file entry
+     * - `false`: Empty response returns an `EmptyBodyError`
+     * @defaultValue `false`
+     */
+    keepEmptyBody?: boolean;
 }
 
 /**
