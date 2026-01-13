@@ -8,40 +8,15 @@ import { isFileHandle, type ZipFromUrlRequestInit, type ZipOptions } from '../..
 import { readDir, stat, writeFile } from '../core/mod.ts';
 import { createEmptyBodyError, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 
+/**
+ * Result type for zip operation.
+ */
 type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
 
 /**
  * Empty bytes for directory entries in zip.
  */
 const EMPTY_DIR_DATA = new Uint8Array(0);
-
-/**
- * Zip a zippable data then write to the target path.
- * @param zippable - Zippable data.
- * @param zipFilePath - Target zip file path.
- */
-function zipTo(zippable: AsyncZippable, zipFilePath?: string): Promise<ZipIOResult> {
-    const future = new Future<ZipIOResult>();
-
-    compress(zippable, {
-        consume: true,
-    }, async (err, bytesLike) => {
-        if (err) {
-            future.resolve(Err(err) as ZipIOResult);
-            return;
-        }
-
-        const bytes = bytesLike as Uint8Array<ArrayBuffer>;
-        // whether to write to file
-        if (zipFilePath) {
-            future.resolve(writeFile(zipFilePath, bytes));
-        } else {
-            future.resolve(Ok(bytes));
-        }
-    });
-
-    return future.promise;
-}
 
 /**
  * Zip a file or directory and write to a zip file.
@@ -240,6 +215,38 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
     return zipTo({
         [sourceName]: bytes,
     }, zipFilePath);
+}
+
+// ============================================================================
+// Internal Functions
+// ============================================================================
+
+/**
+ * Zip a zippable data then write to the target path.
+ * @param zippable - Zippable data.
+ * @param zipFilePath - Target zip file path.
+ */
+function zipTo(zippable: AsyncZippable, zipFilePath?: string): Promise<ZipIOResult> {
+    const future = new Future<ZipIOResult>();
+
+    compress(zippable, {
+        consume: true,
+    }, async (err, bytesLike) => {
+        if (err) {
+            future.resolve(Err(err) as ZipIOResult);
+            return;
+        }
+
+        const bytes = bytesLike as Uint8Array<ArrayBuffer>;
+        // whether to write to file
+        if (zipFilePath) {
+            future.resolve(writeFile(zipFilePath, bytes));
+        } else {
+            future.resolve(Ok(bytes));
+        }
+    });
+
+    return future.promise;
 }
 
 /**

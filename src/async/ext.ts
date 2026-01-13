@@ -5,185 +5,6 @@ import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts
 import { aggregateResults, getParentDirHandle, isNotFoundError, isRootDir, markParentDirsNonEmpty, validateAbsolutePath, validateExistsOptions } from './internal/mod.ts';
 
 /**
- * Extended FileSystemHandle interface with move method.
- * The move() method is not yet in TypeScript's lib.dom.d.ts.
- * @see https://github.com/mdn/browser-compat-data/issues/20341
- */
-interface MovableHandle extends FileSystemHandle {
-    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
-}
-
-/**
- * Copies a file handle to a new path by reading and writing the file content.
- *
- * @param fileHandle - The file handle to copy.
- * @param destFilePath - The destination absolute path for the file.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
- */
-async function copyFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
-    const fileRes = await tryAsyncResult(fileHandle.getFile());
-    return fileRes.andThenAsync(file => writeFile(destFilePath, file));
-}
-
-/**
- * Moves a file handle to a new path using the FileSystemFileHandle.move() method.
- * This is an optimized operation that avoids data copying.
- *
- * @param fileHandle - The file handle to move.
- * @param destFilePath - The new absolute path for the file.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
- */
-async function moveFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
-    const dirRes = await getParentDirHandle(destFilePath, {
-        create: true,
-    });
-
-    return dirRes.andTryAsync(destDirHandle => {
-        const destName = basename(destFilePath);
-        return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
-    });
-}
-
-/**
- * Handler function type for processing source file to destination.
- *
- * @param srcFileHandle - The source file handle to process.
- * @param destFilePath - The destination file path.
- */
-type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
-
-/**
- * Internal helper that copies or moves a file/directory from source to destination.
- *
- * Algorithm:
- * 1. Verify source exists via stat()
- * 2. Check if destination exists and validate type compatibility (file-to-file or dir-to-dir)
- * 3. For files: directly apply handler (copy or move)
- * 4. For directories: recursively process all entries in parallel
- * 5. Respect overwrite flag - skip if dest exists and overwrite=false
- *
- * @param srcPath - The source file/directory path.
- * @param destPath - The destination file/directory path.
- * @param handler - The function to handle file transfer (copy or move).
- * @param opName - The operation name for error messages ('copy' or 'move').
- * @param overwrite - Whether to overwrite existing files. Default: `true`.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
- */
-async function mkDestFromSrc(
-    srcPath: string,
-    destPath: string,
-    handler: HandleSrcFileToDest,
-    opName: 'copy' | 'move',
-    overwrite = true,
-): AsyncVoidIOResult {
-    const srcPathRes = validateAbsolutePath(srcPath);
-    if (srcPathRes.isErr()) return srcPathRes.asErr();
-    srcPath = srcPathRes.unwrap();
-
-    const destPathRes = validateAbsolutePath(destPath);
-    if (destPathRes.isErr()) return destPathRes.asErr();
-    destPath = destPathRes.unwrap();
-
-    // Prevent copying/moving a directory into itself
-    // For root directory, any destPath is a subdirectory
-    if (isRootDir(srcPath) || destPath.startsWith(srcPath + SEPARATOR) || destPath === srcPath) {
-        return Err(new Error(`Cannot ${ opName } '${ srcPath }' into itself '${ destPath }'`));
-    }
-
-    const statRes = await stat(srcPath);
-    if (statRes.isErr()) {
-        return statRes.asErr();
-    }
-
-    const srcHandle = statRes.unwrap();
-    // Track whether destination already exists (needed for overwrite logic)
-    let destExists = false;
-
-    const destHandleRes = await stat(destPath);
-    if (destHandleRes.isErr()) {
-        // Destination doesn't exist - that's OK unless it's an unexpected error
-        if (!isNotFoundError(destHandleRes.unwrapErr())) {
-            return destHandleRes.asErr();
-        }
-    } else {
-        destExists = true;
-        // Validate type compatibility: both must be files OR both must be directories
-        const destHandle = destHandleRes.unwrap();
-        if (
-            !(isFileHandle(srcHandle) && isFileHandle(destHandle))
-            && !(isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle))
-        ) {
-            return Err(new Error(`Both 'srcPath' and 'destPath' must both be a file or directory`));
-        }
-    }
-
-    // Handle file source: apply handler directly
-    if (isFileHandle(srcHandle)) {
-        return (overwrite || !destExists) ? await handler(srcHandle, destPath) : RESULT_VOID;
-    }
-
-    // Handle directory source: recursively process all entries
-    const readDirRes = await readDir(srcPath, {
-        recursive: true,
-    });
-    if (readDirRes.isErr()) {
-        return readDirRes.asErr();
-    }
-
-    // Collect all tasks for parallel execution
-    const tasks: AsyncVoidIOResult[] = [];
-    const dirs: string[] = [];
-    const nonEmptyDirs = new Set<string>();
-
-    try {
-        for await (const { path, handle } of readDirRes.unwrap()) {
-            if (isFileHandle(handle)) {
-                const newFilePath = join(destPath, path);
-
-                // Wrap file processing in an async IIFE for parallel execution
-                tasks.push((async () => {
-                    let newPathExists = false;
-
-                    if (destExists) {
-                    // Destination dir exists, need to check each file individually
-                        const existsRes = await exists(newFilePath);
-                        if (existsRes.isErr()) {
-                            return existsRes.asErr();
-                        }
-
-                        newPathExists = existsRes.unwrap();
-                    }
-
-                    return overwrite || !newPathExists ? handler(handle, newFilePath) : RESULT_VOID;
-                })());
-
-                // Mark all parent directories as non-empty
-                markParentDirsNonEmpty(path, nonEmptyDirs);
-            } else {
-                dirs.push(path);
-            }
-        }
-    } catch (e) {
-        return Err(e as Error);
-    }
-
-    // Only create truly empty directories
-    for (const dir of dirs) {
-        if (!nonEmptyDirs.has(dir)) {
-            tasks.push(mkdir(join(destPath, dir)));
-        }
-    }
-
-    // Handle empty source directory case
-    if (tasks.length === 0 && !destExists) {
-        return mkdir(destPath);
-    }
-
-    // Wait for all tasks and return first error if any
-    return aggregateResults(tasks);
-}
-
-/**
  * Appends content to a file at the specified path.
  * Creates the file if it doesn't exist.
  *
@@ -392,4 +213,187 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
 export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
     const result = tryResult(JSON.stringify, data);
     return result.andThenAsync(text => writeFile(filePath, text));
+}
+
+// ============================================================================
+// Internal Functions
+// ============================================================================
+
+/**
+ * Extended FileSystemHandle interface with move method.
+ * The move() method is not yet in TypeScript's lib.dom.d.ts.
+ * @see https://github.com/mdn/browser-compat-data/issues/20341
+ */
+interface MovableHandle extends FileSystemHandle {
+    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
+}
+
+/**
+ * Handler function type for processing source file to destination.
+ *
+ * @param srcFileHandle - The source file handle to process.
+ * @param destFilePath - The destination file path.
+ */
+type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
+
+/**
+ * Copies a file handle to a new path by reading and writing the file content.
+ *
+ * @param fileHandle - The file handle to copy.
+ * @param destFilePath - The destination absolute path for the file.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ */
+async function copyFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
+    const fileRes = await tryAsyncResult(fileHandle.getFile());
+    return fileRes.andThenAsync(file => writeFile(destFilePath, file));
+}
+
+/**
+ * Moves a file handle to a new path using the FileSystemFileHandle.move() method.
+ * This is an optimized operation that avoids data copying.
+ *
+ * @param fileHandle - The file handle to move.
+ * @param destFilePath - The new absolute path for the file.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ */
+async function moveFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
+    const dirRes = await getParentDirHandle(destFilePath, {
+        create: true,
+    });
+
+    return dirRes.andTryAsync(destDirHandle => {
+        const destName = basename(destFilePath);
+        return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
+    });
+}
+
+/**
+ * Internal helper that copies or moves a file/directory from source to destination.
+ *
+ * Algorithm:
+ * 1. Verify source exists via stat()
+ * 2. Check if destination exists and validate type compatibility (file-to-file or dir-to-dir)
+ * 3. For files: directly apply handler (copy or move)
+ * 4. For directories: recursively process all entries in parallel
+ * 5. Respect overwrite flag - skip if dest exists and overwrite=false
+ *
+ * @param srcPath - The source file/directory path.
+ * @param destPath - The destination file/directory path.
+ * @param handler - The function to handle file transfer (copy or move).
+ * @param opName - The operation name for error messages ('copy' or 'move').
+ * @param overwrite - Whether to overwrite existing files. Default: `true`.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ */
+async function mkDestFromSrc(
+    srcPath: string,
+    destPath: string,
+    handler: HandleSrcFileToDest,
+    opName: 'copy' | 'move',
+    overwrite = true,
+): AsyncVoidIOResult {
+    const srcPathRes = validateAbsolutePath(srcPath);
+    if (srcPathRes.isErr()) return srcPathRes.asErr();
+    srcPath = srcPathRes.unwrap();
+
+    const destPathRes = validateAbsolutePath(destPath);
+    if (destPathRes.isErr()) return destPathRes.asErr();
+    destPath = destPathRes.unwrap();
+
+    // Prevent copying/moving a directory into itself
+    // For root directory, any destPath is a subdirectory
+    if (isRootDir(srcPath) || destPath.startsWith(srcPath + SEPARATOR) || destPath === srcPath) {
+        return Err(new Error(`Cannot ${ opName } '${ srcPath }' into itself '${ destPath }'`));
+    }
+
+    const statRes = await stat(srcPath);
+    if (statRes.isErr()) {
+        return statRes.asErr();
+    }
+
+    const srcHandle = statRes.unwrap();
+    // Track whether destination already exists (needed for overwrite logic)
+    let destExists = false;
+
+    const destHandleRes = await stat(destPath);
+    if (destHandleRes.isErr()) {
+        // Destination doesn't exist - that's OK unless it's an unexpected error
+        if (!isNotFoundError(destHandleRes.unwrapErr())) {
+            return destHandleRes.asErr();
+        }
+    } else {
+        destExists = true;
+        // Validate type compatibility: both must be files OR both must be directories
+        const destHandle = destHandleRes.unwrap();
+        if (
+            !(isFileHandle(srcHandle) && isFileHandle(destHandle))
+            && !(isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle))
+        ) {
+            return Err(new Error(`Both 'srcPath' and 'destPath' must both be a file or directory`));
+        }
+    }
+
+    // Handle file source: apply handler directly
+    if (isFileHandle(srcHandle)) {
+        return (overwrite || !destExists) ? await handler(srcHandle, destPath) : RESULT_VOID;
+    }
+
+    // Handle directory source: recursively process all entries
+    const readDirRes = await readDir(srcPath, {
+        recursive: true,
+    });
+    if (readDirRes.isErr()) {
+        return readDirRes.asErr();
+    }
+
+    // Collect all tasks for parallel execution
+    const tasks: AsyncVoidIOResult[] = [];
+    const dirs: string[] = [];
+    const nonEmptyDirs = new Set<string>();
+
+    try {
+        for await (const { path, handle } of readDirRes.unwrap()) {
+            if (isFileHandle(handle)) {
+                const newFilePath = join(destPath, path);
+
+                // Wrap file processing in an async IIFE for parallel execution
+                tasks.push((async () => {
+                    let newPathExists = false;
+
+                    if (destExists) {
+                    // Destination dir exists, need to check each file individually
+                        const existsRes = await exists(newFilePath);
+                        if (existsRes.isErr()) {
+                            return existsRes.asErr();
+                        }
+
+                        newPathExists = existsRes.unwrap();
+                    }
+
+                    return overwrite || !newPathExists ? handler(handle, newFilePath) : RESULT_VOID;
+                })());
+
+                // Mark all parent directories as non-empty
+                markParentDirsNonEmpty(path, nonEmptyDirs);
+            } else {
+                dirs.push(path);
+            }
+        }
+    } catch (e) {
+        return Err(e as Error);
+    }
+
+    // Only create truly empty directories
+    for (const dir of dirs) {
+        if (!nonEmptyDirs.has(dir)) {
+            tasks.push(mkdir(join(destPath, dir)));
+        }
+    }
+
+    // Handle empty source directory case
+    if (tasks.length === 0 && !destExists) {
+        return mkdir(destPath);
+    }
+
+    // Wait for all tasks and return first error if any
+    return aggregateResults(tasks);
 }

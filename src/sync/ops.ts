@@ -14,146 +14,6 @@ import type { ErrorLike, FileMetadata } from './defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp, type SyncMessenger } from './protocol.ts';
 
 /**
- * Deserializes an `ErrorLike` object back to an `Error` instance.
- *
- * @param error - The `ErrorLike` object to deserialize.
- * @returns An `Error` instance with the same name and message.
- */
-function deserializeError(error: ErrorLike): Error {
-    const err = new Error(error.message);
-    err.name = error.name;
-
-    return err;
-}
-
-/**
- * Deserializes file metadata and binary data to a `File` instance.
- * Binary data is now received as the last element from the binary protocol.
- *
- * @param metadata - The file metadata (name, type, lastModified).
- * @param data - The binary data as Uint8Array.
- * @returns A `File` instance with the given properties.
- */
-function deserializeFile(metadata: FileMetadata, data: Uint8Array<ArrayBuffer>): File {
-    const blob = new Blob([data]);
-
-    return new File([blob], metadata.name, {
-        type: metadata.type,
-        lastModified: metadata.lastModified,
-    });
-}
-
-/**
- * Blocks execution until a condition is met or timeout occurs.
- * Uses busy-waiting, which is necessary for synchronous operations.
- *
- * @param condition - A function that returns `true` when the wait should end.
- * @returns A `VoidIOResult` - `Ok` if condition met, `Err` with TimeoutError if timed out.
- */
-function sleepUntil(condition: () => boolean): VoidIOResult {
-    const timeout = getGlobalSyncOpTimeout();
-    const start = performance.now();
-    while (!condition()) {
-        if (performance.now() - start > timeout) {
-            const error = new Error('Operation timed out');
-            error.name = TIMEOUT_ERROR;
-
-            return Err(error);
-        }
-    }
-
-    return Ok();
-}
-
-/**
- * Sends a synchronous request from main thread to worker and waits for response.
- * This function blocks the main thread until the worker responds.
- *
- * Communication Protocol:
- * 1. Lock main thread (set MAIN_LOCKED) to signal we're waiting
- * 2. Write request data and length to SharedArrayBuffer
- * 3. Wake worker by setting WORKER_UNLOCKED
- * 4. Busy-wait until worker signals completion (MAIN_UNLOCKED)
- * 5. Read response from SharedArrayBuffer
- *
- * @param messenger - The `SyncMessenger` instance for communication.
- * @param data - The request data as a `Uint8Array`.
- * @returns An `IOResult` containing the response data, or an error if the request is too large or times out.
- */
-function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array<ArrayBuffer>): IOResult<Uint8Array<SharedArrayBuffer>> {
-    const { i32a, maxDataLength } = messenger;
-    const requestLength = data.byteLength;
-
-    // check whether request is too large
-    if (requestLength > maxDataLength) {
-        return Err(new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`));
-    }
-
-    // Lock main thread - signal that we're waiting for a response
-    Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_LOCKED);
-
-    // Write payload: store length and data to SharedArrayBuffer
-    i32a[DATA_INDEX] = requestLength;
-    messenger.setPayload(data);
-
-    // Wake up worker by setting it to UNLOCKED
-    // Note: Atomics.notify() may not work reliably cross-thread, using store + busy-wait instead
-    // Atomics.notify(i32a, WORKER_LOCK_INDEX); // this may not work
-    Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_UNLOCKED);
-
-    // Busy-wait for worker to finish processing and unlock main thread
-    const waitResult = sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
-    if (waitResult.isErr()) {
-        return waitResult.asErr();
-    }
-
-    // Worker has finished - read response data
-    const responseLength = i32a[DATA_INDEX];
-    const response = messenger.getPayload(responseLength);
-
-    return Ok(response);
-}
-
-/**
- * Calls a worker I/O operation synchronously.
- * Serializes the request, sends to worker, and deserializes the response.
- *
- * @template T - The expected return type.
- * @param op - The I/O operation enum value from `WorkerOp`.
- * @param args - Arguments to pass to the operation.
- * @returns The I/O operation result wrapped in `IOResult<T>`.
- */
-function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
-    if (getSyncChannelState() !== 'ready') {
-        return Err(new Error('Sync channel not connected'));
-    }
-
-    const messenger = getMessenger() as SyncMessenger;
-
-    // Serialize request: [operation, ...arguments]
-    const request = [op, ...args];
-    const requestData = encodePayload(request);
-
-    return callWorkerFromMain(messenger, requestData)
-        .andThen(response => {
-            // Deserialize response: [error, result] or [error] if failed
-            // For binary protocol, if result contains Uint8Array, it's the last element
-            const decodedResponse = decodePayload<[Error, ...unknown[]]>(response);
-            const err = decodedResponse[0];
-            if (err) {
-                return Err(deserializeError(err));
-            }
-            // For single result, return decodedResponse[1]
-            // For multi-value result (like readBlobFile), return all elements after error
-            if (decodedResponse.length === 2) {
-                return Ok(decodedResponse[1] as T);
-            }
-            // Multi-value result: return slice from index 1
-            return Ok(decodedResponse.slice(1) as T);
-        });
-}
-
-/**
  * Synchronous version of `createFile`.
  * Creates a new empty file at the specified path.
  *
@@ -404,28 +264,6 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
     path = pathRes.unwrap();
 
     return callWorkerOp(WorkerOp.stat, path);
-}
-
-/**
- * Serializes write contents to Uint8Array for binary protocol transport.
- * All content types are converted to Uint8Array for efficient binary transfer.
- *
- * @param contents - The content to serialize (ArrayBuffer, TypedArray, or string).
- * @returns Uint8Array containing the binary data.
- */
-function serializeWriteContents(contents: WriteSyncFileContent): Uint8Array<ArrayBuffer> {
-    if (contents instanceof Uint8Array) {
-        return contents as Uint8Array<ArrayBuffer>;
-    }
-    if (contents instanceof ArrayBuffer) {
-        return new Uint8Array(contents);
-    }
-    if (ArrayBuffer.isView(contents)) {
-        // Other TypedArray -> Uint8Array (handle potential byteOffset)
-        return new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
-    }
-    // String -> Uint8Array via TextEncoder
-    return textEncode(contents);
 }
 
 /**
@@ -761,4 +599,170 @@ export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, o
 
     // Result is Uint8Array directly as the last element from binary protocol, or undefined for void result
     return callWorkerOp(WorkerOp.zip, sourcePath, zipFilePath, options);
+}
+
+// ============================================================================
+// Internal Functions
+// ============================================================================
+
+/**
+ * Deserializes an `ErrorLike` object back to an `Error` instance.
+ *
+ * @param error - The `ErrorLike` object to deserialize.
+ * @returns An `Error` instance with the same name and message.
+ */
+function deserializeError(error: ErrorLike): Error {
+    const err = new Error(error.message);
+    err.name = error.name;
+
+    return err;
+}
+
+/**
+ * Deserializes file metadata and binary data to a `File` instance.
+ * Binary data is now received as the last element from the binary protocol.
+ *
+ * @param metadata - The file metadata (name, type, lastModified).
+ * @param data - The binary data as Uint8Array.
+ * @returns A `File` instance with the given properties.
+ */
+function deserializeFile(metadata: FileMetadata, data: Uint8Array<ArrayBuffer>): File {
+    const blob = new Blob([data]);
+
+    return new File([blob], metadata.name, {
+        type: metadata.type,
+        lastModified: metadata.lastModified,
+    });
+}
+
+/**
+ * Serializes write contents to Uint8Array for binary protocol transport.
+ * All content types are converted to Uint8Array for efficient binary transfer.
+ *
+ * @param contents - The content to serialize (ArrayBuffer, TypedArray, or string).
+ * @returns Uint8Array containing the binary data.
+ */
+function serializeWriteContents(contents: WriteSyncFileContent): Uint8Array<ArrayBuffer> {
+    if (contents instanceof Uint8Array) {
+        return contents as Uint8Array<ArrayBuffer>;
+    }
+    if (contents instanceof ArrayBuffer) {
+        return new Uint8Array(contents);
+    }
+    if (ArrayBuffer.isView(contents)) {
+        // Other TypedArray -> Uint8Array (handle potential byteOffset)
+        return new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
+    }
+    // String -> Uint8Array via TextEncoder
+    return textEncode(contents);
+}
+
+/**
+ * Blocks execution until a condition is met or timeout occurs.
+ * Uses busy-waiting, which is necessary for synchronous operations.
+ *
+ * @param condition - A function that returns `true` when the wait should end.
+ * @returns A `VoidIOResult` - `Ok` if condition met, `Err` with TimeoutError if timed out.
+ */
+function sleepUntil(condition: () => boolean): VoidIOResult {
+    const timeout = getGlobalSyncOpTimeout();
+    const start = performance.now();
+    while (!condition()) {
+        if (performance.now() - start > timeout) {
+            const error = new Error('Operation timed out');
+            error.name = TIMEOUT_ERROR;
+
+            return Err(error);
+        }
+    }
+
+    return Ok();
+}
+
+/**
+ * Sends a synchronous request from main thread to worker and waits for response.
+ * This function blocks the main thread until the worker responds.
+ *
+ * Communication Protocol:
+ * 1. Lock main thread (set MAIN_LOCKED) to signal we're waiting
+ * 2. Write request data and length to SharedArrayBuffer
+ * 3. Wake worker by setting WORKER_UNLOCKED
+ * 4. Busy-wait until worker signals completion (MAIN_UNLOCKED)
+ * 5. Read response from SharedArrayBuffer
+ *
+ * @param messenger - The `SyncMessenger` instance for communication.
+ * @param data - The request data as a `Uint8Array`.
+ * @returns An `IOResult` containing the response data, or an error if the request is too large or times out.
+ */
+function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array<ArrayBuffer>): IOResult<Uint8Array<SharedArrayBuffer>> {
+    const { i32a, maxDataLength } = messenger;
+    const requestLength = data.byteLength;
+
+    // check whether request is too large
+    if (requestLength > maxDataLength) {
+        return Err(new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`));
+    }
+
+    // Lock main thread - signal that we're waiting for a response
+    Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_LOCKED);
+
+    // Write payload: store length and data to SharedArrayBuffer
+    i32a[DATA_INDEX] = requestLength;
+    messenger.setPayload(data);
+
+    // Wake up worker by setting it to UNLOCKED
+    // Note: Atomics.notify() may not work reliably cross-thread, using store + busy-wait instead
+    // Atomics.notify(i32a, WORKER_LOCK_INDEX); // this may not work
+    Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_UNLOCKED);
+
+    // Busy-wait for worker to finish processing and unlock main thread
+    const waitResult = sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
+    if (waitResult.isErr()) {
+        return waitResult.asErr();
+    }
+
+    // Worker has finished - read response data
+    const responseLength = i32a[DATA_INDEX];
+    const response = messenger.getPayload(responseLength);
+
+    return Ok(response);
+}
+
+/**
+ * Calls a worker I/O operation synchronously.
+ * Serializes the request, sends to worker, and deserializes the response.
+ *
+ * @template T - The expected return type.
+ * @param op - The I/O operation enum value from `WorkerOp`.
+ * @param args - Arguments to pass to the operation.
+ * @returns The I/O operation result wrapped in `IOResult<T>`.
+ */
+function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
+    if (getSyncChannelState() !== 'ready') {
+        return Err(new Error('Sync channel not connected'));
+    }
+
+    const messenger = getMessenger() as SyncMessenger;
+
+    // Serialize request: [operation, ...arguments]
+    const request = [op, ...args];
+    const requestData = encodePayload(request);
+
+    return callWorkerFromMain(messenger, requestData)
+        .andThen(response => {
+            // Deserialize response: [error, result] or [error] if failed
+            // For binary protocol, if result contains Uint8Array, it's the last element
+            const decodedResponse = decodePayload<[Error, ...unknown[]]>(response);
+            const err = decodedResponse[0];
+            if (err) {
+                return Err(deserializeError(err));
+            }
+            // For single result, return decodedResponse[1]
+            // For multi-value result (like readBlobFile), return all elements after error
+            if (decodedResponse.length === 2) {
+                return Ok(decodedResponse[1] as T);
+            }
+            // Multi-value result: return slice from index 1
+            return Ok(decodedResponse.slice(1) as T);
+        });
 }

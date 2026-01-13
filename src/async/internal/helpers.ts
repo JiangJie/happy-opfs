@@ -28,40 +28,6 @@ export function isRootDir(path: string): boolean {
 }
 
 /**
- * Asynchronously obtains a handle to a child directory from the given parent directory handle.
- *
- * @param dirHandle - The handle to the parent directory.
- * @param childDirName - The name of the child directory to retrieve.
- * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
- * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
- */
-async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, childDirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    const handleRes = await tryAsyncResult<FileSystemDirectoryHandle, DOMException>(dirHandle.getDirectoryHandle(childDirName, options));
-    return handleRes.mapErr(err => {
-        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ childDirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
-        error.name = err.name;
-        return error;
-    });
-}
-
-/**
- * Retrieves a file handle for a child file within a directory.
- *
- * @param dirHandle - The directory handle to search within.
- * @param childFileName - The name of the file to retrieve.
- * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
- * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
- */
-async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    const handleRes = await tryAsyncResult<FileSystemFileHandle, DOMException>(dirHandle.getFileHandle(childFileName, options));
-    return handleRes.mapErr(err => {
-        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ childFileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
-        error.name = err.name;
-        return error;
-    });
-}
-
-/**
  * Retrieves a directory handle by traversing the path from root.
  *
  * Algorithm:
@@ -275,4 +241,42 @@ export async function removeHandle(
     } else {
         return parentDirHandle.removeEntry(handleOrName.name, options);
     }
+}
+
+// ============================================================================
+// Internal Helper Functions
+// ============================================================================
+
+/**
+ * Asynchronously obtains a handle to a child directory from the given parent directory handle.
+ *
+ * @param dirHandle - The handle to the parent directory.
+ * @param childDirName - The name of the child directory to retrieve.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
+ */
+async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, childDirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
+    const handleRes = await tryAsyncResult<FileSystemDirectoryHandle, DOMException>(dirHandle.getDirectoryHandle(childDirName, options));
+    return handleRes.mapErr(err => {
+        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ childDirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+        error.name = err.name;
+        return error;
+    });
+}
+
+/**
+ * Retrieves a file handle for a child file within a directory.
+ *
+ * @param dirHandle - The directory handle to search within.
+ * @param childFileName - The name of the file to retrieve.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
+ */
+async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
+    const handleRes = await tryAsyncResult<FileSystemFileHandle, DOMException>(dirHandle.getFileHandle(childFileName, options));
+    return handleRes.mapErr(err => {
+        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ childFileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+        error.name = err.name;
+        return error;
+    });
 }

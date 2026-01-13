@@ -17,133 +17,6 @@ import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemFileHand
 import type { ErrorLike, FileMetadata } from '../defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp } from '../protocol.ts';
 
-//----------------------------------------------------------------------
-// Sync Channel Message Protocol
-//----------------------------------------------------------------------
-
-/**
- * Message sent from main thread to worker to initialize sync channel.
- * Uses MessageChannel for isolated communication.
- */
-interface SyncChannelInitMessage {
-    /**
-     * MessagePort for dedicated communication back to main thread.
-     */
-    port: MessagePort;
-    /**
-     * SharedArrayBuffer for cross-thread synchronous communication.
-     */
-    sab: SharedArrayBuffer;
-}
-
-/**
- * Type guard to check if a message is a SyncChannelInitMessage.
- * @param data - The message data to check.
- * @returns `true` if the message is a valid SyncChannelInitMessage.
- */
-function isSyncChannelInitMessage(data: unknown): data is SyncChannelInitMessage {
-    if (data == null || typeof data !== 'object') {
-        return false;
-    }
-
-    const message = data as SyncChannelInitMessage;
-    return message.port instanceof MessagePort && message.sab instanceof SharedArrayBuffer;
-}
-
-//----------------------------------------------------------------------
-// Worker Async Operations
-//----------------------------------------------------------------------
-
-/**
- * Serializes a `FileSystemHandle` to a plain object for cross-thread communication.
- *
- * @param handle - `FileSystemHandle` object.
- * @returns Serializable version of FileSystemHandle that is FileSystemHandleLike.
- */
-async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<FileSystemHandleLike> {
-    const { name, kind } = handle;
-
-    if (isFileHandle(handle)) {
-        const file = await handle.getFile();
-        const { size, lastModified, type } = file;
-
-        const fileHandle: FileSystemFileHandleLike = {
-            name,
-            kind,
-            type,
-            size,
-            lastModified,
-        };
-
-        return fileHandle;
-    }
-
-    const handleLike: FileSystemHandleLike = {
-        name,
-        kind,
-    };
-
-    return handleLike;
-}
-
-/**
- * Serializes an `Error` object to a plain object for cross-thread communication.
- *
- * @param error - The `Error` object to serialize, or `null`.
- * @returns A serializable `ErrorLike` object, or `null` if input is `null`.
- */
-function serializeError(error: Error | null): ErrorLike | null {
-    return error ? {
-        name: error.name,
-        message: error.message,
-    } : error;
-}
-
-/**
- * Worker thread locked value.
- * Default.
- */
-const WORKER_LOCKED = MAIN_UNLOCKED;
-
-/**
- * Mapping of async operation enums to their corresponding OPFS functions.
- * Used by the worker loop to dispatch operations from the main thread.
- *
- * Key: `WorkerOp` value
- * Value: The async function to execute
- */
-const opHandlers = {
-    [WorkerOp.createFile]: createFile,
-    [WorkerOp.mkdir]: mkdir,
-    [WorkerOp.move]: move,
-    [WorkerOp.readDir]: readDir,
-    [WorkerOp.readFile]: readFile,
-    [WorkerOp.remove]: remove,
-    [WorkerOp.stat]: stat,
-    [WorkerOp.writeFile]: writeFile,
-    [WorkerOp.appendFile]: appendFile,
-    [WorkerOp.copy]: copy,
-    [WorkerOp.emptyDir]: emptyDir,
-    [WorkerOp.exists]: exists,
-    [WorkerOp.deleteTemp]: deleteTemp,
-    [WorkerOp.mkTemp]: mkTemp,
-    [WorkerOp.pruneTemp]: pruneTemp,
-    [WorkerOp.readBlobFile]: readBlobFile,
-    [WorkerOp.unzip]: unzip,
-    [WorkerOp.zip]: zip,
-};
-
-/**
- * Cache the messenger instance.
- */
-let messenger: SyncMessenger;
-
-/**
- * Flag to track if listenSyncChannel has been called.
- * Used to prevent multiple event listeners from being registered.
- */
-let isListening = false;
-
 /**
  * Starts listening for sync channel requests in a Web Worker.
  * Waits for a SharedArrayBuffer from the main thread and begins processing requests.
@@ -194,6 +67,133 @@ export function listenSyncChannel(): VoidIOResult {
     addEventListener('message', messageHandler);
 
     return RESULT_VOID;
+}
+
+// ============================================================================
+// Internal Types and Constants
+// ============================================================================
+
+/**
+ * Message sent from main thread to worker to initialize sync channel.
+ * Uses MessageChannel for isolated communication.
+ */
+interface SyncChannelInitMessage {
+    /**
+     * MessagePort for dedicated communication back to main thread.
+     */
+    port: MessagePort;
+    /**
+     * SharedArrayBuffer for cross-thread synchronous communication.
+     */
+    sab: SharedArrayBuffer;
+}
+
+/**
+ * Worker thread locked value.
+ * Default.
+ */
+const WORKER_LOCKED = MAIN_UNLOCKED;
+
+/**
+ * Mapping of async operation enums to their corresponding OPFS functions.
+ * Used by the worker loop to dispatch operations from the main thread.
+ *
+ * Key: `WorkerOp` value
+ * Value: The async function to execute
+ */
+const opHandlers = {
+    [WorkerOp.createFile]: createFile,
+    [WorkerOp.mkdir]: mkdir,
+    [WorkerOp.move]: move,
+    [WorkerOp.readDir]: readDir,
+    [WorkerOp.readFile]: readFile,
+    [WorkerOp.remove]: remove,
+    [WorkerOp.stat]: stat,
+    [WorkerOp.writeFile]: writeFile,
+    [WorkerOp.appendFile]: appendFile,
+    [WorkerOp.copy]: copy,
+    [WorkerOp.emptyDir]: emptyDir,
+    [WorkerOp.exists]: exists,
+    [WorkerOp.deleteTemp]: deleteTemp,
+    [WorkerOp.mkTemp]: mkTemp,
+    [WorkerOp.pruneTemp]: pruneTemp,
+    [WorkerOp.readBlobFile]: readBlobFile,
+    [WorkerOp.unzip]: unzip,
+    [WorkerOp.zip]: zip,
+};
+
+/**
+ * Cache the messenger instance.
+ */
+let messenger: SyncMessenger;
+
+/**
+ * Flag to track if listenSyncChannel has been called.
+ * Used to prevent multiple event listeners from being registered.
+ */
+let isListening = false;
+
+// ============================================================================
+// Internal Functions
+// ============================================================================
+
+/**
+ * Type guard to check if a message is a SyncChannelInitMessage.
+ * @param data - The message data to check.
+ * @returns `true` if the message is a valid SyncChannelInitMessage.
+ */
+function isSyncChannelInitMessage(data: unknown): data is SyncChannelInitMessage {
+    if (data == null || typeof data !== 'object') {
+        return false;
+    }
+
+    const message = data as SyncChannelInitMessage;
+    return message.port instanceof MessagePort && message.sab instanceof SharedArrayBuffer;
+}
+
+/**
+ * Serializes a `FileSystemHandle` to a plain object for cross-thread communication.
+ *
+ * @param handle - `FileSystemHandle` object.
+ * @returns Serializable version of FileSystemHandle that is FileSystemHandleLike.
+ */
+async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<FileSystemHandleLike> {
+    const { name, kind } = handle;
+
+    if (isFileHandle(handle)) {
+        const file = await handle.getFile();
+        const { size, lastModified, type } = file;
+
+        const fileHandle: FileSystemFileHandleLike = {
+            name,
+            kind,
+            type,
+            size,
+            lastModified,
+        };
+
+        return fileHandle;
+    }
+
+    const handleLike: FileSystemHandleLike = {
+        name,
+        kind,
+    };
+
+    return handleLike;
+}
+
+/**
+ * Serializes an `Error` object to a plain object for cross-thread communication.
+ *
+ * @param error - The `Error` object to serialize, or `null`.
+ * @returns A serializable `ErrorLike` object, or `null` if input is `null`.
+ */
+function serializeError(error: Error | null): ErrorLike | null {
+    return error ? {
+        name: error.name,
+        message: error.message,
+    } : error;
 }
 
 /**
