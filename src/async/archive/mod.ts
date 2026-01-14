@@ -8,4 +8,5 @@
 
 export * from './unzip-stream.ts';
 export * from './unzip.ts';
+export * from './zip-stream.ts';
 export * from './zip.ts';

@@ -10,6 +10,11 @@ import { exists } from '../ext.ts';
 import { validateAbsolutePath } from '../internal/mod.ts';
 
 /**
+ * Empty bytes constant, used for directory entries in zip or empty file content.
+ */
+export const EMPTY_BYTES: Uint8Array<ArrayBuffer> = new Uint8Array(0);
+
+/**
  * Validates that destDir is an absolute path and is not an existing file.
  * If destDir doesn't exist, that's fine (it will be created).
  * If destDir exists and is a directory, that's fine.
