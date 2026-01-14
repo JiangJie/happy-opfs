@@ -170,7 +170,7 @@ interface MemorySample {
 async function runWithMemorySampling<T>(
     fn: () => Promise<T>,
     intervalMs = 10,
-): Promise<{ result: T; samples: MemorySample[]; peakMemory: number }> {
+): Promise<{ result: T; samples: MemorySample[]; peakMemory: number; }> {
     const samples: MemorySample[] = [];
     let peakMemory = 0;
     let sampling = true;
@@ -371,7 +371,7 @@ function printResults(results: BenchmarkResult[]): void {
 // Main Entry Points
 // ============================================================================
 
-function getConfig(): { fileSize: number; chunkSize: number; iterations: number } {
+function getConfig(): { fileSize: number; chunkSize: number; iterations: number; } {
     return {
         fileSize: parseInt((document.getElementById('fileSize') as HTMLSelectElement).value, 10),
         chunkSize: parseInt((document.getElementById('chunkSize') as HTMLSelectElement).value, 10),

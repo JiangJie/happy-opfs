@@ -7,4 +7,4 @@ coverage
 __screenshots__
 
 # MSW auto-generated file
-tests/public/mockServiceWorker.js
+mockServiceWorker.js
