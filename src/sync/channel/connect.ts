@@ -1,5 +1,5 @@
 /**
- * SyncChannel connection APIs for main thread.
+ * SyncChannel connection APIs.
  * Provides functions for connecting, attaching, and checking sync channel status.
  *
  * @module
@@ -10,6 +10,23 @@ import { Future } from 'tiny-future';
 import type { AttachSyncChannelOptions, ConnectSyncChannelOptions } from '../../shared/mod.ts';
 import { SyncMessenger } from '../protocol.ts';
 import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChannelState } from './state.ts';
+
+/**
+ * Default size of SharedArrayBuffer in bytes (1MB).
+ */
+const DEFAULT_BUFFER_LENGTH = 1024 * 1024;
+
+/**
+ * Minimum required buffer size in bytes.
+ * 16 bytes header + ~131 bytes for largest error response = 147 bytes.
+ * Using 256 (power of 2) for better memory alignment.
+ */
+const MIN_BUFFER_LENGTH = 256;
+
+/**
+ * Default timeout for sync operations in milliseconds.
+ */
+const DEFAULT_OP_TIMEOUT = 1000;
 
 /**
  * Connects to a worker and establishes a sync channel for synchronous file system operations.
@@ -33,10 +50,6 @@ import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChann
  * ```
  */
 export async function connectSyncChannel(worker: Worker | URL | string, options?: ConnectSyncChannelOptions): AsyncIOResult<SharedArrayBuffer> {
-    if (typeof window === 'undefined') {
-        return Err(new Error('connectSyncChannel can only be called in main thread'));
-    }
-
     const state = getSyncChannelState();
     if (state === 'ready') {
         return Err(new Error('Sync channel already connected'));
@@ -46,17 +59,15 @@ export async function connectSyncChannel(worker: Worker | URL | string, options?
     }
 
     const {
-        sharedBufferLength = 1024 * 1024,
-        opTimeout = 1000,
+        sharedBufferLength = DEFAULT_BUFFER_LENGTH,
+        opTimeout = DEFAULT_OP_TIMEOUT,
     } = options ?? {};
 
     // check parameters
     if (!(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker))) {
         return Err(new TypeError('worker must be a Worker, URL, or non-empty string'));
     }
-    // Minimum buffer size: 16 bytes header + ~131 bytes for largest error response = 147 bytes
-    // Using 256 (power of 2) for better memory alignment
-    if (!(sharedBufferLength >= 256 && sharedBufferLength % 4 === 0)) {
+    if (!(sharedBufferLength >= MIN_BUFFER_LENGTH && sharedBufferLength % 4 === 0)) {
         return Err(new TypeError('sharedBufferLength must be at least 256 and a multiple of 4'));
     }
     if (!(Number.isInteger(opTimeout) && opTimeout > 0)) {
@@ -134,11 +145,16 @@ export function isSyncChannelReady(): boolean {
  * ```
  */
 export function attachSyncChannel(sharedBuffer: SharedArrayBuffer, options?: AttachSyncChannelOptions): VoidIOResult {
+    const state = getSyncChannelState();
+    if (state === 'connecting') {
+        return Err(new Error('Cannot attach: sync channel is connecting'));
+    }
+
     if (!(sharedBuffer instanceof SharedArrayBuffer)) {
         return Err(new TypeError('sharedBuffer must be a SharedArrayBuffer'));
     }
 
-    const { opTimeout = 1000 } = options ?? {};
+    const { opTimeout = DEFAULT_OP_TIMEOUT } = options ?? {};
     if (!(Number.isInteger(opTimeout) && opTimeout > 0)) {
         return Err(new TypeError('opTimeout must be a positive integer'));
     }

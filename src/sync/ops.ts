@@ -627,9 +627,7 @@ function deserializeError(error: ErrorLike): Error {
  * @returns A `File` instance with the given properties.
  */
 function deserializeFile(metadata: FileMetadata, data: Uint8Array<ArrayBuffer>): File {
-    const blob = new Blob([data]);
-
-    return new File([blob], metadata.name, {
+    return new File([data], metadata.name, {
         type: metadata.type,
         lastModified: metadata.lastModified,
     });

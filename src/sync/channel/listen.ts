@@ -33,7 +33,7 @@ import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKE
  * ```
  */
 export function listenSyncChannel(): VoidIOResult {
-    if (typeof window !== 'undefined') {
+    if (!isWorkerRuntime()) {
         return Err(new Error('listenSyncChannel can only be called in Worker'));
     }
     if (isListening) {
@@ -136,6 +136,13 @@ let isListening = false;
 // ============================================================================
 // Internal Functions
 // ============================================================================
+
+/**
+ * Checks whether the code is running in a Web Worker context.
+ */
+function isWorkerRuntime(): boolean {
+    return typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+}
 
 /**
  * Type guard to check if a message is a SyncChannelInitMessage.

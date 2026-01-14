@@ -232,28 +232,6 @@ describe('Worker Adapter Edge Cases', () => {
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toContain('already connected');
         });
-
-        it('should return Err when called from worker thread', async () => {
-            // Create a worker that tries to call SyncChannel.connect
-            const worker = new Worker(new URL('./worker-connect-error.ts', import.meta.url), {
-                type: 'module',
-            });
-
-            const result = await new Promise<{ error: string | null; }>((resolve) => {
-                worker.addEventListener('message', (event) => {
-                    resolve(event.data);
-                    worker.terminate();
-                });
-                worker.addEventListener('error', (event) => {
-                    resolve({ error: event.message });
-                    worker.terminate();
-                });
-                // Trigger the worker to start the test
-                worker.postMessage('start');
-            });
-
-            expect(result.error).toContain('connectSyncChannel can only be called in main thread');
-        });
     });
 
     describe('callWorkerFromMain error cases', () => {
