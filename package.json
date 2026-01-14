@@ -37,6 +37,7 @@
     "test": "pnpm exec vitest run --coverage",
     "test:watch": "pnpm exec vitest watch",
     "test:ui": "pnpm exec vitest --ui",
+    "prebench": "pnpm exec msw init benchmarks/public --save=false",
     "bench": "pnpm exec vite --config benchmarks/vite.config.ts",
     "eg": "pnpm exec vite --config examples/vite.config.ts"
   },
@@ -86,10 +87,5 @@
     "fflate": "^0.8.2",
     "happy-rusty": "^1.9.0",
     "tiny-future": "^1.2.0"
-  },
-  "msw": {
-    "workerDirectory": [
-      "tests/public"
-    ]
   }
 }

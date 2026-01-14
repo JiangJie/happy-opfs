@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream vs Batch Download Benchmark</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #00d9ff;
+        }
+        button {
+            background: #00d9ff;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #00b8d4;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #output {
+            white-space: pre-wrap;
+            background: #0d0d1a;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .header {
+            color: #00d9ff;
+            font-weight: bold;
+        }
+        .result {
+            color: #4caf50;
+        }
+        .error {
+            color: #f44336;
+        }
+        .info {
+            color: #888;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        label {
+            margin-right: 10px;
+        }
+        select, input {
+            background: #0d0d1a;
+            color: #eee;
+            border: 1px solid #333;
+            padding: 5px 10px;
+            font-family: monospace;
+        }
+        input[type="text"] {
+            width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stream vs Batch Download Benchmark</h1>
+    <p class="info">Compare downloading files: streaming directly to OPFS vs loading into memory first</p>
+
+    <div class="controls">
+        <label>Download URL:</label>
+        <select id="urlPreset">
+            <option value="https://mock.test/bytes/1048576">Mock 1 MB</option>
+            <option value="https://mock.test/bytes/5242880">Mock 5 MB</option>
+            <option value="https://mock.test/bytes/10485760">Mock 10 MB</option>
+            <option value="https://mock.test/bytes/52428800">Mock 50 MB</option>
+            <option value="https://mock.test/bytes/104857600" selected>Mock 100 MB</option>
+            <option value="custom">Custom URL...</option>
+        </select>
+    </div>
+
+    <div class="controls" id="customUrlContainer" style="display: none;">
+        <label>Custom URL:</label>
+        <input type="text" id="customUrl" placeholder="https://example.com/file.bin">
+    </div>
+
+    <div class="controls">
+        <label>Iterations:</label>
+        <input type="number" id="iterations" value="3" min="1" max="10" style="width: 60px">
+    </div>
+
+    <div>
+        <button id="runAll">Run All Benchmarks</button>
+        <button id="runStream">Stream Download Only</button>
+        <button id="runBatch">Batch Download Only</button>
+        <button id="clear">Clear Output</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script type="module" src="./download-stream.ts"></script>
+</body>
+</html>
