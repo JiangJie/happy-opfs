@@ -168,7 +168,7 @@ if (result.isOk()) {
 - Paths must be absolute (start with `/`)
 - Root directory: `/`
 - Temporary directory: `/tmp`
-- Path validation via `assertAbsolutePath()` in `async/internal/assertions.ts`
+- Path validation via `validateAbsolutePath()` in `async/internal/validations.ts`
 
 #### 4. URL Parameter Support
 Functions accepting URL parameters (`downloadFile`, `uploadFile`, `zipFromUrl`, `unzipFromUrl`) support both:
