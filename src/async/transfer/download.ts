@@ -3,7 +3,7 @@ import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import type { DownloadFileTempResponse, DownloadRequestInit } from '../../shared/mod.ts';
 import { createFile, writeFile } from '../core/mod.ts';
-import { createAbortError, createEmptyBodyError, createFailedFetchTask, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { createAbortError, createEmptyBodyError, createFailedFetchTask, peekStream, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
 
 /**
@@ -95,25 +95,39 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | Download
                 );
             }
 
-            // Use blob to reliably detect empty body
-            // Note: browsers don't conform to spec (body should be null for 204/HEAD responses)
-            // See: https://developer.mozilla.org/en-US/docs/Web/API/Response/body
-            const blob = await rawResponse.blob();
-            const isEmptyBody = blob.size === 0;
-
-            if (isEmptyBody) {
+            // Handle empty body: return error or create empty file
+            async function handleEmptyBody() {
                 const { keepEmptyBody = false } = requestInit ?? {};
+
                 if (!keepEmptyBody) {
                     return Err(createEmptyBodyError());
                 }
 
-                // Create empty file when keepEmptyBody is true
-                const createRes = await createFile(filePath);
+                const createRes = await createFile(filePath as string);
                 return createRes.and(okResult());
             }
 
-            // Use blob.stream() for streaming write
-            const writeRes = await writeFile(filePath, blob.stream());
+            // Use peek approach for true streaming while detecting empty body
+            // Note: browsers don't conform to spec (body should be null for 204/HEAD responses)
+            // See: https://developer.mozilla.org/en-US/docs/Web/API/Response/body
+            const { body } = rawResponse;
+
+            // body is null - treat as empty
+            if (!body) {
+                return handleEmptyBody();
+            }
+
+            // Peek first chunk to detect empty stream
+            const peekRes = await peekStream(body);
+            if (peekRes.isErr()) return peekRes.asErr();
+
+            const peek = peekRes.unwrap();
+            if (peek.isEmpty) {
+                return handleEmptyBody();
+            }
+
+            // True streaming write with reconstructed stream
+            const writeRes = await writeFile(filePath, peek.stream);
 
             return writeRes.and(okResult());
         });

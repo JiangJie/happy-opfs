@@ -4,7 +4,7 @@ import { Zip, ZipDeflate, ZipPassThrough, zipSync } from 'fflate/browser';
 import { Err, tryAsyncResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { isFileHandle, type DirEntry, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
-import { createEmptyBodyError, createNothingToZipError, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { createEmptyBodyError, createNothingToZipError, peekStream, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 import { EMPTY_BYTES } from './helpers.ts';
 
 /**
@@ -103,29 +103,41 @@ export async function zipStreamFromUrl(sourceUrl: string | URL, zipFilePath: str
     if (zipFilePathRes.isErr()) return zipFilePathRes.asErr();
     zipFilePath = zipFilePathRes.unwrap();
 
-    // Fetch as blob to check size before processing
+    // Fetch as stream for true streaming
     const fetchRes = await fetchT(sourceUrl, {
         redirect: 'follow',
         ...requestInit,
-        responseType: 'blob',
+        responseType: 'stream',
         abortable: false,
     });
 
     if (fetchRes.isErr()) return fetchRes.asErr();
 
-    const blob = fetchRes.unwrap();
+    const stream = fetchRes.unwrap();
     const { filename, keepEmptyBody = false } = requestInit ?? {};
     // Use provided filename, or basename of pathname, or 'file' as fallback
     const sourceName = filename ?? (sourceUrl.pathname !== SEPARATOR ? basename(sourceUrl.pathname) : 'file');
 
-    // Check for empty body
-    if (blob.size === 0) {
+    // Handle null stream (204/304 responses or HEAD requests)
+    if (!stream) {
         return keepEmptyBody
             ? zipEmptyFile(sourceName, zipFilePath)
             : Err(createEmptyBodyError());
     }
 
-    return streamZipFromStream(blob.stream(), sourceName, zipFilePath);
+    // Peek first chunk to check for empty body
+    const peekRes = await peekStream(stream);
+    if (peekRes.isErr()) return peekRes.asErr();
+
+    const peek = peekRes.unwrap();
+
+    if (peek.isEmpty) {
+        return keepEmptyBody
+            ? zipEmptyFile(sourceName, zipFilePath)
+            : Err(createEmptyBodyError());
+    }
+
+    return streamZipFromStream(peek.stream, sourceName, zipFilePath);
 }
 
 // ============================================================================

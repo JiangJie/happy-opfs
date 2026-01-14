@@ -7,7 +7,7 @@
  */
 
 import type { FetchTask } from '@happy-ts/fetch-t';
-import { SEPARATOR, basename, dirname } from '@std/path/posix';
+import { basename, dirname, SEPARATOR } from '@std/path/posix';
 import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import { ABORT_ERROR, EMPTY_BODY_ERROR, EMPTY_FILE_ERROR, NOT_FOUND_ERROR, NOTHING_TO_ZIP_ERROR, ROOT_DIR } from '../../shared/mod.ts';
 
@@ -304,5 +304,75 @@ async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFil
         const error = new Error(`${ err.name }: ${ err.message } When get child file '${ childFileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
         error.name = err.name;
         return error;
+    });
+}
+
+/**
+ * Result of peeking a stream's first chunk.
+ */
+export interface PeekStreamResult<T> {
+    /** Whether the stream is empty (no data). */
+    isEmpty: boolean;
+    /** The reconstructed stream with first chunk prepended. Only valid if not empty. */
+    stream: ReadableStream<T>;
+}
+
+/**
+ * Peeks the first chunk of a ReadableStream to check if it's empty.
+ * Returns the original stream reconstructed with the peeked chunk prepended.
+ *
+ * This enables true streaming while detecting empty streams before processing.
+ *
+ * @param source - The source ReadableStream to peek.
+ * @returns A promise resolving to an `AsyncIOResult` containing PeekStreamResult with isEmpty flag and reconstructed stream.
+ */
+export async function peekStream<T>(source: ReadableStream<T>): AsyncIOResult<PeekStreamResult<T>> {
+    const reader = source.getReader();
+
+    const firstRes = await tryAsyncResult(reader.read());
+    if (firstRes.isErr()) {
+        reader.releaseLock();
+        return firstRes.asErr();
+    }
+
+    const first = firstRes.unwrap();
+
+    if (first.done) {
+        reader.releaseLock();
+        return Ok({
+            isEmpty: true,
+            stream: source,
+        });
+    }
+
+    // Reconstruct stream: first chunk + remaining data
+    const stream = new ReadableStream<T>({
+        async start(controller) {
+            controller.enqueue(first.value);
+        },
+        async pull(controller) {
+            try {
+                const { done, value } = await reader.read();
+                if (done) {
+                    reader.releaseLock();
+                    controller.close();
+                } else {
+                    controller.enqueue(value);
+                }
+            } catch (err) {
+                reader.releaseLock();
+                controller.error(err);
+            }
+        },
+        cancel(reason) {
+            reader.cancel(reason).finally(() => {
+                reader.releaseLock();
+            });
+        },
+    });
+
+    return Ok({
+        isEmpty: false,
+        stream,
     });
 }
