@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream vs Batch Read Benchmark</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #00d9ff;
+        }
+        button {
+            background: #00d9ff;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #00b8d4;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #output {
+            white-space: pre-wrap;
+            background: #0d0d1a;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .header {
+            color: #00d9ff;
+            font-weight: bold;
+        }
+        .result {
+            color: #4caf50;
+        }
+        .error {
+            color: #f44336;
+        }
+        .info {
+            color: #888;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        label {
+            margin-right: 10px;
+        }
+        select, input {
+            background: #0d0d1a;
+            color: #eee;
+            border: 1px solid #333;
+            padding: 5px 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stream vs Batch Read Benchmark</h1>
+    <p class="info">Compare performance of reading files using stream encoding vs batch (bytes/utf8)</p>
+
+    <div class="controls">
+        <label>File Size:</label>
+        <select id="fileSize">
+            <option value="1048576">1 MB</option>
+            <option value="10485760" selected>10 MB</option>
+            <option value="52428800">50 MB</option>
+            <option value="104857600">100 MB</option>
+        </select>
+
+        <label>Iterations:</label>
+        <input type="number" id="iterations" value="5" min="1" max="20" style="width: 60px">
+    </div>
+
+    <div>
+        <button id="runAll">Run All Benchmarks</button>
+        <button id="runBatch">Batch Read Only</button>
+        <button id="runStream">Stream Read Only</button>
+        <button id="clear">Clear Output</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script type="module" src="./read-stream.ts"></script>
+</body>
+</html>
