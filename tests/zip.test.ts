@@ -5,6 +5,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import * as fs from '../src/mod.ts';
 import { worker } from './mocks/browser.ts';
+import { MOCK_SERVER } from './mocks/constants.ts';
 
 const mockZipUrl = 'https://raw.githubusercontent.com/JiangJie/happy-opfs/main/tests/test.zip';
 
@@ -451,13 +452,13 @@ describe('OPFS Zip Operations', () => {
         });
 
         it('should fail on empty response by default', async () => {
-            const result = await fs.zipStreamFromUrl('https://mock.test/api/empty-body', '/empty-stream.zip');
+            const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/empty-body`, '/empty-stream.zip');
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().name).toBe('EmptyBodyError');
         });
 
         it('should keep empty response with keepEmptyBody option', async () => {
-            const result = await fs.zipStreamFromUrl('https://mock.test/api/empty-body', '/empty-stream.zip', {
+            const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/empty-body`, '/empty-stream.zip', {
                 keepEmptyBody: true,
                 filename: 'empty.txt',
             });
@@ -487,13 +488,13 @@ describe('OPFS Zip Operations', () => {
         });
 
         it('should fail on empty response by default', async () => {
-            const result = await fs.zipFromUrl('https://mock.test/api/empty-body');
+            const result = await fs.zipFromUrl(`${MOCK_SERVER}/api/empty-body`);
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().name).toBe('EmptyBodyError');
         });
 
         it('should keep empty response with keepEmptyBody option', async () => {
-            const result = await fs.zipFromUrl('https://mock.test/api/empty-body', {
+            const result = await fs.zipFromUrl(`${MOCK_SERVER}/api/empty-body`, {
                 keepEmptyBody: true,
                 filename: 'empty.txt',
             });

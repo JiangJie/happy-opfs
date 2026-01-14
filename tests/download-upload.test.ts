@@ -6,8 +6,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import * as fs from '../src/mod.ts';
 import { worker } from './mocks/browser.ts';
-
-const mockServer = 'https://mock.test';
+import { MOCK_SERVER } from './mocks/constants.ts';
 
 describe('OPFS Download/Upload Operations', () => {
     beforeAll(async () => {
@@ -39,7 +38,7 @@ describe('OPFS Download/Upload Operations', () => {
 
     describe('downloadFile', () => {
         it('should download file to specified path', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/product`, '/downloaded.json', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/product`, '/downloaded.json', {
                 timeout: 10000,
             });
 
@@ -59,7 +58,7 @@ describe('OPFS Download/Upload Operations', () => {
             let progressCalled = false;
             let lastProgress = 0;
 
-            const task = fs.downloadFile(`${mockServer}/api/large-file`, '/large-file.bin', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/large-file`, '/large-file.bin', {
                 timeout: 10000,
                 onProgress: (progressResult) => {
                     progressResult.inspect((progress) => {
@@ -79,7 +78,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should download file to temp path when no path specified', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/product`);
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/product`);
 
             const result = await task.result;
             expect(result.isOk()).toBe(true);
@@ -94,7 +93,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should download binary file', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/binary`, '/binary.bin', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/binary`, '/binary.bin', {
                 timeout: 10000,
             });
 
@@ -107,7 +106,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should extract extension from URL path', async () => {
-            const task = fs.downloadFile(`${mockServer}/files/data.json`);
+            const task = fs.downloadFile(`${MOCK_SERVER}/files/data.json`);
 
             const result = await task.result;
             expect(result.isOk()).toBe(true);
@@ -119,7 +118,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should accept URL object', async () => {
-            const url = new URL(`${mockServer}/files/data.json`);
+            const url = new URL(`${MOCK_SERVER}/files/data.json`);
             const task = fs.downloadFile(url);
 
             const result = await task.result;
@@ -132,7 +131,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should be abortable', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/slow`, '/aborted.json', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/slow`, '/aborted.json', {
                 timeout: 30000,
             });
 
@@ -145,7 +144,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should check aborted getter', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/product`, '/downloaded.json', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/product`, '/downloaded.json', {
                 timeout: 10000,
             });
 
@@ -169,7 +168,7 @@ describe('OPFS Download/Upload Operations', () => {
 
         it('should return AbortError when aborted before completion', async () => {
             // Use slow endpoint to ensure we can abort before completion
-            const task = fs.downloadFile(`${mockServer}/api/slow`, '/aborted.json', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/slow`, '/aborted.json', {
                 timeout: 30000,
             });
 
@@ -185,7 +184,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should handle 404 response', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/404`, '/not-found.json', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/404`, '/not-found.json', {
                 timeout: 10000,
             });
 
@@ -198,7 +197,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should handle 500 response', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/500`, '/error.json', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/500`, '/error.json', {
                 timeout: 10000,
             });
 
@@ -211,7 +210,7 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should handle network error', async () => {
-            const task = fs.downloadFile(`${mockServer}/api/network-error`, '/network-error.json', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/network-error`, '/network-error.json', {
                 timeout: 10000,
             });
 
@@ -222,7 +221,7 @@ describe('OPFS Download/Upload Operations', () => {
         it('should not leave incomplete file when stream is interrupted', async () => {
             const filePath = '/stream-interrupt.bin';
 
-            const task = fs.downloadFile(`${mockServer}/api/stream-interrupt`, filePath, {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/stream-interrupt`, filePath, {
                 timeout: 10000,
             });
 
@@ -238,7 +237,7 @@ describe('OPFS Download/Upload Operations', () => {
 
         it('should fail on empty body response by default', async () => {
             // Response with Content-Length: 0
-            const task = fs.downloadFile(`${ mockServer }/api/204`, '/empty.bin');
+            const task = fs.downloadFile(`${ MOCK_SERVER }/api/204`, '/empty.bin');
 
             const result = await task.result;
             expect(result.isErr()).toBe(true);
@@ -247,7 +246,7 @@ describe('OPFS Download/Upload Operations', () => {
 
         it('should keep empty body response with keepEmptyBody option', async () => {
             // Response with Content-Length: 0, keepEmptyBody allows it
-            const task = fs.downloadFile(`${ mockServer }/api/empty-body`, '/empty.bin', {
+            const task = fs.downloadFile(`${ MOCK_SERVER }/api/empty-body`, '/empty.bin', {
                 keepEmptyBody: true,
             });
 
@@ -268,7 +267,7 @@ describe('OPFS Download/Upload Operations', () => {
             // Create a file to upload
             await fs.writeFile('/upload-test.json', JSON.stringify({ test: true }));
 
-            const task = fs.uploadFile('/upload-test.json', `${mockServer}/api/upload`);
+            const task = fs.uploadFile('/upload-test.json', `${MOCK_SERVER}/api/upload`);
 
             const result = await task.result;
             expect(result.isOk()).toBe(true);
@@ -283,7 +282,7 @@ describe('OPFS Download/Upload Operations', () => {
         it('should upload file with custom filename', async () => {
             await fs.writeFile('/upload-custom.json', JSON.stringify({ custom: true }));
 
-            const task = fs.uploadFile('/upload-custom.json', `${mockServer}/api/upload`, {
+            const task = fs.uploadFile('/upload-custom.json', `${MOCK_SERVER}/api/upload`, {
                 timeout: 10000,
                 filename: 'custom-name.json',
             });
@@ -306,7 +305,7 @@ describe('OPFS Download/Upload Operations', () => {
         it('should be abortable', async () => {
             await fs.writeFile('/upload-abort.json', JSON.stringify({ abort: true }));
 
-            const task = fs.uploadFile('/upload-abort.json', `${mockServer}/api/upload`, {
+            const task = fs.uploadFile('/upload-abort.json', `${MOCK_SERVER}/api/upload`, {
                 timeout: 10000,
             });
 
@@ -321,7 +320,7 @@ describe('OPFS Download/Upload Operations', () => {
         it('should check aborted getter', async () => {
             await fs.writeFile('/upload-abort.json', JSON.stringify({ abort: true }));
 
-            const task = fs.uploadFile('/upload-abort.json', `${mockServer}/api/upload`, {
+            const task = fs.uploadFile('/upload-abort.json', `${MOCK_SERVER}/api/upload`, {
                 timeout: 10000,
             });
 

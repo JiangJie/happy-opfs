@@ -2,6 +2,7 @@
  * MSW handlers for download/upload tests
  */
 import { http, HttpResponse } from 'msw';
+import { MOCK_SERVER } from './constants.ts';
 
 // Mock data
 const mockProduct = {
@@ -25,17 +26,17 @@ function generateLargeData(sizeInKB: number): string {
 
 export const handlers = [
     // GET single product - small JSON response
-    http.get('https://mock.test/api/product', () => {
+    http.get(`${MOCK_SERVER}/api/product`, () => {
         return HttpResponse.json(mockProduct);
     }),
 
     // GET all products - larger JSON response
-    http.get('https://mock.test/api/products', () => {
+    http.get(`${MOCK_SERVER}/api/products`, () => {
         return HttpResponse.json(mockProducts);
     }),
 
     // GET large file - for progress testing
-    http.get('https://mock.test/api/large-file', () => {
+    http.get(`${MOCK_SERVER}/api/large-file`, () => {
         const largeData = generateLargeData(100); // 100KB
         return new HttpResponse(largeData, {
             headers: {
@@ -46,7 +47,7 @@ export const handlers = [
     }),
 
     // GET binary file
-    http.get('https://mock.test/api/binary', () => {
+    http.get(`${MOCK_SERVER}/api/binary`, () => {
         const data = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
         return new HttpResponse(data, {
             headers: {
@@ -57,18 +58,18 @@ export const handlers = [
     }),
 
     // GET with file extension in URL
-    http.get('https://mock.test/files/data.json', () => {
+    http.get(`${MOCK_SERVER}/files/data.json`, () => {
         return HttpResponse.json({ file: 'data.json' });
     }),
 
     // GET slow response - for abort testing
-    http.get('https://mock.test/api/slow', async () => {
+    http.get(`${MOCK_SERVER}/api/slow`, async () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
         return HttpResponse.json({ slow: true });
     }),
 
     // POST upload endpoint - handle FormData upload
-    http.post('https://mock.test/api/upload', async ({ request }) => {
+    http.post(`${MOCK_SERVER}/api/upload`, async ({ request }) => {
         // Clone the request to safely read the body
         const clonedRequest = request.clone();
 
@@ -108,7 +109,7 @@ export const handlers = [
     }),
 
     // PUT upload endpoint (alternative)
-    http.put('https://mock.test/api/upload', async ({ request }) => {
+    http.put(`${MOCK_SERVER}/api/upload`, async ({ request }) => {
         try {
             const body = await request.arrayBuffer();
             return HttpResponse.json({
@@ -124,21 +125,21 @@ export const handlers = [
     }),
 
     // Error responses for testing
-    http.get('https://mock.test/api/404', () => {
+    http.get(`${MOCK_SERVER}/api/404`, () => {
         return new HttpResponse(null, { status: 404 });
     }),
 
-    http.get('https://mock.test/api/500', () => {
+    http.get(`${MOCK_SERVER}/api/500`, () => {
         return new HttpResponse(null, { status: 500 });
     }),
 
     // Empty response (204 No Content)
-    http.get('https://mock.test/api/empty', () => {
+    http.get(`${MOCK_SERVER}/api/empty`, () => {
         return new HttpResponse(null, { status: 204 });
     }),
 
     // Empty body with 200 status (for testing allowEmpty option)
-    http.get('https://mock.test/api/empty-body', () => {
+    http.get(`${MOCK_SERVER}/api/empty-body`, () => {
         return new HttpResponse(new Uint8Array(0), {
             status: 200,
             headers: {
@@ -149,14 +150,14 @@ export const handlers = [
     }),
 
     // HEAD request - returns null body (for testing keepEmptyBody option)
-    http.head('https://mock.test/api/data', () => {
+    http.head(`${MOCK_SERVER}/api/data`, () => {
         return new HttpResponse(null, {
             headers: { 'Content-Type': 'application/json' },
         });
     }),
 
     // GET /api/204 - returns 204 No Content for GET request
-    http.get('https://mock.test/api/204', () => {
+    http.get(`${MOCK_SERVER}/api/204`, () => {
         return new HttpResponse(null, {
             status: 204,
             headers: {
@@ -166,17 +167,17 @@ export const handlers = [
     }),
 
     // GET /api/empty - returns 200 with empty body
-    http.get('https://mock.test/api/empty/200', () => {
+    http.get(`${MOCK_SERVER}/api/empty/200`, () => {
         return new HttpResponse(null, { status: 200 });
     }),
 
     // Network error simulation
-    http.get('https://mock.test/api/network-error', () => {
+    http.get(`${MOCK_SERVER}/api/network-error`, () => {
         return HttpResponse.error();
     }),
 
     // Stream interruption simulation - sends partial data then errors
-    http.get('https://mock.test/api/stream-interrupt', () => {
+    http.get(`${MOCK_SERVER}/api/stream-interrupt`, () => {
         const stream = new ReadableStream({
             async start(controller) {
                 // Send first chunk

@@ -4,7 +4,7 @@
  */
 import { http, HttpResponse } from 'msw';
 
-const mockServer = 'https://mock.test';
+export const MOCK_SERVER = 'https://mock.test';
 
 /**
  * Generate random binary data of specified size
@@ -20,7 +20,7 @@ function generateRandomBytes(sizeInBytes: number): Uint8Array {
 
 export const handlers = [
     // Mock bytes endpoint - similar to httpbin.org/bytes/:size
-    http.get(`${mockServer}/bytes/:size`, ({ params }) => {
+    http.get(`${MOCK_SERVER}/bytes/:size`, ({ params }) => {
         const size = parseInt(params['size'] as string, 10);
         if (isNaN(size) || size <= 0) {
             return new HttpResponse(null, { status: 400 });
@@ -36,7 +36,7 @@ export const handlers = [
     }),
 
     // Pre-defined size endpoints for convenience
-    http.get(`${mockServer}/bytes/1mb`, () => {
+    http.get(`${MOCK_SERVER}/bytes/1mb`, () => {
         const size = 1024 * 1024; // 1 MB
         const data = generateRandomBytes(size);
         return new HttpResponse(data, {
@@ -47,7 +47,7 @@ export const handlers = [
         });
     }),
 
-    http.get(`${mockServer}/bytes/5mb`, () => {
+    http.get(`${MOCK_SERVER}/bytes/5mb`, () => {
         const size = 5 * 1024 * 1024; // 5 MB
         const data = generateRandomBytes(size);
         return new HttpResponse(data, {
@@ -58,7 +58,7 @@ export const handlers = [
         });
     }),
 
-    http.get(`${mockServer}/bytes/10mb`, () => {
+    http.get(`${MOCK_SERVER}/bytes/10mb`, () => {
         const size = 10 * 1024 * 1024; // 10 MB
         const data = generateRandomBytes(size);
         return new HttpResponse(data, {
