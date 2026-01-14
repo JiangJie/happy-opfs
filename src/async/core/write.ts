@@ -118,8 +118,6 @@ function getWriteFileHandle(filePath: string, options?: WriteOptions): AsyncIORe
 
 /**
  * Type guard for detecting binary ReadableStream input for file writing.
- *
- * Note: uses `instanceof ReadableStream`, which may not work across realms (e.g. iframe)
  */
 function isBinaryReadableStream(x: unknown): x is ReadableStream<Uint8Array<ArrayBuffer>> {
     return typeof ReadableStream !== 'undefined' && x instanceof ReadableStream;
@@ -327,14 +325,14 @@ function writeBytesWithRetry(
             at: currentPosition,
         });
 
+        currentPosition += written;
+
         if (written >= remaining.byteLength) {
-            currentPosition += written;
             break;
         }
 
         // Create a new Uint8Array for the remaining part without copying buffer.
         remaining = remaining.subarray(written);
-        currentPosition += written;
     }
 
     return currentPosition;
