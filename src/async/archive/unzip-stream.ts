@@ -5,7 +5,7 @@ import { Err, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import type { UnzipFromUrlRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
 import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty, validateUrl } from '../internal/mod.ts';
-import { validateDestDir } from './helpers.ts';
+import { EMPTY_BYTES, validateDestDir } from './helpers.ts';
 
 /**
  * Unzip a zip file to a directory using streaming decompression.
@@ -146,7 +146,7 @@ async function streamUnzipTo(
             unzipper.push(chunk, false);
         }
         // Signal end of stream
-        unzipper.push(new Uint8Array(0), true);
+        unzipper.push(EMPTY_BYTES, true);
     } catch (err) {
         return Err(err as Error);
     }

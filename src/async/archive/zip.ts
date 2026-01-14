@@ -1,22 +1,18 @@
 import { fetchT } from '@happy-ts/fetch-t';
-import { basename, join } from '@std/path/posix';
+import { basename, join, SEPARATOR } from '@std/path/posix';
 import { zip as compress, type AsyncZippable } from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { readBlobBytes, readBlobBytesSync } from '../../shared/helpers.ts';
 import { isFileHandle, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
-import { createEmptyBodyError, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { createEmptyBodyError, createNothingToZipError, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { EMPTY_BYTES } from './helpers.ts';
 
 /**
  * Result type for zip operation.
  */
 type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
-
-/**
- * Empty bytes for directory entries in zip.
- */
-const EMPTY_DIR_DATA = new Uint8Array(0);
 
 /**
  * Zip a file or directory and write to a zip file.
@@ -96,7 +92,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
 
         // Add root directory entry
         if (preserveRoot) {
-            zippable[`${ sourceName }/`] = EMPTY_DIR_DATA;
+            zippable[sourceName + SEPARATOR] = EMPTY_BYTES;
         }
 
         try {
@@ -114,7 +110,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
                     })());
                 } else {
                     // directory - add entry with trailing slash and empty content
-                    zippable[`${ entryName }/`] = EMPTY_DIR_DATA;
+                    zippable[entryName + SEPARATOR] = EMPTY_BYTES;
                 }
             }
         } catch (e) {
@@ -135,7 +131,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
 
     // Nothing to zip - matches standard zip command behavior
     if (Object.keys(zippable).length === 0) {
-        return Err(new Error('Nothing to zip')) as ZipIOResult;
+        return Err(createNothingToZipError()) as ZipIOResult;
     }
 
     return zipTo(zippable, zipFilePath);
@@ -216,7 +212,7 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
     }
 
     // Use provided filename, or basename of pathname, or 'file' as fallback
-    const sourceName = filename ?? (sourceUrl.pathname !== '/' ? basename(sourceUrl.pathname) : 'file');
+    const sourceName = filename ?? (sourceUrl.pathname !== SEPARATOR ? basename(sourceUrl.pathname) : 'file');
 
     return zipTo({
         [sourceName]: bytes,
@@ -228,9 +224,9 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
 // ============================================================================
 
 /**
- * Zip a zippable data then write to the target path.
+ * Zip data and optionally write to the target path.
  * @param zippable - Zippable data.
- * @param zipFilePath - Target zip file path.
+ * @param zipFilePath - Target zip file path. If provided, writes to file; otherwise returns bytes.
  */
 function zipTo(zippable: AsyncZippable, zipFilePath?: string): Promise<ZipIOResult> {
     const future = new Future<ZipIOResult>();

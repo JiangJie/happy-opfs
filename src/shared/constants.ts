@@ -17,6 +17,11 @@ export const EMPTY_BODY_ERROR = 'EmptyBodyError' as const;
 export const EMPTY_FILE_ERROR = 'EmptyFileError' as const;
 
 /**
+ * Nothing to zip - empty directory with no entries.
+ */
+export const NOTHING_TO_ZIP_ERROR = 'NothingToZipError' as const;
+
+/**
  * A constant representing the root directory path.
  */
 export const ROOT_DIR = '/' as const;

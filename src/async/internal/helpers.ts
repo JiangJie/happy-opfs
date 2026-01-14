@@ -9,7 +9,7 @@
 import type { FetchTask } from '@happy-ts/fetch-t';
 import { SEPARATOR, basename, dirname } from '@std/path/posix';
 import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
-import { ABORT_ERROR, EMPTY_BODY_ERROR, EMPTY_FILE_ERROR, NOT_FOUND_ERROR, ROOT_DIR } from '../../shared/mod.ts';
+import { ABORT_ERROR, EMPTY_BODY_ERROR, EMPTY_FILE_ERROR, NOT_FOUND_ERROR, NOTHING_TO_ZIP_ERROR, ROOT_DIR } from '../../shared/mod.ts';
 
 /**
  * Lazily initialized root directory handle of the file system.
@@ -158,6 +158,19 @@ export function createEmptyBodyError(): Error {
 export function createEmptyFileError(): Error {
     const error = new Error('File content is empty');
     error.name = EMPTY_FILE_ERROR;
+
+    return error;
+}
+
+/**
+ * Creates a `NothingToZipError` instance.
+ * Used when attempting to zip an empty directory with preserveRoot=false.
+ *
+ * @returns An `Error` object with the name set to `'NothingToZipError'`.
+ */
+export function createNothingToZipError(): Error {
+    const error = new Error('Nothing to zip');
+    error.name = NOTHING_TO_ZIP_ERROR;
 
     return error;
 }
