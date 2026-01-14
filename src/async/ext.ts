@@ -1,8 +1,8 @@
-import { basename, join, SEPARATOR } from '@std/path/posix';
+import { join, SEPARATOR } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import { aggregateResults, getParentDirHandle, isNotFoundError, isRootDir, markParentDirsNonEmpty, validateAbsolutePath, validateExistsOptions } from './internal/mod.ts';
+import { aggregateResults, isNotFoundError, isRootDir, markParentDirsNonEmpty, moveFileHandle, validateAbsolutePath, validateExistsOptions } from './internal/mod.ts';
 
 /**
  * Appends content to a file at the specified path.
@@ -220,15 +220,6 @@ export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
 // ============================================================================
 
 /**
- * Extended FileSystemHandle interface with move method.
- * The move() method is not yet in TypeScript's lib.dom.d.ts.
- * @see https://github.com/mdn/browser-compat-data/issues/20341
- */
-interface MovableHandle extends FileSystemHandle {
-    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
-}
-
-/**
  * Handler function type for processing source file to destination.
  *
  * @param srcFileHandle - The source file handle to process.
@@ -246,25 +237,6 @@ type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
 async function copyFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
     const fileRes = await tryAsyncResult(fileHandle.getFile());
     return fileRes.andThenAsync(file => writeFile(destFilePath, file));
-}
-
-/**
- * Moves a file handle to a new path using the FileSystemFileHandle.move() method.
- * This is an optimized operation that avoids data copying.
- *
- * @param fileHandle - The file handle to move.
- * @param destFilePath - The new absolute path for the file.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
- */
-async function moveFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
-    const dirRes = await getParentDirHandle(destFilePath, {
-        create: true,
-    });
-
-    return dirRes.andTryAsync(destDirHandle => {
-        const destName = basename(destFilePath);
-        return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
-    });
 }
 
 /**

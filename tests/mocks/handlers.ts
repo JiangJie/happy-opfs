@@ -174,4 +174,31 @@ export const handlers = [
     http.get('https://mock.test/api/network-error', () => {
         return HttpResponse.error();
     }),
+
+    // Stream interruption simulation - sends partial data then errors
+    http.get('https://mock.test/api/stream-interrupt', () => {
+        const stream = new ReadableStream({
+            async start(controller) {
+                // Send first chunk
+                const chunk1 = new TextEncoder().encode('partial-data-chunk-1');
+                controller.enqueue(chunk1);
+
+                // Small delay to simulate streaming
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                // Send second chunk
+                const chunk2 = new TextEncoder().encode('partial-data-chunk-2');
+                controller.enqueue(chunk2);
+
+                // Simulate network interruption
+                controller.error(new Error('Network connection lost'));
+            },
+        });
+
+        return new HttpResponse(stream, {
+            headers: {
+                'Content-Type': 'application/octet-stream',
+            },
+        });
+    }),
 ];

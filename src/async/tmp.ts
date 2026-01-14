@@ -78,6 +78,10 @@ export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
 /**
  * Deletes the entire temporary directory (`/tmp`) and all its contents.
  *
+ * **Warning:** When writing a `ReadableStream` to a new file, `writeFile` uses a temporary file
+ * in `/tmp` before moving it to the target path. Calling `deleteTemp()` during such operations
+ * may cause the write to fail. Ensure no stream writes are in progress before calling this function.
+ *
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @example
  * ```typescript

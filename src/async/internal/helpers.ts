@@ -376,3 +376,31 @@ export async function peekStream<T>(source: ReadableStream<T>): AsyncIOResult<Pe
         stream,
     });
 }
+
+/**
+ * Extended FileSystemHandle interface with move method.
+ * The move() method is not yet in TypeScript's lib.dom.d.ts.
+ * @see https://github.com/mdn/browser-compat-data/issues/20341
+ */
+interface MovableHandle extends FileSystemHandle {
+    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
+}
+
+/**
+ * Moves a file handle to a new path, creating parent directories if needed.
+ * This is a higher-level operation that handles path resolution and directory creation.
+ *
+ * @param fileHandle - The file handle to move.
+ * @param destFilePath - The destination absolute file path.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ */
+export async function moveFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
+    const dirRes = await getParentDirHandle(destFilePath, {
+        create: true,
+    });
+
+    return dirRes.andTryAsync(destDirHandle => {
+        const destName = basename(destFilePath);
+        return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
+    });
+}

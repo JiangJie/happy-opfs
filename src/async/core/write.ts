@@ -1,12 +1,19 @@
-import type { AsyncIOResult, AsyncVoidIOResult } from 'happy-rusty';
+import { tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { textEncode } from '../../shared/codec.ts';
 import { readBlobBytesSync } from '../../shared/helpers.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
-import { getFileHandle, validateAbsolutePath } from '../internal/mod.ts';
+import { getFileHandle, isNotFoundError, moveFileHandle, validateAbsolutePath } from '../internal/mod.ts';
+import { generateTempPath } from '../tmp.ts';
+import { remove } from './remove.ts';
 
 /**
  * Writes content to a file at the specified path.
  * Creates the file and parent directories if they don't exist (unless `create: false`).
+ *
+ * When writing a `ReadableStream` to a **new file**, the stream is first written to a temporary
+ * file in `/tmp`, then moved to the target path upon success. This prevents leaving incomplete
+ * files if the stream is interrupted. For existing files, writes are performed directly since
+ * OPFS's transactional writes preserve the original content on failure.
  *
  * @param filePath - The absolute path of the file to write to.
  * @param contents - The content to write (string, ArrayBuffer, TypedArray, Blob, or ReadableStream<Uint8Array>).
@@ -27,6 +34,15 @@ import { getFileHandle, validateAbsolutePath } from '../internal/mod.ts';
  * ```
  */
 export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncVoidIOResult {
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
+
+    // For stream content, use temp file strategy when creating new files
+    if (isBinaryReadableStream(contents)) {
+        return writeStreamToFile(filePath, contents, options);
+    }
+
     const fileHandleRes = await getWriteFileHandle(filePath, options);
 
     return fileHandleRes.andTryAsync(fileHandle => {
@@ -34,15 +50,11 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
 
         // Prefer sync access in Worker for better performance
         if (typeof fileHandle.createSyncAccessHandle === 'function') {
-            return isBinaryReadableStream(contents)
-                ? writeStreamViaSyncAccess(fileHandle, contents, append)
-                : writeDataViaSyncAccess(fileHandle, contents, append);
+            return writeDataViaSyncAccess(fileHandle, contents, append);
         }
 
         // Main thread fallback
-        return isBinaryReadableStream(contents)
-            ? writeStreamViaWritable(fileHandle, contents, append)
-            : writeDataViaWritable(fileHandle, contents, append);
+        return writeDataViaWritable(fileHandle, contents, append);
     });
 }
 
@@ -68,6 +80,10 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
  * ```
  */
 export async function openWritableFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
+
     const fileHandleRes = await getWriteFileHandle(filePath, options);
 
     return fileHandleRes.andTryAsync(async fileHandle => {
@@ -95,11 +111,7 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
 /**
  * Gets a file handle for writing, with optional creation.
  */
-async function getWriteFileHandle(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemFileHandle> {
-    const filePathRes = validateAbsolutePath(filePath);
-    if (filePathRes.isErr()) return filePathRes.asErr();
-    filePath = filePathRes.unwrap();
-
+function getWriteFileHandle(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemFileHandle> {
     const { create = true } = options ?? {};
     return getFileHandle(filePath, { create });
 }
@@ -111,6 +123,81 @@ async function getWriteFileHandle(filePath: string, options?: WriteOptions): Asy
  */
 function isBinaryReadableStream(x: unknown): x is ReadableStream<Uint8Array<ArrayBuffer>> {
     return typeof ReadableStream !== 'undefined' && x instanceof ReadableStream;
+}
+
+/**
+ * Writes a ReadableStream to a file with atomic semantics for new files.
+ *
+ * Strategy:
+ * - If target file exists: write directly (OPFS transactional writes preserve original on failure)
+ * - If target file doesn't exist: write to temp file first, then move to target on success
+ *
+ * This prevents leaving incomplete/empty files when stream is interrupted during new file creation.
+ *
+ * Assumes filePath is already validated.
+ */
+async function writeStreamToFile(
+    filePath: string,
+    stream: ReadableStream<Uint8Array<ArrayBuffer>>,
+    options?: WriteOptions,
+): AsyncVoidIOResult {
+    const { create = true, append = false } = options ?? {};
+
+    // Check if target file already exists
+    const existHandleRes = await getFileHandle(filePath, { create: false });
+
+    if (existHandleRes.isOk()) {
+        // File exists: write directly (transactional protection)
+        return writeStreamToHandle(existHandleRes.unwrap(), stream, append);
+    }
+
+    // File doesn't exist or unexpected error - return error if not creating or not a NotFoundError
+    if (!create || !isNotFoundError(existHandleRes.unwrapErr())) {
+        return existHandleRes.asErr();
+    }
+
+    // New file: use temp file strategy
+    const tempPath = generateTempPath();
+    const tempHandleRes = await getFileHandle(tempPath, { create: true });
+    if (tempHandleRes.isErr()) {
+        return tempHandleRes.asErr();
+    }
+
+    const tempHandle = tempHandleRes.unwrap();
+    const writeRes = await writeStreamToHandle(tempHandle, stream, false);
+
+    if (writeRes.isErr()) {
+        // Clean up temp file on failure
+        await remove(tempPath);
+        return writeRes;
+    }
+
+    // Move temp file to target path (this creates parent directories if needed)
+    const moveRes = await moveFileHandle(tempHandle, filePath);
+    if (moveRes.isErr()) {
+        // Clean up temp file
+        await remove(tempPath);
+    }
+
+    return moveRes;
+}
+
+/**
+ * Writes a stream to a file handle using the appropriate API.
+ */
+async function writeStreamToHandle(
+    fileHandle: FileSystemFileHandle,
+    stream: ReadableStream<Uint8Array<ArrayBuffer>>,
+    append: boolean,
+): AsyncVoidIOResult {
+    return tryAsyncResult(() => {
+        // Prefer sync access in Worker for better performance
+        if (typeof fileHandle.createSyncAccessHandle === 'function') {
+            return writeStreamViaSyncAccess(fileHandle, stream, append);
+        }
+        // Main thread fallback
+        return writeStreamViaWritable(fileHandle, stream, append);
+    });
 }
 
 /**

@@ -219,6 +219,24 @@ describe('OPFS Download/Upload Operations', () => {
             expect(result.isErr()).toBe(true);
         });
 
+        // TODO: Fix incomplete file issue - currently leaves empty file on stream interruption
+        it.skip('should not leave incomplete file when stream is interrupted', async () => {
+            const filePath = '/stream-interrupt.bin';
+
+            const task = fs.downloadFile(`${mockServer}/api/stream-interrupt`, filePath, {
+                timeout: 10000,
+            });
+
+            const result = await task.result;
+
+            // Download should fail due to stream interruption
+            expect(result.isErr()).toBe(true);
+
+            // After a failed download, file should NOT exist
+            const existsRes = await fs.exists(filePath);
+            expect(existsRes.unwrap()).toBe(false);
+        });
+
         it('should fail on empty body response by default', async () => {
             // Response with Content-Length: 0
             const task = fs.downloadFile(`${ mockServer }/api/204`, '/empty.bin');

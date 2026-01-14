@@ -13,6 +13,7 @@ describe('OPFS Stream Operations', () => {
         await fs.remove('/stream-write-bin.bin');
         await fs.remove('/stream-append.txt');
         await fs.remove('/stream-nested');
+        await fs.remove('/stream-interrupt.bin');
     });
 
     describe('readFile stream encoding', () => {
@@ -145,6 +146,97 @@ describe('OPFS Stream Operations', () => {
         it('should fail when create is false and file does not exist', async () => {
             const result = await fs.openWritableFileStream('/non-existent-stream-write.txt', { create: false });
             expect(result.isErr()).toBe(true);
+        });
+    });
+
+    describe('writeFile with interrupted stream', () => {
+        it('should not leave incomplete file when stream errors on new file', async () => {
+            const filePath = '/stream-interrupt-new.bin';
+
+            // Ensure file does not exist before test
+            await fs.remove(filePath);
+
+            // Create a stream that errors after sending some data
+            const interruptedStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                async start(controller) {
+                    // Send first chunk
+                    controller.enqueue(new TextEncoder().encode('chunk-1-data-'));
+
+                    // Small delay
+                    await new Promise(resolve => setTimeout(resolve, 10));
+
+                    // Send second chunk
+                    controller.enqueue(new TextEncoder().encode('chunk-2-data-'));
+
+                    // Simulate error mid-stream
+                    controller.error(new Error('Stream interrupted'));
+                },
+            });
+
+            // Write the interrupted stream
+            const writeRes = await fs.writeFile(filePath, interruptedStream);
+
+            // Write should fail
+            expect(writeRes.isErr()).toBe(true);
+
+            // With temp file strategy: incomplete file should NOT be left on disk
+            const existsRes = await fs.exists(filePath);
+            expect(existsRes.unwrap()).toBe(false);
+        });
+
+        it('preserves existing file content when stream errors during overwrite', async () => {
+            const filePath = '/stream-interrupt.bin';
+            const originalContent = 'This is the original file content that should be preserved';
+
+            // Create file with original content
+            await fs.writeFile(filePath, originalContent);
+
+            // Create a stream that errors after sending some data
+            const interruptedStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                async start(controller) {
+                    controller.enqueue(new TextEncoder().encode('partial'));
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    controller.error(new Error('Stream interrupted'));
+                },
+            });
+
+            // Try to overwrite with interrupted stream
+            const writeRes = await fs.writeFile(filePath, interruptedStream);
+            expect(writeRes.isErr()).toBe(true);
+
+            // Check file state after failed write
+            const afterContent = await fs.readTextFile(filePath);
+            const content = afterContent.unwrap();
+
+            // Actual behavior: FileSystemWritableFileStream preserves original content
+            // because it uses transactional writes (only commits on close)
+            expect(content).toBe(originalContent);
+        });
+
+        it('preserves existing file content when stream errors during append', async () => {
+            const filePath = '/stream-interrupt.bin';
+            const originalContent = 'Original content';
+
+            // Create file with original content
+            await fs.writeFile(filePath, originalContent);
+
+            // Create a stream that errors after sending some data
+            const interruptedStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                async start(controller) {
+                    controller.enqueue(new TextEncoder().encode('-appended'));
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                    controller.error(new Error('Stream interrupted'));
+                },
+            });
+
+            // Try to append with interrupted stream
+            const writeRes = await fs.writeFile(filePath, interruptedStream, { append: true });
+            expect(writeRes.isErr()).toBe(true);
+
+            // FileSystemWritableFileStream uses transactional writes
+            // Original content is preserved on failed append
+            const afterContent = await fs.readTextFile(filePath);
+            expect(afterContent.unwrap()).toBe(originalContent);
         });
     });
 });
