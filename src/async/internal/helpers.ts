@@ -339,9 +339,14 @@ export async function peekStream<T>(source: ReadableStream<T>): AsyncIOResult<Pe
 
     if (first.done) {
         reader.releaseLock();
+        // Return a new empty stream since the original is already consumed
         return Ok({
             isEmpty: true,
-            stream: source,
+            stream: new ReadableStream<T>({
+                start(controller) {
+                    controller.close();
+                },
+            }),
         });
     }
 
@@ -364,10 +369,12 @@ export async function peekStream<T>(source: ReadableStream<T>): AsyncIOResult<Pe
                 controller.error(err);
             }
         },
-        cancel(reason) {
-            reader.cancel(reason).finally(() => {
+        async cancel(reason) {
+            try {
+                await reader.cancel(reason);
+            } finally {
                 reader.releaseLock();
-            });
+            }
         },
     });
 
