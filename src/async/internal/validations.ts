@@ -64,10 +64,10 @@ export function validateUrl(url: string | URL): IOResult<URL> {
  */
 export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
     const { isDirectory = false, isFile = false } = options ?? {};
-    if (isDirectory && isFile) {
-        return Err(new Error('isDirectory and isFile cannot both be true'));
-    }
-    return RESULT_VOID;
+
+    return isDirectory && isFile
+        ? Err(new Error('isDirectory and isFile cannot both be true'))
+        : RESULT_VOID;
 }
 
 /**
@@ -75,11 +75,14 @@ export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
  * Returns a Result instead of throwing.
  *
  * @param expired - The Date to validate.
- * @returns A `VoidIOResult` indicating success, or an error if not a Date instance.
+ * @returns A `VoidIOResult` indicating success, or an error if not a valid Date instance, eg: `new Date('invalid')`.
  */
 export function validateExpiredDate(expired: Date): VoidIOResult {
-    if (expired instanceof Date) {
-        return RESULT_VOID;
+    if (!(expired instanceof Date)) {
+        return Err(new TypeError(`expired must be a Date but received ${ typeof expired }`));
     }
-    return Err(new TypeError(`expired must be a Date but received ${ typeof expired }`));
+
+    return Number.isNaN(expired.getTime())
+        ? Err(new Error('expired must be a valid Date'))
+        : RESULT_VOID;
 }
