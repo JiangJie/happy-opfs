@@ -219,8 +219,7 @@ describe('OPFS Download/Upload Operations', () => {
             expect(result.isErr()).toBe(true);
         });
 
-        // TODO: Fix incomplete file issue - currently leaves empty file on stream interruption
-        it.skip('should not leave incomplete file when stream is interrupted', async () => {
+        it('should not leave incomplete file when stream is interrupted', async () => {
             const filePath = '/stream-interrupt.bin';
 
             const task = fs.downloadFile(`${mockServer}/api/stream-interrupt`, filePath, {
