@@ -9,6 +9,9 @@ import { getParentDirHandle, isNotFoundError, isRootDir, removeHandle, validateA
  * @param path - The absolute path of the file or directory to remove.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @since 1.0.0
+ * @see {@link removeSync} for synchronous version
+ * @see {@link emptyDir} for emptying a directory without removing it
+ * @see {@link deleteTemp} for removing the temporary directory
  * @example
  * ```typescript
  * (await remove('/path/to/file-or-directory'))

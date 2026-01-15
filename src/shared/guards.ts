@@ -6,6 +6,9 @@ import type { FileSystemFileHandleLike, FileSystemHandleLike } from './defines.t
  * @param handle - The `FileSystemHandle` to check.
  * @returns `true` if the handle is a `FileSystemFileHandle`, otherwise `false`.
  * @since 1.0.0
+ * @see {@link isDirectoryHandle} for checking directory handles
+ * @see {@link isFileHandleLike} for sync handle-like objects
+ * @see {@link stat} for getting handles from paths
  * @example
  * ```typescript
  * (await stat('/path/to/file'))
@@ -22,6 +25,8 @@ export function isFileHandle(handle: FileSystemHandle): handle is FileSystemFile
  * @param handle - The `FileSystemHandle` to check.
  * @returns `true` if the handle is a `FileSystemDirectoryHandle`, otherwise `false`.
  * @since 1.0.0
+ * @see {@link isFileHandle} for checking file handles
+ * @see {@link stat} for getting handles from paths
  * @example
  * ```typescript
  * (await stat('/path/to/dir'))
@@ -38,6 +43,8 @@ export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSyste
  * @param handle - The `FileSystemHandleLike` object to check.
  * @returns `true` if the handle-like object represents a file, otherwise `false`.
  * @since 1.1.0
+ * @see {@link isFileHandle} for async file handles
+ * @see {@link statSync} for getting sync handle-like objects
  * @example
  * ```typescript
  * statSync('/path/to/file')

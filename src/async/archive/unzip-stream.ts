@@ -20,6 +20,8 @@ import { EMPTY_BYTES, validateDestDir } from './helpers.ts';
  * @param destDir - The directory to unzip to.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @since unreleased
+ * @see {@link unzip} for batch version (faster for small files)
+ * @see {@link zipStream} for the reverse operation
  * @example
  * ```typescript
  * (await unzipStream('/downloads/large-archive.zip', '/extracted'))
@@ -51,6 +53,8 @@ export async function unzipStream(zipFilePath: string, destDir: string): AsyncVo
  * @param requestInit - Optional request options.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @since unreleased
+ * @see {@link unzipFromUrl} for batch version (faster for small files)
+ * @see {@link zipStreamFromUrl} for the reverse operation
  * @example
  * ```typescript
  * (await unzipStreamFromUrl('https://example.com/large-archive.zip', '/extracted'))

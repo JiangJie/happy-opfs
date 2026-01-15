@@ -19,6 +19,8 @@ import { generateTempPath } from '../tmp.ts';
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the download.
  * @since 1.0.4
+ * @see {@link uploadFile} for the reverse operation
+ * @see {@link unzipFromUrl} for downloading and extracting zip files
  * @example
  * ```typescript
  * // Download to a temporary file
@@ -37,6 +39,8 @@ export function downloadFile(fileUrl: string | URL, requestInit?: DownloadReques
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the download.
  * @since 1.0.4
+ * @see {@link uploadFile} for the reverse operation
+ * @see {@link unzipFromUrl} for downloading and extracting zip files
  * @example
  * ```typescript
  * // Download to a specific path

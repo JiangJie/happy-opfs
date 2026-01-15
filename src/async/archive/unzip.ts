@@ -21,6 +21,9 @@ import { validateDestDir } from './helpers.ts';
  * @param destDir - The directory to unzip to.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @since 1.6.0
+ * @see {@link unzipSync} for synchronous version
+ * @see {@link unzipStream} for streaming version (better for large files)
+ * @see {@link zip} for the reverse operation
  * @example
  * ```typescript
  * (await unzip('/downloads/archive.zip', '/extracted'))
@@ -52,6 +55,8 @@ export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIORe
  * @param requestInit - Optional request options.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the zip file was successfully unzipped.
  * @since 1.7.0
+ * @see {@link unzipStreamFromUrl} for streaming version (better for large files)
+ * @see {@link zipFromUrl} for the reverse operation
  * @example
  * ```typescript
  * (await unzipFromUrl('https://example.com/archive.zip', '/extracted'))

@@ -22,6 +22,9 @@ import { remove } from './remove.ts';
  * @param options.append - Whether to append to the file instead of overwriting. Default: `false`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @since 1.0.0
+ * @see {@link writeFileSync} for synchronous version
+ * @see {@link appendFile} for appending to files
+ * @see {@link writeJsonFile} for writing JSON data
  * @example
  * ```typescript
  * // Write string content
@@ -68,6 +71,7 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
  * @param options - Optional write options.
  * @returns A promise that resolves to an `AsyncIOResult` containing a `FileSystemWritableFileStream`.
  * @since 1.0.0
+ * @see {@link writeFile} for general file writing
  * @example
  * ```typescript
  * (await openWritableFileStream('/path/to/large-file.bin'))

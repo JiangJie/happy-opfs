@@ -11,6 +11,8 @@ import { getDirHandle, removeHandle, validateExpiredDate } from './internal/mod.
  * @param options - Options for generating the temporary path.
  * @returns The generated temporary path string.
  * @since 1.7.0
+ * @see {@link mkTemp} for creating the temporary file/directory
+ * @see {@link isTempPath} for checking if a path is temporary
  * @example
  * ```typescript
  * generateTempPath();                           // '/tmp/tmp-550e8400-e29b-41d4-a716-446655440000'
@@ -39,6 +41,8 @@ export function generateTempPath(options?: TempOptions): string {
  * @param path - The path to check.
  * @returns `true` if the path starts with `/tmp/`, otherwise `false`.
  * @since 1.7.2
+ * @see {@link generateTempPath} for generating temporary paths
+ * @see {@link TMP_DIR} for the temporary directory constant
  * @example
  * ```typescript
  * isTempPath('/tmp/file.txt');  // true
@@ -56,6 +60,9 @@ export function isTempPath(path: string): boolean {
  * @param options - Options for creating the temporary path.
  * @returns A promise that resolves to an `AsyncIOResult` containing the created path.
  * @since 1.7.0
+ * @see {@link generateTempPath} for generating paths without creating
+ * @see {@link deleteTemp} for removing the entire temp directory
+ * @see {@link pruneTemp} for removing expired temp files
  * @example
  * ```typescript
  * // Create a temporary file
@@ -87,6 +94,8 @@ export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
  *
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @since 1.7.0
+ * @see {@link pruneTemp} for selective cleanup
+ * @see {@link remove} for general file/directory removal
  * @example
  * ```typescript
  * (await deleteTemp())
@@ -107,6 +116,8 @@ export function deleteTemp(): AsyncVoidIOResult {
  * @param expired - Files modified before this date will be deleted.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @since 1.7.0
+ * @see {@link deleteTemp} for removing all temp files
+ * @see {@link mkTemp} for creating temp files
  * @example
  * ```typescript
  * // Remove files older than 24 hours

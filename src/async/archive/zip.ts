@@ -24,6 +24,9 @@ type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
  * @since 1.6.0
+ * @see {@link zipSync} for synchronous version
+ * @see {@link zipStream} for streaming version (better for large files)
+ * @see {@link unzip} for the reverse operation
  * @example
  * ```typescript
  * // Zip a directory to a file
@@ -42,6 +45,9 @@ export function zip(sourcePath: string, zipFilePath: string, options?: ZipOption
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
  * @since 1.6.0
+ * @see {@link zipSync} for synchronous version
+ * @see {@link zipStream} for streaming version (better for large files)
+ * @see {@link unzip} for the reverse operation
  * @example
  * ```typescript
  * // Zip a directory and get the data
@@ -152,6 +158,8 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
  * @since 1.7.0
+ * @see {@link zipStreamFromUrl} for streaming version (better for large files)
+ * @see {@link unzipFromUrl} for the reverse operation
  * @example
  * ```typescript
  * // Zip a remote file to a local zip file
@@ -173,6 +181,8 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
  * @since 1.7.0
+ * @see {@link zipStreamFromUrl} for streaming version (better for large files)
+ * @see {@link unzipFromUrl} for the reverse operation
  * @example
  * ```typescript
  * // Zip a remote file and get the data

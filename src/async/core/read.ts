@@ -12,6 +12,7 @@ import { createAbortError, getDirHandle, getFileHandle, validateAbsolutePath } f
  * @param options - Options of readdir.
  * @returns A promise that resolves to an `AsyncIOResult` containing an async iterable iterator over the entries of the directory.
  * @since 1.0.0
+ * @see {@link readDirSync} for synchronous version
  * @example
  * ```typescript
  * // List directory contents
@@ -75,6 +76,8 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
  * @param options - Read options specifying the 'blob' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a File.
  * @since 1.0.0
+ * @see {@link readFileSync} for synchronous version
+ * @see {@link readBlobFile} convenience wrapper
  * @example
  * ```typescript
  * (await readFile('/path/to/file.txt', { encoding: 'blob' }))
@@ -92,6 +95,8 @@ export function readFile(filePath: string, options: ReadOptions & {
  * @param options - Read options specifying the 'utf8' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a string.
  * @since 1.0.0
+ * @see {@link readFileSync} for synchronous version
+ * @see {@link readTextFile} convenience wrapper
  * @example
  * ```typescript
  * (await readFile('/path/to/file.txt', { encoding: 'utf8' }))
@@ -110,6 +115,7 @@ export function readFile(filePath: string, options: ReadOptions & {
  * @param options - Read options specifying the 'stream' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing a `ReadableStream<Uint8Array>`.
  * @since 1.0.0
+ * @see {@link readFileSync} for synchronous version (bytes only)
  * @example
  * ```typescript
  * (await readFile('/path/to/large-file.bin', { encoding: 'stream' }))
@@ -134,6 +140,7 @@ export function readFile(filePath: string, options: ReadOptions & {
  * @param options - Optional read options. Defaults to 'bytes' encoding.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a Uint8Array.
  * @since 1.0.0
+ * @see {@link readFileSync} for synchronous version
  * @example
  * ```typescript
  * (await readFile('/path/to/file.bin'))
@@ -153,6 +160,7 @@ export function readFile(filePath: string, options?: ReadOptions & {
  * @param options - Optional read options.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content.
  * @since 1.0.0
+ * @see {@link readFileSync} for synchronous version
  * @example
  * ```typescript
  * // When encoding is dynamic

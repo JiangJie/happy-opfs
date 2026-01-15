@@ -12,6 +12,9 @@ import { getDirHandle, getFileHandle, validateAbsolutePath } from '../internal/m
  * @param filePath - The absolute path of the file to create.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @since 1.7.0
+ * @see {@link createFileSync} for synchronous version
+ * @see {@link mkTemp} for creating temporary files
+ * @see {@link writeFile} for creating files with content
  * @example
  * ```typescript
  * (await createFile('/path/to/file.txt'))
@@ -40,6 +43,9 @@ export async function createFile(filePath: string): AsyncVoidIOResult {
  * @param dirPath - The absolute path where the directory will be created.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @since 1.0.0
+ * @see {@link mkdirSync} for synchronous version
+ * @see {@link emptyDir} for creating or emptying a directory
+ * @see {@link mkTemp} for creating temporary directories
  * @example
  * ```typescript
  * (await mkdir('/path/to/new/directory'))
