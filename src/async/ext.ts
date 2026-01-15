@@ -11,6 +11,7 @@ import { aggregateResults, isNotFoundError, isRootDir, markParentDirsNonEmpty, m
  * @param filePath - The absolute path of the file to append to.
  * @param contents - The content to append (string, ArrayBuffer, TypedArray, or Blob).
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.0.0
  * @example
  * ```typescript
  * await appendFile('/path/to/log.txt', 'New log entry\n');
@@ -31,6 +32,7 @@ export function appendFile(filePath: string, contents: WriteFileContent): AsyncV
  * @param options - Optional copy options.
  * @param options.overwrite - Whether to overwrite existing files. Default: `true`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Copy a file
@@ -53,6 +55,7 @@ export function copy(srcPath: string, destPath: string, options?: CopyOptions): 
  *
  * @param dirPath - The absolute path of the directory to empty.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.0.9
  * @example
  * ```typescript
  * await emptyDir('/path/to/directory');
@@ -89,6 +92,7 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
  * @param options - Optional existence options. Set `isDirectory: true` to check for directory,
  *                  or `isFile: true` to check for file. Cannot set both to `true`.
  * @returns A promise that resolves to an `AsyncIOResult<boolean>` indicating existence.
+ * @since 1.0.0
  * @example
  * ```typescript
  * // Check if path exists (file or directory)
@@ -127,6 +131,7 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
  * @param options - Optional move options.
  * @param options.overwrite - Whether to overwrite existing files. Default: `true`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.8.0
  * @example
  * ```typescript
  * // Move/rename a file
@@ -146,6 +151,7 @@ export async function move(srcPath: string, destPath: string, options?: MoveOpti
  *
  * @param filePath - The absolute path of the file to read.
  * @returns A promise that resolves to an `AsyncIOResult` containing the `File` object.
+ * @since 1.0.0
  * @example
  * ```typescript
  * (await readBlobFile('/path/to/file.txt'))
@@ -164,6 +170,7 @@ export function readBlobFile(filePath: string): AsyncIOResult<File> {
  * @template T - The expected type of the parsed JSON object.
  * @param filePath - The path of the JSON file to read.
  * @returns A promise that resolves to an `AsyncIOResult` containing the parsed JSON object.
+ * @since 1.8.4
  * @example
  * ```typescript
  * interface Config {
@@ -184,6 +191,7 @@ export async function readJsonFile<T>(filePath: string): AsyncIOResult<T> {
  *
  * @param filePath - The absolute path of the file to read.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content as a string.
+ * @since 1.0.0
  * @example
  * ```typescript
  * (await readTextFile('/path/to/file.txt'))
@@ -203,6 +211,7 @@ export function readTextFile(filePath: string): AsyncIOResult<string> {
  * @param filePath - The absolute path of the file to write.
  * @param data - The object to serialize and write.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.0.0
  * @example
  * ```typescript
  * const config = { name: 'app', version: 1 };

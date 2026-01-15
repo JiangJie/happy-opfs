@@ -16,6 +16,7 @@ import { createAbortError, createFailedFetchTask, validateAbsolutePath, validate
  * @param uploadUrl - The URL where the file will be uploaded.
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the upload.
+ * @since 1.0.6
  * @example
  * ```typescript
  * const task = uploadFile('/documents/report.pdf', 'https://example.com/upload');

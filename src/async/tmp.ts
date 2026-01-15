@@ -10,6 +10,7 @@ import { getDirHandle, removeHandle, validateExpiredDate } from './internal/mod.
  *
  * @param options - Options for generating the temporary path.
  * @returns The generated temporary path string.
+ * @since 1.7.0
  * @example
  * ```typescript
  * generateTempPath();                           // '/tmp/tmp-550e8400-e29b-41d4-a716-446655440000'
@@ -37,6 +38,7 @@ export function generateTempPath(options?: TempOptions): string {
  *
  * @param path - The path to check.
  * @returns `true` if the path starts with `/tmp/`, otherwise `false`.
+ * @since 1.7.2
  * @example
  * ```typescript
  * isTempPath('/tmp/file.txt');  // true
@@ -53,6 +55,7 @@ export function isTempPath(path: string): boolean {
  *
  * @param options - Options for creating the temporary path.
  * @returns A promise that resolves to an `AsyncIOResult` containing the created path.
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Create a temporary file
@@ -83,6 +86,7 @@ export async function mkTemp(options?: TempOptions): AsyncIOResult<string> {
  * may cause the write to fail. Ensure no stream writes are in progress before calling this function.
  *
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.7.0
  * @example
  * ```typescript
  * (await deleteTemp())
@@ -102,6 +106,7 @@ export function deleteTemp(): AsyncVoidIOResult {
  *
  * @param expired - Files modified before this date will be deleted.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Remove files older than 24 hours

@@ -20,6 +20,7 @@ import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED,
  * @param filePath - The absolute path of the file to create.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link createFile} for the async version.
+ * @since 1.7.0
  * @example
  * ```typescript
  * createFileSync('/path/to/file.txt')
@@ -41,6 +42,7 @@ export function createFileSync(filePath: string): VoidIOResult {
  * @param dirPath - The absolute path of the directory to create.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link mkdir} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * mkdirSync('/path/to/directory')
@@ -64,6 +66,7 @@ export function mkdirSync(dirPath: string): VoidIOResult {
  * @param options - Optional move options.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link move} for the async version.
+ * @since 1.8.0
  * @example
  * ```typescript
  * moveSync('/old/path/file.txt', '/new/path/file.txt')
@@ -95,6 +98,7 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  * @param options - Optional read options (e.g., recursive).
  * @returns An `IOResult` containing an array of directory entries.
  * @see {@link readDir} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * readDirSync('/documents')
@@ -116,6 +120,7 @@ export function readDirSync(dirPath: string, options?: ReadDirSyncOptions): IORe
  * @param filePath - The absolute path of the file to read.
  * @param options - Read options with 'blob' encoding.
  * @returns An `IOResult` containing a `File` object.
+ * @since 1.1.0
  * @example
  * ```typescript
  * readFileSync('/path/to/file.txt', { encoding: 'blob' })
@@ -132,6 +137,7 @@ export function readFileSync(filePath: string, options: ReadSyncOptions & {
  * @param filePath - The absolute path of the file to read.
  * @param options - Read options with 'utf8' encoding.
  * @returns An `IOResult` containing the file content as a string.
+ * @since 1.1.0
  * @example
  * ```typescript
  * readFileSync('/path/to/file.txt', { encoding: 'utf8' })
@@ -148,6 +154,7 @@ export function readFileSync(filePath: string, options: ReadSyncOptions & {
  * @param filePath - The absolute path of the file to read.
  * @param options - Optional read options. Defaults to 'bytes' encoding.
  * @returns An `IOResult` containing the file content as a Uint8Array.
+ * @since 1.1.0
  * @example
  * ```typescript
  * readFileSync('/path/to/file.bin')
@@ -167,6 +174,7 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions & {
  * @param options - Optional read options.
  * @returns An `IOResult` containing the file content.
  * @see {@link readFile} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * // When encoding is dynamic
@@ -225,6 +233,7 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions): IORes
  * @param path - The absolute path of the file or directory to remove.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link remove} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * removeSync('/path/to/file-or-directory')
@@ -252,6 +261,7 @@ export function removeSync(path: string): VoidIOResult {
  * @param path - The absolute path to get status for.
  * @returns An `IOResult` containing a `FileSystemHandleLike` object.
  * @see {@link stat} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * statSync('/path/to/entry')
@@ -275,6 +285,7 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
  * @param options - Optional write options.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link writeFile} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * // Write string content
@@ -301,6 +312,7 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  * @param contents - The content to append (ArrayBuffer, TypedArray, or string).
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link appendFile} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * appendFileSync('/path/to/log.txt', 'New log entry\n');
@@ -324,6 +336,7 @@ export function appendFileSync(filePath: string, contents: WriteSyncFileContent)
  * @param options - Optional copy options.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link copy} for the async version.
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Copy a file
@@ -352,6 +365,7 @@ export function copySync(srcPath: string, destPath: string, options?: CopyOption
  * @param dirPath - The absolute path of the directory to empty.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link emptyDir} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * emptyDirSync('/path/to/directory');
@@ -373,6 +387,7 @@ export function emptyDirSync(dirPath: string): VoidIOResult {
  * @param options - Optional existence options (e.g., isDirectory, isFile).
  * @returns An `IOResult` containing `true` if exists, `false` otherwise.
  * @see {@link exists} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * existsSync('/path/to/file')
@@ -396,6 +411,7 @@ export function existsSync(path: string, options?: ExistsOptions): IOResult<bool
  *
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link deleteTemp} for the async version.
+ * @since 1.7.0
  * @example
  * ```typescript
  * deleteTempSync();
@@ -412,6 +428,7 @@ export function deleteTempSync(): VoidIOResult {
  * @param options - Optional temp options (e.g., isDirectory, basename, extname).
  * @returns An `IOResult` containing the temporary path.
  * @see {@link mkTemp} for the async version.
+ * @since 1.7.0
  * @example
  * ```typescript
  * mkTempSync({ extname: '.txt' })
@@ -429,6 +446,7 @@ export function mkTempSync(options?: TempOptions): IOResult<string> {
  * @param expired - Files with lastModified before this date will be removed.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link pruneTemp} for the async version.
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Remove files older than 24 hours
@@ -450,6 +468,7 @@ export function pruneTempSync(expired: Date): VoidIOResult {
  * @param filePath - The absolute path of the file to read.
  * @returns An `IOResult` containing a `File` object.
  * @see {@link readBlobFile} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * readBlobFileSync('/path/to/file.txt')
@@ -470,6 +489,7 @@ export function readBlobFileSync(filePath: string): IOResult<File> {
  * @param filePath - The absolute path of the JSON file to read.
  * @returns An `IOResult` containing the parsed JSON object.
  * @see {@link readJsonFile} for the async version.
+ * @since 1.8.4
  * @example
  * ```typescript
  * interface Config { name: string; version: number }
@@ -490,6 +510,7 @@ export function readJsonFileSync<T>(filePath: string): IOResult<T> {
  * @param filePath - The absolute path of the file to read.
  * @returns An `IOResult` containing the file content as a string.
  * @see {@link readTextFile} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * readTextFileSync('/path/to/file.txt')
@@ -511,6 +532,7 @@ export function readTextFileSync(filePath: string): IOResult<string> {
  * @param data - The object to serialize and write.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link writeJsonFile} for the async version.
+ * @since 1.1.0
  * @example
  * ```typescript
  * const config = { name: 'app', version: 1 };
@@ -530,6 +552,7 @@ export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
  * @param destDir - The directory to unzip to.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link unzip} for the async version.
+ * @since 1.6.0
  * @example
  * ```typescript
  * unzipSync('/downloads/archive.zip', '/extracted');
@@ -584,6 +607,7 @@ export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint
  * @param options - Optional zip options.
  * @returns An `IOResult` containing the result.
  * @see {@link zip} for the async version.
+ * @since 1.6.0
  */
 export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer> | void> {
     const sourcePathRes = validateAbsolutePath(sourcePath);

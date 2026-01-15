@@ -22,6 +22,7 @@ import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKE
  * Waits for a SharedArrayBuffer from the main thread and begins processing requests.
  *
  * @returns A `VoidIOResult` indicating success or failure.
+ * @since 1.1.0
  * @example
  * ```typescript
  * // In worker.js

@@ -36,6 +36,7 @@ const DEFAULT_OP_TIMEOUT = 1000;
  * @param options - Optional configuration options for the sync channel.
  * @returns A promise that resolves with an `AsyncIOResult` containing the `SharedArrayBuffer` when the worker is ready.
  *          The returned buffer can be shared with other contexts (e.g., iframes) via `postMessage`.
+ * @since 1.1.0
  * @example
  * ```typescript
  * // Connect to worker and get SharedArrayBuffer
@@ -109,6 +110,7 @@ export async function connectSyncChannel(worker: Worker | URL | string, options?
  * Checks if the sync channel is ready to use.
  *
  * @returns `true` if ready, `false` otherwise.
+ * @since 1.11.0
  * @example
  * ```typescript
  * if (!SyncChannel.isReady()) {
@@ -130,6 +132,7 @@ export function isSyncChannelReady(): boolean {
  * @param sharedBuffer - The `SharedArrayBuffer` received from another context.
  * @param options - Optional configuration options.
  * @returns A `VoidIOResult` indicating success or failure.
+ * @since 1.8.5
  * @example
  * ```typescript
  * // In iframe: receive SharedArrayBuffer from main page

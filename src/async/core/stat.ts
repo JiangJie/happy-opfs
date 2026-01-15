@@ -8,6 +8,7 @@ import { getParentDirHandle, isRootDir, validateAbsolutePath } from '../internal
  *
  * @param path - The absolute path of the file or directory.
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemHandle`.
+ * @since 1.0.0
  * @example
  * ```typescript
  * (await stat('/path/to/entry'))

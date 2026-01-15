@@ -18,6 +18,7 @@ import { generateTempPath } from '../tmp.ts';
  * @param fileUrl - The URL of the file to download.
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the download.
+ * @since 1.0.4
  * @example
  * ```typescript
  * // Download to a temporary file
@@ -35,6 +36,7 @@ export function downloadFile(fileUrl: string | URL, requestInit?: DownloadReques
  * @param filePath - The path where the downloaded file will be saved.
  * @param requestInit - Optional request initialization parameters.
  * @returns A task that can be aborted and contains the result of the download.
+ * @since 1.0.4
  * @example
  * ```typescript
  * // Download to a specific path

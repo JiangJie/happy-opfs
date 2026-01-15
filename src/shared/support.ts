@@ -3,6 +3,7 @@
  * OPFS requires a secure context (HTTPS or localhost) and browser support.
  *
  * @returns `true` if OPFS is supported, `false` otherwise.
+ * @since 1.0.0
  * @example
  * ```typescript
  * if (isOPFSSupported()) {

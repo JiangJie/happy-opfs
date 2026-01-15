@@ -21,6 +21,7 @@ import { remove } from './remove.ts';
  * @param options.create - Whether to create the file if it doesn't exist. Default: `true`.
  * @param options.append - Whether to append to the file instead of overwriting. Default: `false`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @since 1.0.0
  * @example
  * ```typescript
  * // Write string content
@@ -66,6 +67,7 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
  * @param filePath - The absolute path of the file to write.
  * @param options - Optional write options.
  * @returns A promise that resolves to an `AsyncIOResult` containing a `FileSystemWritableFileStream`.
+ * @since 1.0.0
  * @example
  * ```typescript
  * (await openWritableFileStream('/path/to/large-file.bin'))

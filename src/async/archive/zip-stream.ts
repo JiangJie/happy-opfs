@@ -21,6 +21,7 @@ import { EMPTY_BYTES } from './helpers.ts';
  * @param zipFilePath - The path to the zip file.
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @since unreleased
  * @example
  * ```typescript
  * // Stream zip a large directory
@@ -87,6 +88,7 @@ export async function zipStream(sourcePath: string, zipFilePath: string, options
  * @param zipFilePath - The path to the zip file.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @since unreleased
  * @example
  * ```typescript
  * // Stream zip a large remote file

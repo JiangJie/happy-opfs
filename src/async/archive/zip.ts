@@ -23,6 +23,7 @@ type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
  * @param zipFilePath - The path to the zip file.
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @since 1.6.0
  * @example
  * ```typescript
  * // Zip a directory to a file
@@ -40,6 +41,7 @@ export function zip(sourcePath: string, zipFilePath: string, options?: ZipOption
  * @param sourcePath - The path to be zipped.
  * @param options - Options of zip.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @since 1.6.0
  * @example
  * ```typescript
  * // Zip a directory and get the data
@@ -149,6 +151,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
  * @param zipFilePath - The path to the zip file.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Zip a remote file to a local zip file
@@ -169,6 +172,7 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  * @param sourceUrl - The url to be zipped.
  * @param requestInit - Optional request initialization parameters.
  * @returns A promise that resolves to an `AsyncIOResult` indicating whether the source was successfully zipped.
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Zip a remote file and get the data
