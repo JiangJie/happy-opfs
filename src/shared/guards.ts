@@ -1,4 +1,4 @@
-import type { FileSystemFileHandleLike, FileSystemHandleLike } from './defines.ts';
+import type { FileSystemDirectoryHandleLike, FileSystemFileHandleLike, FileSystemHandleLike } from './defines.ts';
 
 /**
  * Checks whether the given handle is a file handle.
@@ -53,4 +53,23 @@ export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSyste
  */
 export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSystemFileHandleLike {
     return handle.kind === 'file';
+}
+
+/**
+ * Checks whether the given handle-like object represents a directory.
+ *
+ * @param handle - The `FileSystemHandleLike` object to check.
+ * @returns `true` if the handle-like object represents a directory, otherwise `false`.
+ * @since unreleased
+ * @see {@link isDirectoryHandle} for async directory handles
+ * @see {@link isFileHandleLike} for checking file handle-like objects
+ * @see {@link statSync} for getting sync handle-like objects
+ * @example
+ * ```typescript
+ * statSync('/path/to/dir')
+ *     .inspect(handle => isDirectoryHandleLike(handle) && console.log('This is a directory'));
+ * ```
+ */
+export function isDirectoryHandleLike(handle: FileSystemHandleLike): handle is FileSystemDirectoryHandleLike {
+    return handle.kind === 'directory';
 }

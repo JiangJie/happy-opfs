@@ -270,6 +270,11 @@ export interface FileSystemHandleLike {
  */
 export interface FileSystemFileHandleLike extends FileSystemHandleLike {
     /**
+     * The kind is always `'file'` for file handles.
+     */
+    readonly kind: 'file';
+
+    /**
      * The MIME type of the file (e.g., `'text/plain'`, `'image/png'`).
      */
     readonly type: string;
@@ -283,6 +288,27 @@ export interface FileSystemFileHandleLike extends FileSystemHandleLike {
      * The last modified timestamp in milliseconds since Unix epoch.
      */
     readonly lastModified: number;
+}
+
+/**
+ * Serializable version of `FileSystemDirectoryHandle`.
+ *
+ * Contains only the basic properties (`name`, `kind`) that identify a directory entry.
+ * This is effectively the same as `FileSystemHandleLike` but with a discriminated `kind`.
+ *
+ * **Why this type exists:**
+ * Provides type safety when working with directory entries in sync APIs.
+ * Use `isDirectoryHandleLike()` to narrow from `FileSystemHandleLike`.
+ *
+ * **When it's used:**
+ * - Returned by `statSync()` for directory entries
+ * - Used in `DirEntryLike.handle` when the entry is a directory
+ */
+export interface FileSystemDirectoryHandleLike extends FileSystemHandleLike {
+    /**
+     * The kind is always `'directory'` for directory handles.
+     */
+    readonly kind: 'directory';
 }
 
 // ==================== Temporary File Options ====================

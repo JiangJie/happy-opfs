@@ -13,7 +13,7 @@ import {
     zip,
 } from '../../async/mod.ts';
 import { readBlobBytesSync } from '../../shared/helpers.ts';
-import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../../shared/mod.ts';
+import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemDirectoryHandleLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from '../defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp } from '../protocol.ts';
 
@@ -164,7 +164,7 @@ function isSyncChannelInitMessage(data: unknown): data is SyncChannelInitMessage
  * @returns Serializable version of FileSystemHandle that is FileSystemHandleLike.
  */
 async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<FileSystemHandleLike> {
-    const { name, kind } = handle;
+    const { name } = handle;
 
     if (isFileHandle(handle)) {
         const file = await handle.getFile();
@@ -172,7 +172,7 @@ async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<File
 
         const fileHandle: FileSystemFileHandleLike = {
             name,
-            kind,
+            kind: 'file',
             type,
             size,
             lastModified,
@@ -181,9 +181,9 @@ async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<File
         return fileHandle;
     }
 
-    const handleLike: FileSystemHandleLike = {
+    const handleLike: FileSystemDirectoryHandleLike = {
         name,
-        kind,
+        kind: 'directory',
     };
 
     return handleLike;
