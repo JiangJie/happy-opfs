@@ -76,7 +76,7 @@ export default defineConfig({
             reporter: ['text', 'json', 'html', 'lcov'],
             include: ['src/**/*.ts'],
             exclude: [
-                'src/worker/opfs_worker.ts', // Worker thread code - coverage cannot be collected from Worker context in browser tests
+                'src/sync/channel/listen.ts', // Worker thread code - runs entirely in Worker context
             ],
         },
         // Test configuration
