@@ -19,11 +19,11 @@ import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
  */
 export function validateAbsolutePath(path: string): IOResult<string> {
     if (typeof path !== 'string') {
-        return Err(new TypeError(`path must be a string but received ${ typeof path }`));
+        return Err(new TypeError(`Path must be a string but received ${ typeof path }`));
     }
 
     if (path[0] !== ROOT_DIR) {
-        return Err(new Error(`path must be absolute (start with '/'): '${ path }'`));
+        return Err(new Error(`Path must be absolute (start with '/'): '${ path }'`));
     }
 
     // Normalize and remove trailing slash except for root
@@ -51,7 +51,7 @@ export function validateUrl(url: string | URL): IOResult<URL> {
     try {
         return Ok(new URL(url, location.href));
     } catch {
-        return Err(new TypeError(`url is invalid: '${ url }'`));
+        return Err(new TypeError(`Invalid URL: '${ url }'`));
     }
 }
 
@@ -79,10 +79,10 @@ export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
  */
 export function validateExpiredDate(expired: Date): VoidIOResult {
     if (!(expired instanceof Date)) {
-        return Err(new TypeError(`expired must be a Date but received ${ typeof expired }`));
+        return Err(new TypeError(`Expired must be a Date but received ${ typeof expired }`));
     }
 
     return Number.isNaN(expired.getTime())
-        ? Err(new Error('expired must be a valid Date'))
+        ? Err(new Error('Expired must be a valid Date'))
         : RESULT_VOID;
 }

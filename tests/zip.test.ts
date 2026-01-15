@@ -199,7 +199,7 @@ describe('OPFS Zip Operations', () => {
             // Unzip should fail because destDir is a file
             const result = await fs.unzip('/unzip-test.zip', '/unzip-dest-file');
             expect(result.isErr()).toBe(true);
-            expect(result.unwrapErr().message).toContain('is a file, not a directory');
+            expect(result.unwrapErr().message).toContain('is not a directory');
 
             // Clean up
             await fs.remove('/unzip-dest-file');
@@ -289,7 +289,7 @@ describe('OPFS Zip Operations', () => {
 
             const result = await fs.unzipStream('/stream-test.zip', '/stream-dest-file');
             expect(result.isErr()).toBe(true);
-            expect(result.unwrapErr().message).toContain('is a file, not a directory');
+            expect(result.unwrapErr().message).toContain('is not a directory');
 
             // Clean up
             await fs.remove('/stream-src');

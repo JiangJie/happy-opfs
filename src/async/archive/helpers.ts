@@ -32,7 +32,7 @@ export async function validateDestDir(destDir: string): AsyncIOResult<string> {
 
     return existsRes.andThen(isFile => {
         return isFile
-            ? Err(new Error(`destDir '${ destDir }' exists but is a file, not a directory`))
+            ? Err(new Error(`Path '${ destDir }' is not a directory`))
             : pathRes;
     });
 }

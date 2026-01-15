@@ -74,7 +74,7 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
     }
 
     if (isFileHandle(statRes.unwrap())) {
-        return Err(new Error(`'${ dirPath }' is not a directory`));
+        return Err(new Error(`Path '${ dirPath }' is not a directory`));
     }
 
     // Remove and recreate directory (OPFS has no metadata to preserve)
@@ -300,7 +300,7 @@ async function mkDestFromSrc(
             !(isFileHandle(srcHandle) && isFileHandle(destHandle))
             && !(isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle))
         ) {
-            return Err(new Error(`Both 'srcPath' and 'destPath' must both be a file or directory`));
+            return Err(new Error(`Source '${ srcPath }' and destination '${ destPath }' must both be files or both be directories`));
         }
     }
 
