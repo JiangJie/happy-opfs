@@ -46,6 +46,13 @@ describe('OPFS Extended Operations', () => {
         await fs.remove('/copy-dir-exists-dest');
         await fs.remove('/copy-exists-error-src');
         await fs.remove('/copy-exists-error-dest');
+        await fs.remove('/copy-self-src');
+        await fs.remove('/copy-same.txt');
+        await fs.remove('/copy-root-dest');
+        await fs.remove('/copy-empty-src');
+        await fs.remove('/copy-empty-dest');
+        await fs.remove('/copy-empty-subs-src');
+        await fs.remove('/copy-empty-subs-dest');
     });
 
     describe('appendFile', () => {
@@ -190,6 +197,23 @@ describe('OPFS Extended Operations', () => {
 
             expect((await fs.exists('/new-empty-dir', { isDirectory: true })).unwrap()).toBe(true);
         });
+
+        it('should fail if path is a file', async () => {
+            await fs.writeFile('/empty-dir-test', 'I am a file');
+
+            const result = await fs.emptyDir('/empty-dir-test');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('not a directory');
+        });
+
+        it('should return error for non-NotFoundError on stat', async () => {
+            // Create a file to act as parent
+            await fs.writeFile('/empty-dir-test', 'file');
+
+            // Try to empty a path whose parent is a file (TypeMismatchError)
+            const result = await fs.emptyDir('/empty-dir-test/child');
+            expect(result.isErr()).toBe(true);
+        });
     });
 
     describe('readBlobFile', () => {
@@ -311,6 +335,52 @@ describe('OPFS Extended Operations', () => {
             // Copy directory - destExists=true, and checking exists of 'sub/file.txt' will fail
             const result = await fs.copy('/copy-exists-error-src', '/copy-exists-error-dest');
             expect(result.isErr()).toBe(true);
+        });
+
+        it('should fail when copying directory into itself', async () => {
+            await fs.mkdir('/copy-self-src/sub');
+            await fs.writeFile('/copy-self-src/file.txt', 'content');
+
+            // Try to copy directory into itself
+            const result = await fs.copy('/copy-self-src', '/copy-self-src/sub/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('into itself');
+        });
+
+        it('should fail when copying to same path', async () => {
+            await fs.writeFile('/copy-same.txt', 'content');
+
+            const result = await fs.copy('/copy-same.txt', '/copy-same.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('into itself');
+        });
+
+        it('should fail when copying root directory', async () => {
+            await fs.mkdir('/copy-root-dest');
+
+            const result = await fs.copy('/', '/copy-root-dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('into itself');
+        });
+
+        it('should copy empty directory', async () => {
+            await fs.mkdir('/copy-empty-src');
+
+            const result = await fs.copy('/copy-empty-src', '/copy-empty-dest');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/copy-empty-dest', { isDirectory: true })).unwrap()).toBe(true);
+        });
+
+        it('should copy directory with only empty subdirectories', async () => {
+            await fs.mkdir('/copy-empty-subs-src/empty1');
+            await fs.mkdir('/copy-empty-subs-src/empty2');
+
+            const result = await fs.copy('/copy-empty-subs-src', '/copy-empty-subs-dest');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/copy-empty-subs-dest/empty1', { isDirectory: true })).unwrap()).toBe(true);
+            expect((await fs.exists('/copy-empty-subs-dest/empty2', { isDirectory: true })).unwrap()).toBe(true);
         });
     });
 });

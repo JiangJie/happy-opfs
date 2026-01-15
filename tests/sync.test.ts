@@ -185,6 +185,7 @@ describe('OPFS Sync Operations', () => {
             const handleLike = result.unwrap();
 
             expect(fs.isFileHandleLike(handleLike)).toBe(false);
+            expect(fs.isDirectoryHandleLike(handleLike)).toBe(true);
             expect(handleLike.kind).toBe('directory');
         });
     });
