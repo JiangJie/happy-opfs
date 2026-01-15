@@ -215,9 +215,7 @@ export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
     return result.andThenAsync(text => writeFile(filePath, text));
 }
 
-// ============================================================================
-// Internal Functions
-// ============================================================================
+// #region Internal Functions
 
 /**
  * Handler function type for processing source file to destination.
@@ -369,3 +367,5 @@ async function mkDestFromSrc(
     // Wait for all tasks and return first error if any
     return aggregateResults(tasks);
 }
+
+// #endregion

@@ -269,9 +269,7 @@ export async function removeHandle(
     }
 }
 
-// ============================================================================
-// Internal Helper Functions
-// ============================================================================
+// #region Internal Helper Functions
 
 /**
  * Asynchronously obtains a handle to a child directory from the given parent directory handle.
@@ -411,3 +409,5 @@ export async function moveFileHandle(fileHandle: FileSystemFileHandle, destFileP
         return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
     });
 }
+
+// #endregion

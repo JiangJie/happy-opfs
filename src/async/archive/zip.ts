@@ -219,9 +219,7 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
     }, zipFilePath);
 }
 
-// ============================================================================
-// Internal Functions
-// ============================================================================
+// #region Internal Functions
 
 /**
  * Zip data and optionally write to the target path.
@@ -268,3 +266,5 @@ function getFileDataByHandle(fileHandle: FileSystemFileHandle): AsyncIOResult<Ui
             : readBlobBytes(file);
     });
 }
+
+// #endregion

@@ -69,9 +69,7 @@ export function listenSyncChannel(): VoidIOResult {
     return RESULT_VOID;
 }
 
-// ============================================================================
-// Internal Types and Constants
-// ============================================================================
+// #region Internal Types and Constants
 
 /**
  * Message sent from main thread to worker to initialize sync channel.
@@ -133,9 +131,9 @@ let messenger: SyncMessenger;
  */
 let isListening = false;
 
-// ============================================================================
-// Internal Functions
-// ============================================================================
+// #endregion
+
+// #region Internal Functions
 
 /**
  * Checks whether the code is running in a Web Worker context.
@@ -384,3 +382,5 @@ async function runWorkerLoop(): Promise<void> {
         await respondToMainFromWorker(messenger, processRequest);
     }
 }
+
+// #endregion

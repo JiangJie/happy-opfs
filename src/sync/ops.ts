@@ -601,9 +601,7 @@ export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, o
     return callWorkerOp(WorkerOp.zip, sourcePath, zipFilePath, options);
 }
 
-// ============================================================================
-// Internal Functions
-// ============================================================================
+// #region Internal Functions
 
 /**
  * Deserializes an `ErrorLike` object back to an `Error` instance.
@@ -764,3 +762,5 @@ function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
             return Ok(decodedResponse.slice(1) as T);
         });
 }
+
+// #endregion

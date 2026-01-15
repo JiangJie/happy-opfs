@@ -140,9 +140,7 @@ export async function zipStreamFromUrl(sourceUrl: string | URL, zipFilePath: str
     return streamZipFromStream(peek.stream, sourceName, zipFilePath);
 }
 
-// ============================================================================
-// Internal Functions
-// ============================================================================
+// #region Internal Functions
 
 /**
  * Create a Zip instance with callback that pipes to controller.
@@ -286,3 +284,5 @@ function streamZipEntries(
 
     return writeFile(zipFilePath, zipStream);
 }
+
+// #endregion
