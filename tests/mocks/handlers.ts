@@ -202,4 +202,20 @@ export const handlers = [
             },
         });
     }),
+
+    // Stream that errors immediately on first read (for peekStream error branch)
+    http.get(`${MOCK_SERVER}/api/stream-error-immediate`, () => {
+        const stream = new ReadableStream({
+            start(controller) {
+                // Error immediately before any data is sent
+                controller.error(new Error('Stream read failed'));
+            },
+        });
+
+        return new HttpResponse(stream, {
+            headers: {
+                'Content-Type': 'application/octet-stream',
+            },
+        });
+    }),
 ];

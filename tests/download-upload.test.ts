@@ -235,6 +235,44 @@ describe('OPFS Download/Upload Operations', () => {
             expect(existsRes.unwrap()).toBe(false);
         });
 
+        it('should handle stream that errors immediately on first read', async () => {
+            const filePath = '/stream-error-immediate.bin';
+
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/stream-error-immediate`, filePath, {
+                timeout: 10000,
+            });
+
+            const result = await task.result;
+
+            // Download should fail due to stream error on first read
+            expect(result.isErr()).toBe(true);
+
+            // File should NOT exist after failure
+            const existsRes = await fs.exists(filePath);
+            expect(existsRes.unwrap()).toBe(false);
+        });
+
+        it('should handle abort during download (stream cancel)', async () => {
+            // Use slow endpoint to ensure there's time to abort during streaming
+            const filePath = '/abort-during-stream.bin';
+
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/slow`, filePath, {
+                timeout: 30000,
+            });
+
+            // Abort after a small delay to ensure request has started
+            setTimeout(() => task.abort(), 50);
+
+            const result = await task.result;
+
+            // Should fail with AbortError
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('AbortError');
+
+            // Cleanup
+            await fs.remove(filePath);
+        });
+
         it('should fail on empty body response by default', async () => {
             // Response with Content-Length: 0
             const task = fs.downloadFile(`${ MOCK_SERVER }/api/204`, '/empty.bin');
