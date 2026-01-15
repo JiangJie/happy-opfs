@@ -1,11 +1,10 @@
-# This workflow will run tests and then publish a package to JSR.
+# This workflow will run tests and then publish a package to JSR when a release is created.
 
 name: JSR Package
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [created]
 
 jobs:
   test:
