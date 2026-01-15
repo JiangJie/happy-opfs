@@ -74,7 +74,7 @@ Tests are located in `tests/` directory. The test environment:
 **Worker helper files for tests:**
 - `tests/worker.ts` - Main worker for sync API tests
 - `tests/worker-check-connected.ts` - Worker for connection checking tests
-- `tests/worker-connect-error.ts` - Worker for connection error tests
+- `tests/worker-async-api.ts` - Worker for async API tests
 
 ### Mock Server (MSW)
 Download and upload tests use MSW instead of external APIs:
@@ -83,60 +83,80 @@ Download and upload tests use MSW instead of external APIs:
 - Service worker is auto-generated via `pretest` script (runs `msw init`)
 - Mock endpoints use `https://mock.test` domain
 
-## Code Architecture
+### Code Architecture
 
-### Module Structure
+#### Module Organization
 
-The project uses a three-layer architecture separating shared utilities from async and sync APIs:
+The project organizes code into three main layers based on execution context and visibility:
 
 ```
 src/
 ├── mod.ts                      # Main entry point, exports all public APIs
-├── shared/                     # Shared utilities for both async and sync APIs
+│
+├── shared/                     # Shared utilities (thread-agnostic)
 │   ├── mod.ts                 # Aggregates shared modules
-│   ├── codec.ts               # Text encoding/decoding utilities (cached TextEncoder/TextDecoder)
-│   ├── constants.ts           # Constants (ROOT_DIR, TMP_DIR, error names)
+│   ├── codec.ts               # Text encoding/decoding with cached encoders
+│   ├── constants.ts           # Application-wide constants
 │   ├── defines.ts             # Shared TypeScript type definitions
 │   ├── guards.ts              # Type guard functions (isAbsolutePath, etc.)
-│   ├── helpers.ts             # Shared helper functions (readBlobSync, etc.)
+│   ├── helpers.ts             # Shared helper functions
 │   └── support.ts             # OPFS feature detection
-├── async/                      # Async OPFS file system operations
+│
+├── async/                      # Async OPFS operations (main thread)
 │   ├── mod.ts                 # Aggregates all async modules
-│   ├── core/                  # Core OPFS operations (createFile, mkdir, readFile, writeFile, etc.)
-│   │   ├── mod.ts
-│   │   ├── create.ts
-│   │   ├── read.ts
-│   │   ├── write.ts
-│   │   ├── remove.ts
-│   │   └── stat.ts
+│   ├── core/                  # Core OPFS operations
+│   │   ├── mod.ts             # Aggregates core modules
+│   │   ├── create.ts          # File/directory creation
+│   │   ├── read.ts            # File reading operations
+│   │   ├── write.ts           # File writing operations
+│   │   ├── remove.ts          # File/directory removal
+│   │   └── stat.ts            # File/directory metadata
 │   ├── archive/               # Archive operations
-│   │   ├── mod.ts
-│   │   ├── zip.ts
-│   │   └── unzip.ts
+│   │   ├── mod.ts             # Aggregates archive modules
+│   │   ├── helpers.ts         # Archive helper functions
+│   │   ├── zip.ts             # Zip operations
+│   │   ├── unzip.ts           # Unzip operations
+│   │   ├── zip-stream.ts      # Streaming zip operations
+│   │   └── unzip-stream.ts    # Streaming unzip operations
 │   ├── transfer/              # File transfer operations
-│   │   ├── mod.ts
-│   │   ├── download.ts
-│   │   └── upload.ts
-│   ├── internal/              # Internal utilities (@internal)
-│   │   ├── mod.ts
-│   │   ├── assertions.ts      # Path and URL validation assertions
-│   │   ├── guards.ts          # Internal type guards (isFileHandle, etc.)
-│   │   ├── helpers.ts         # Internal helper functions for handle management
-│   │   └── url.ts             # URL utilities
-│   ├── ext.ts                 # Extended operations (copy, move, exists, emptyDir, etc.)
-│   ├── tmp.ts                 # Temporary file operations (mkTemp, deleteTemp, pruneTemp)
-│   └── defines.ts             # Async-specific TypeScript type definitions
-└── sync/                       # Sync API implementation via Web Workers
+│   │   ├── mod.ts             # Aggregates transfer modules
+│   │   ├── download.ts        # Download from URL
+│   │   └── upload.ts          # Upload to URL
+│   ├── internal/              # Internal utilities (@internal tagged)
+│   │   ├── mod.ts             # Aggregates internal modules
+│   │   ├── validations.ts     # Path/URL validation
+│   │   └── helpers.ts         # Internal helpers
+│   ├── ext.ts                 # Extended operations (copy, move, exists, emptyDir)
+│   └── tmp.ts                 # Temporary file operations
+│
+└── sync/                       # Sync API via Worker communication
     ├── mod.ts                 # Aggregates sync modules
-    ├── ops.ts                 # Main thread sync file operations (*Sync functions)
-    ├── protocol.ts            # Communication protocol (SyncMessenger, lock mechanism)
-    ├── defines.ts             # Sync-specific type definitions (FileLike, ErrorLike)
-    └── channel/               # SyncChannel namespace for channel management
-        ├── mod.ts             # SyncChannel namespace exports (connect, attach, listen, isReady)
-        ├── state.ts           # Internal shared state (@internal, not exported)
+    ├── ops.ts                 # Main thread sync operations (*Sync functions)
+    ├── protocol.ts            # SharedArrayBuffer communication protocol
+    ├── defines.ts             # Sync-specific types
+    └── channel/               # SyncChannel namespace
+        ├── mod.ts             # Aggregates channel modules
         ├── connect.ts         # Main thread: connect, attach, isReady
-        └── listen.ts          # Worker thread: listen for sync requests
+        ├── listen.ts          # Worker thread: request handler
+        └── state.ts           # Shared channel state
 ```
+
+#### Key Design Principles
+
+1. **Result-Based Error Handling**: All async operations return `AsyncIOResult<T>` or `AsyncVoidIOResult` from `happy-rusty`
+   - Never throws exceptions for I/O errors
+   - Always check `.isOk()` / `.isErr()` before unwrapping
+
+2. **Dual API Pattern**: Both async and sync APIs exposed for the same functionality
+   - Use async APIs for typical use cases (recommended)
+   - Use sync APIs only when synchronous operations are absolutely required
+
+3. **Path Normalization**: All paths processed through `@std/path/posix` before OPFS operations
+   - All paths must be absolute (start with `/`)
+   - Internal code uses POSIX format throughout
+
+4. **Internal vs Public**: Code marked with `@internal` is not part of stable public API
+   - May change between versions without semver bump
 
 ### Key Architectural Patterns
 
@@ -151,9 +171,9 @@ if (result.isOk()) {
 }
 ```
 
-#### 2. Dual API Design (Async + Sync)
-- **Async APIs** (in `src/async/`): Direct OPFS operations, recommended for use
-- **Sync APIs** (in `src/sync/`): Implemented via Worker communication using SharedArrayBuffer
+#### 2. Dual API Pattern
+- **Async APIs** (`src/async/`): Direct OPFS operations, recommended for use
+- **Sync APIs** (`src/sync/`): Implemented via Worker communication using SharedArrayBuffer
   - Main thread calls sync function → blocks and waits
   - Worker thread executes async OPFS operation
   - Result is passed back via SharedArrayBuffer
@@ -177,7 +197,7 @@ Functions accepting URL parameters (`downloadFile`, `uploadFile`, `zipFromUrl`, 
 
 URL validation uses `URL.canParse()` with fallback to `new URL()` for older browsers.
 
-#### 5. Handle-based File System
+#### 5. Handle-Based File System
 - Internal implementation uses FileSystemHandle hierarchy
 - Helper functions in `helpers.ts` manage handle retrieval and traversal
 - Public API uses path strings, internal code uses handles
@@ -193,6 +213,11 @@ Located in `src/sync/protocol.ts`:
   - `setPayload()` / `getPayload()`: Methods to write/read payload data
   - `HEADER_LENGTH` (private static): Fixed header size (16 bytes)
 
+#### 7. Error Message Conventions
+- Error messages start with uppercase (consistent with browser DOMException)
+- Error messages do NOT end with periods
+- Custom error types use helper functions (e.g., `createNotFoundError()`)
+
 ### Important Implementation Details
 
 #### Type Assertions for Uint8Array
@@ -204,6 +229,9 @@ await writeFile(path, data as Uint8Array<ArrayBuffer>);
 #### Error Constants
 Common error constants exported from `src/shared/constants.ts`:
 - `NOT_FOUND_ERROR` - File/directory not found (DOMException name)
+- `EMPTY_BODY_ERROR` - Response body is empty (null), from 204/304 responses or HEAD requests
+- `EMPTY_FILE_ERROR` - File content is empty (0 bytes)
+- `NOTHING_TO_ZIP_ERROR` - Empty directory with no entries to zip
 - `ROOT_DIR` - Root directory path (`/`)
 - `TMP_DIR` - Temporary directory path (`/tmp`)
 - `ABORT_ERROR`, `TIMEOUT_ERROR` - Re-exported from `@happy-ts/fetch-t`
@@ -254,12 +282,12 @@ This project uses Conventional Commits:
 
 4. **Error Handling:** Never use try-catch with async operations. Always use `.isOk()` / `.isErr()` on Result types
 
-5. **Error Messages:** Error messages should NOT end with a period (following industry conventions)
+5. **Error Messages:** Error messages should start with uppercase (consistent with browser DOMException) and NOT end with a period
 
 6. **Testing:** Use OPFS Explorer browser extension to visually inspect file system state during development
 
 7. **Test Coverage Limitations:**
-   - `src/sync/worker_thread.ts` is excluded from coverage (runs in Worker thread, V8 cannot instrument)
+   - `src/sync/channel/listen.ts` is excluded from coverage (runs in Worker thread, V8 cannot instrument)
    - `src/async/core/*.ts` has uncovered branches that run in Worker context (tested via sync API)
    - `src/mod.ts` and type definition files (`defines.ts`) are excluded (re-exports and type definitions only)
 
