@@ -154,6 +154,27 @@ describe('Validations', () => {
             expect(res.unwrap()).toBeInstanceOf(URL);
             expect(res.unwrap().pathname).toBe('/api/data.json');
         });
+
+        it('should return Err for invalid URL strings', () => {
+            // URL with scheme but no host triggers Invalid URL error
+            const res = validateUrl('http://');
+            expect(res.isErr()).toBe(true);
+            const err = res.unwrapErr();
+            expect(err).toBeInstanceOf(TypeError);
+            expect(err.message).toContain('http://');
+        });
+
+        it('should return Err for URL with invalid port', () => {
+            const res = validateUrl('http://host:99999');
+            expect(res.isErr()).toBe(true);
+            expect(res.unwrapErr()).toBeInstanceOf(TypeError);
+        });
+
+        it('should return Err for URL with invalid characters', () => {
+            const res = validateUrl('http://a]b');
+            expect(res.isErr()).toBe(true);
+            expect(res.unwrapErr()).toBeInstanceOf(TypeError);
+        });
     });
 
     describe('validateExistsOptions', () => {
