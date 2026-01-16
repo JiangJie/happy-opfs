@@ -50,8 +50,12 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
     if (isRootDir(dirPath)) {
         // Root is already a handle, no traversal needed
         return Ok(dirHandle);
+    } else {
+        // NOTE: Empty else branch is intentional to fix V8 coverage tracking.
+        // Without explicit else, V8 incorrectly marks code after early return as uncovered.
     }
 
+    // Traverse path from root
     // Iterate through each path segment
     // Path is already normalized by validateAbsolutePath, no empty segments
     // Remove leading '/' and start traversing
