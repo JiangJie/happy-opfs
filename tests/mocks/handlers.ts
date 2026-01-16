@@ -218,4 +218,35 @@ export const handlers = [
             },
         });
     }),
+
+    // Null body response - for testing download.ts line 123 (body === null)
+    http.get(`${MOCK_SERVER}/api/null-body`, () => {
+        // HttpResponse with null body simulates responses where body is truly null
+        return new HttpResponse(null, {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/octet-stream',
+            },
+        });
+    }),
+
+    // Null body response with keepEmptyBody option
+    http.get(`${MOCK_SERVER}/api/null-body-keep`, () => {
+        return new HttpResponse(null, {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/octet-stream',
+            },
+        });
+    }),
+
+    // Root path response - returns small content for testing filename fallback to 'file'
+    http.get(MOCK_SERVER, () => {
+        return new HttpResponse('root-content', {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/octet-stream',
+            },
+        });
+    }),
 ];
