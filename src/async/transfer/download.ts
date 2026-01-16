@@ -3,7 +3,7 @@ import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import type { DownloadFileTempResponse, DownloadRequestInit } from '../../shared/mod.ts';
 import { createFile, writeFile } from '../core/mod.ts';
-import { createAbortError, createEmptyBodyError, createFailedFetchTask, peekStream, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { createEmptyBodyError, createFailedFetchTask, peekStream, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
 
 /**
@@ -85,11 +85,6 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | Download
         const responseRes = await fetchTask.result;
 
         return responseRes.andThenAsync(async rawResponse => {
-            // maybe aborted
-            if (fetchTask.aborted) {
-                return Err(createAbortError());
-            }
-
             function okResult() {
                 return Ok(
                     saveToTemp
