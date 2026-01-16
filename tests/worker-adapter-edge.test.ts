@@ -1,6 +1,6 @@
 /**
  * Tests for opfs_worker_adapter.ts edge cases that require special setup
- * Covers: line 32 (non-main thread), line 128 (request too large), line 184 (catch branch)
+ * Covers: non-main thread check, request too large error, and catch branch
  */
 import { describe, expect, it } from 'vitest';
 import { SyncMessenger, encodePayload } from '../src/sync/protocol.ts';

@@ -1,6 +1,6 @@
 /**
  * Mock tests for src/async/archive/unzip-stream.ts
- * Covers the null stream branch (line 106)
+ * Covers the null stream handling when readFile returns empty stream.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FileEncoding } from '../src/mod.ts';
@@ -34,7 +34,7 @@ describe('unzip-stream.ts null stream handling', () => {
         await remove('/unzip-stream-mock-test');
     });
 
-    it('should return error when stream is null (line 106)', async () => {
+    it('should return error when stream is null', async () => {
         // Create a dummy zip file (content doesn't matter, we'll mock the stream)
         await mkdir('/unzip-stream-mock-test');
         await writeFile('/unzip-stream-mock-test/test.zip', 'dummy');

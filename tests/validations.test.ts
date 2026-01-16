@@ -241,7 +241,7 @@ describe('Validations', () => {
             expect(err.message).toContain('Date');
         });
 
-        it('should return Err for invalid Date (NaN time) (line 85)', () => {
+        it('should return Err for invalid Date (NaN time) ', () => {
             // new Date('invalid') creates a Date instance but getTime() returns NaN
             const invalidDate = new Date('invalid');
             expect(invalidDate instanceof Date).toBe(true);

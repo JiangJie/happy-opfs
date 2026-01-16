@@ -241,27 +241,27 @@ describe('OPFS Sync Edge Cases', () => {
     });
 
     describe('Validation error branches', () => {
-        it('should return Err when existsSync options has both isDirectory and isFile true (line 403)', () => {
+        it('should return Err when existsSync options has both isDirectory and isFile true', () => {
             // @ts-expect-error Testing invalid options
             const result = fs.existsSync('/any-path', { isDirectory: true, isFile: true });
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toContain('cannot both be true');
         });
 
-        it('should return Err when pruneTempSync receives invalid Date (line 459)', () => {
+        it('should return Err when pruneTempSync receives invalid Date', () => {
             const invalidDate = new Date('invalid');
             const result = fs.pruneTempSync(invalidDate);
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toBe('Expired must be a valid Date');
         });
 
-        it('should return Err when unzipSync receives invalid zipFilePath (line 563)', () => {
+        it('should return Err when unzipSync receives invalid zipFilePath', () => {
             const result = fs.unzipSync('relative/path.zip', '/dest');
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toContain('absolute');
         });
 
-        it('should return Err when unzipSync receives invalid destDir (line 567)', () => {
+        it('should return Err when unzipSync receives invalid destDir', () => {
             const result = fs.unzipSync('/valid/path.zip', 'relative/dest');
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toContain('absolute');

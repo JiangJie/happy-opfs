@@ -1,6 +1,6 @@
 /**
  * Test for helpers.ts removeHandle fallback logic.
- * Covers lines 256-268: Firefox/Safari fallback when handle.remove() is not available.
+ * Covers Firefox/Safari fallback when handle.remove() is not available.
  * 
  * Uses direct import and mock handles to test the fallback paths.
  */
@@ -18,7 +18,7 @@ describe('helpers.ts removeHandle fallback', () => {
         await fs.remove('/test-fallback');
     });
 
-    it('should use removeEntry fallback for non-root when handle.remove() is not available (line 268)', async () => {
+    it('should use removeEntry fallback when handle.remove() is not available', async () => {
         // Create test directory and file
         await fs.mkdir('/test-fallback');
         await fs.writeFile('/test-fallback/file.txt', 'content');
@@ -33,7 +33,7 @@ describe('helpers.ts removeHandle fallback', () => {
             kind: fileHandle.kind,
             name: fileHandle.name,
             isSameEntry: fileHandle.isSameEntry.bind(fileHandle),
-            // No remove() method - this triggers line 268 fallback
+            // No remove() method - this triggers removeEntry fallback
         } as FileSystemFileHandle;
 
         // Call removeHandle directly with mock handle
@@ -43,7 +43,7 @@ describe('helpers.ts removeHandle fallback', () => {
         expect((await fs.exists('/test-fallback/file.txt')).unwrap()).toBe(false);
     });
 
-    it('should iterate and remove children for root directory when handle.remove() is not available (lines 256-266)', async () => {
+    it('should iterate and remove children for root directory when handle.remove() is not available', async () => {
         // Create files in a test directory (simulating root behavior)
         await fs.mkdir('/test-fallback');
         await fs.writeFile('/test-fallback/file1.txt', 'content1');
@@ -61,7 +61,7 @@ describe('helpers.ts removeHandle fallback', () => {
             isSameEntry: dirHandle.isSameEntry.bind(dirHandle),
             keys: dirHandle.keys.bind(dirHandle),
             removeEntry: dirHandle.removeEntry.bind(dirHandle),
-            // No remove() method - this triggers lines 256-266 fallback
+            // No remove() method - this triggers root fallback path
         } as FileSystemDirectoryHandle;
 
         // Call removeHandle directly with mock root handle
@@ -75,7 +75,7 @@ describe('helpers.ts removeHandle fallback', () => {
         expect(entries.length).toBe(0);
     });
 
-    it('should handle empty directory in root fallback path (line 264 false branch)', async () => {
+    it('should handle empty directory in root fallback path', async () => {
         // Create empty test directory
         await fs.mkdir('/test-fallback');
 
@@ -93,7 +93,7 @@ describe('helpers.ts removeHandle fallback', () => {
             // No remove() method
         } as FileSystemDirectoryHandle;
 
-        // Call removeHandle directly - directory is empty so tasks.length === 0
+        // Call removeHandle directly - directory is empty so no tasks created
         await removeHandle(mockRootHandle, dirHandle, { recursive: true });
 
         // Should complete without error

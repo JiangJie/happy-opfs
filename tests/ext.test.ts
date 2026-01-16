@@ -216,7 +216,7 @@ describe('OPFS Extended Operations', () => {
         });
 
         // Note: Testing emptyDir('/') is skipped because it would affect other tests
-        // running in parallel. The code path is covered by isRootDir check in ext.ts:70-72
+        // running in parallel. The code path is covered by isRootDir check in isRootDir check
         // which delegates to remove('/'), tested in core.test.ts
     });
 
@@ -325,7 +325,7 @@ describe('OPFS Extended Operations', () => {
             expect(content.unwrap()).toBe('old content');
         });
 
-        it('should fail copy directory when exists check fails (line 96)', async () => {
+        it('should fail copy directory when exists check fails ', async () => {
             // Create source directory with nested structure
             await fs.mkdir('/copy-exists-error-src/sub');
             await fs.writeFile('/copy-exists-error-src/sub/file.txt', 'content');

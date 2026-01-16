@@ -1,6 +1,6 @@
 /**
  * Mock tests for src/async/archive/zip.ts
- * Covers the FileReaderSync branch (line 279-280)
+ * Covers the FileReaderSync branch for reading blob data synchronously in Worker context.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -46,7 +46,7 @@ describe('zip.ts with mocked FileReaderSync', () => {
         await remove('/zip-filereader-mock-test');
     });
 
-    it('should use FileReaderSync when available (line 279-280)', async () => {
+    it('should use FileReaderSync when available', async () => {
         // Create test file
         await mkdir('/zip-filereader-mock-test');
         await writeFile('/zip-filereader-mock-test/test.txt', 'Hello World');

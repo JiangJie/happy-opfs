@@ -219,7 +219,7 @@ export const handlers = [
         });
     }),
 
-    // Null body response - for testing download.ts line 123 (body === null)
+    // Null body response - for testing download.ts (body === null)
     http.get(`${MOCK_SERVER}/api/null-body`, () => {
         // HttpResponse with null body simulates responses where body is truly null
         return new HttpResponse(null, {

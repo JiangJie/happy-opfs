@@ -1,8 +1,6 @@
 /**
  * Test for write.ts stream error handling using vitest mocking.
- * Covers:
- * - Line 169: temp file creation fails
- * - Line 185: moveFileHandle fails
+ * Covers temp file creation failure and moveFileHandle failure scenarios.
  */
 import { Err } from 'happy-rusty';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -43,7 +41,7 @@ describe('write.ts stream error handling', () => {
         await fs.remove('/tmp');
     });
 
-    it('should return error when temp file creation fails (write.ts line 169)', async () => {
+    it('should return error when temp file creation fails ', async () => {
         // Enable mock failure for temp file creation
         mockTempFileCreationShouldFail = true;
 
@@ -62,7 +60,7 @@ describe('write.ts stream error handling', () => {
         expect(result.unwrapErr().message).toBe('Mocked temp file creation error');
     });
 
-    it('should clean up temp file when move fails (write.ts line 185)', async () => {
+    it('should clean up temp file when move fails ', async () => {
         // Enable mock failure for move
         mockMoveFileShouldFail = true;
 

@@ -50,7 +50,6 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
 
         describe('String content', () => {
             it('should write empty string via createSyncAccessHandle', () => {
-                // This test exercises: line 311-312 (string branch)
                 const result = fs.writeFileSync('/worker-write-test.txt', '');
                 expect(result.isOk()).toBe(true);
 
@@ -99,7 +98,6 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
 
         describe('ArrayBuffer content', () => {
             it('should write empty ArrayBuffer via createSyncAccessHandle', () => {
-                // This test exercises: line 315-316 (ArrayBuffer branch)
                 const buffer = new ArrayBuffer(0);
                 const result = fs.writeFileSync('/worker-write-test.bin', buffer);
                 expect(result.isOk()).toBe(true);
@@ -142,7 +140,6 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
 
         describe('Uint8Array content', () => {
             it('should write Uint8Array with all byte values', () => {
-                // This test exercises: line 317 (TypedArray branch)
                 const data = new Uint8Array(256);
                 for (let i = 0; i < 256; i++) {
                     data[i] = i;
@@ -216,7 +213,6 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
             });
 
             it('should write TypedArray with non-zero byteOffset', () => {
-                // Tests the byteOffset handling in line 317
                 const buffer = new ArrayBuffer(24);
                 const view = new Float64Array(buffer, 8, 2); // offset 8, length 2
                 view[0] = 123.456;
@@ -255,7 +251,7 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
         });
 
         // Note: Blob content is NOT testable via Sync API because Blob cannot be
-        // serialized through Worker postMessage. However, the Blob branch (line 313-314)
+        // serialized through Worker postMessage. However, the Blob branch
         // is covered by the async writeFile tests in write-file.test.ts
     });
 
@@ -265,7 +261,7 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
         // @ts-expect-error - intentionally removing method for testing
         delete FileSystemFileHandle.prototype.createWritable;
 
-        it('should truncate file when not appending (line 319-321)', () => {
+        it('should truncate file when not appending', () => {
             // First write long content
             fs.writeFileSync('/worker-write-test.txt', 'This is a long string');
             // Then write short content - should truncate
@@ -291,7 +287,7 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
         // @ts-expect-error - intentionally removing method for testing
         delete FileSystemFileHandle.prototype.createWritable;
 
-        it('should append using getSize() for position (line 325)', () => {
+        it('should append using getSize() for write position', () => {
             fs.writeFileSync('/worker-write-test.txt', 'Hello');
             fs.appendFileSync('/worker-write-test.txt', ' World');
 
@@ -342,7 +338,7 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
         // @ts-expect-error - intentionally removing method for testing
         delete FileSystemFileHandle.prototype.createWritable;
 
-        it('should complete write in single iteration for small data (line 328-330)', () => {
+        it('should complete write in single iteration for small data', () => {
             // Normal case: write completes in one iteration
             const data = new Uint8Array([1, 2, 3, 4, 5]);
             const result = fs.writeFileSync('/worker-write-test.bin', data);
@@ -367,7 +363,7 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
             expect(content.unwrap().byteLength).toBe(size);
         });
 
-        // Note: The partial write branch (lines 332-335) is difficult to test
+        // Note: The partial write branch is difficult to test
         // as it requires accessHandle.write() to return less than requested bytes,
         // which is an edge case that rarely occurs in practice.
     });
@@ -378,7 +374,7 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
         // @ts-expect-error - intentionally removing method for testing
         delete FileSystemFileHandle.prototype.createWritable;
 
-        it('should close access handle after successful write (finally block line 336-338)', () => {
+        it('should close access handle after successful write', () => {
             // Write should succeed and access handle should be properly closed
             const result = fs.writeFileSync('/worker-write-test.txt', 'content');
             expect(result.isOk()).toBe(true);

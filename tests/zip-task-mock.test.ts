@@ -1,5 +1,6 @@
 /**
- * Test for zip.ts file read task error (line 132) using vitest mocking.
+ * Test for zip.ts file read task error using vitest mocking.
+ * Covers file.arrayBuffer() failure during zip operations.
  */
 import { Ok } from 'happy-rusty';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -42,14 +43,14 @@ describe('zip.ts file read task error', () => {
         await fs.remove('/mock-task.zip');
     });
 
-    it('should handle file read task error (zip.ts line 132)', async () => {
+    it('should handle file read task error ', async () => {
         // Create a directory first (stat will succeed)
         await fs.mkdir('/mock-task-src');
 
         // Enable mock file read failure
         mockFileReadShouldFail = true;
 
-        // This should trigger task error at line 132
+        // This should trigger task error
         const result = await fs.zip('/mock-task-src', '/mock-task.zip');
 
         expect(result.isErr()).toBe(true);

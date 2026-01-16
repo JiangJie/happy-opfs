@@ -13,7 +13,7 @@ describe('SyncChannel Validation (isolated)', () => {
     });
 
     describe('connectSyncChannel validation', () => {
-        it('should return Err when state is connecting (line 59)', async () => {
+        it('should return Err when state is connecting', async () => {
             setSyncChannelState('connecting');
 
             const result = await connectSyncChannel(
@@ -23,7 +23,7 @@ describe('SyncChannel Validation (isolated)', () => {
             expect(result.unwrapErr().message).toBe('Sync channel is connecting');
         });
 
-        it('should return Err when worker is invalid (line 69)', async () => {
+        it('should return Err when worker is invalid', async () => {
             // Test with null
             // @ts-expect-error Testing invalid input
             const result1 = await connectSyncChannel(null);
@@ -43,7 +43,7 @@ describe('SyncChannel Validation (isolated)', () => {
             expect(result3.unwrapErr().message).toBe('worker must be a Worker, URL, or non-empty string');
         });
 
-        it('should return Err when sharedBufferLength is invalid (line 72)', async () => {
+        it('should return Err when sharedBufferLength is invalid', async () => {
             const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
 
             // Test with too small value
@@ -58,7 +58,7 @@ describe('SyncChannel Validation (isolated)', () => {
             expect(result2.unwrapErr().message).toBe('sharedBufferLength must be at least 256 and a multiple of 4');
         });
 
-        it('should return Err when opTimeout is invalid (line 75)', async () => {
+        it('should return Err when opTimeout is invalid', async () => {
             const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
 
             // Test with negative number
@@ -78,7 +78,7 @@ describe('SyncChannel Validation (isolated)', () => {
             expect(result3.unwrapErr().message).toBe('opTimeout must be a positive integer');
         });
 
-        it('should return Err when worker URL is invalid (lines 78-85)', async () => {
+        it('should return Err when worker URL is invalid', async () => {
             // Use an invalid URL that will cause new Worker() to throw
             // A non-existent file:// URL or invalid protocol should trigger the error
             const result = await connectSyncChannel('invalid://not-a-valid-worker-url');
@@ -88,7 +88,7 @@ describe('SyncChannel Validation (isolated)', () => {
     });
 
     describe('attachSyncChannel validation', () => {
-        it('should return Err when state is connecting (line 153)', () => {
+        it('should return Err when state is connecting', () => {
             // Manually set state to 'connecting' to test this branch
             setSyncChannelState('connecting');
 
@@ -98,7 +98,7 @@ describe('SyncChannel Validation (isolated)', () => {
             expect(result.unwrapErr().message).toBe('Cannot attach: sync channel is connecting');
         });
 
-        it('should return Err when sharedBuffer is not SharedArrayBuffer (line 157)', () => {
+        it('should return Err when sharedBuffer is not SharedArrayBuffer', () => {
             // @ts-expect-error Testing invalid input
             const result = attachSyncChannel(new ArrayBuffer(1024));
             expect(result.isErr()).toBe(true);
@@ -106,7 +106,7 @@ describe('SyncChannel Validation (isolated)', () => {
             expect(result.unwrapErr().message).toBe('sharedBuffer must be a SharedArrayBuffer');
         });
 
-        it('should return Err when sharedBuffer is null (line 157)', () => {
+        it('should return Err when sharedBuffer is null', () => {
             // @ts-expect-error Testing invalid input
             const result = attachSyncChannel(null);
             expect(result.isErr()).toBe(true);
@@ -114,14 +114,14 @@ describe('SyncChannel Validation (isolated)', () => {
             expect(result.unwrapErr().message).toBe('sharedBuffer must be a SharedArrayBuffer');
         });
 
-        it('should use default opTimeout when options is undefined (line 160)', () => {
+        it('should use default opTimeout when options is undefined', () => {
             const sab = new SharedArrayBuffer(1024);
-            // Call without options to trigger `options ?? {}` default
+            // Call without options to trigger default behavior
             const result = attachSyncChannel(sab);
             expect(result.isOk()).toBe(true);
         });
 
-        it('should return Err when opTimeout is not a positive integer (line 162)', () => {
+        it('should return Err when opTimeout is not a positive integer', () => {
             const sab = new SharedArrayBuffer(1024);
             
             // Test with negative number

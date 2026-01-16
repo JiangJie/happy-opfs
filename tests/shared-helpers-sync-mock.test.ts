@@ -1,6 +1,6 @@
 /**
  * Mock tests for src/shared/helpers.ts
- * Covers the FileReaderSync branch (line 32-35)
+ * Covers the FileReaderSync branch for reading blob bytes synchronously in Worker context.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -31,7 +31,7 @@ describe('readBlobBytesSync with mocked FileReaderSync', () => {
         globalThis.FileReaderSync = originalFileReaderSync;
     });
 
-    it('should use FileReaderSync to read blob bytes (line 32-35)', async () => {
+    it('should use FileReaderSync to read blob bytes when available', async () => {
         // Import after mock is installed
         const { readBlobBytesSync } = await import('../src/shared/helpers.ts');
 

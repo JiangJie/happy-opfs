@@ -1,5 +1,6 @@
 /**
- * Test for zip.ts file handle error (line 82) using vitest mocking.
+ * Test for zip.ts file handle error using vitest mocking.
+ * Covers getFile() failure scenario during zip operations.
  */
 import { Ok } from 'happy-rusty';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -40,14 +41,14 @@ describe('zip.ts file handle error', () => {
         await fs.remove('/mock-zip.zip');
     });
 
-    it('should handle getFileDataByHandle error (zip.ts line 82)', async () => {
+    it('should handle getFileDataByHandle error ', async () => {
         // Create a file first
         await fs.writeFile('/mock-zip-file.txt', 'content');
 
         // Enable mock failure for file handle
         mockGetFileShouldFail = true;
 
-        // This should trigger getFileDataByHandle error at line 82
+        // This should trigger getFileDataByHandle error
         const result = await fs.zip('/mock-zip-file.txt', '/mock-zip.zip');
 
         expect(result.isErr()).toBe(true);

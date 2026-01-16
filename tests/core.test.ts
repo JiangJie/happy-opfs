@@ -237,7 +237,7 @@ describe('OPFS Core Operations', () => {
             expect(result.unwrapErr().name).toBe('AbortError');
         });
 
-        it('should return AbortError when signal is aborted with non-Error reason (line 43)', async () => {
+        it('should return AbortError when signal is aborted with non-Error reason', async () => {
             await fs.mkdir('/test-readdir-abort-non-error');
 
             const controller = new AbortController();
@@ -271,7 +271,7 @@ describe('OPFS Core Operations', () => {
             expect(entries.length).toBe(1);
         });
 
-        it('should stop when signal is aborted between readDir() and first next() (line 47)', async () => {
+        it('should stop when signal is aborted between readDir() and first next()', async () => {
             await fs.mkdir('/test-readdir-abort-before-next');
             await fs.writeFile('/test-readdir-abort-before-next/file1.txt', 'a');
 
@@ -283,7 +283,7 @@ describe('OPFS Core Operations', () => {
             // Abort AFTER readDir() returns but BEFORE first .next() call
             controller.abort();
 
-            // Now iterate - generator should immediately return due to line 47 check
+            // Now iterate - generator should immediately return due to early abort check
             const entries: fs.DirEntry[] = [];
             for await (const entry of result.unwrap()) {
                 entries.push(entry);
@@ -495,7 +495,7 @@ describe('OPFS Core Operations', () => {
             expect(result.unwrapErr().message).toContain('absolute');
         });
 
-        it('should fail openWritableFileStream with relative path (write.ts line 92)', async () => {
+        it('should fail openWritableFileStream with relative path', async () => {
             const result = await fs.openWritableFileStream('relative/file.txt');
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toContain('absolute');

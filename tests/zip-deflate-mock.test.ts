@@ -1,6 +1,6 @@
 /**
  * Test for zip-stream ZipDeflate error handling using vitest mocking.
- * Covers ZipDeflate push error (line 288).
+ * Covers ZipDeflate push error during stream processing.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as fs from '../src/mod.ts';
@@ -30,7 +30,7 @@ vi.mock('fflate/browser', async (importOriginal) => {
             }
 
             push(_chunk: Uint8Array, _final: boolean): void {
-                // Simulate error during entry processing (line 288)
+                // Simulate error during entry processing
                 throw new Error('Mocked ZipDeflate push error');
             }
         },
@@ -44,7 +44,7 @@ describe('zip-stream ZipDeflate error handling', () => {
         await fs.remove('/mock-deflate.zip');
     });
 
-    it('should handle ZipDeflate push error (zip-stream.ts line 288)', async () => {
+    it('should handle ZipDeflate push error ', async () => {
         // Create a source directory with a file
         await fs.mkdir('/mock-deflate-src');
         await fs.writeFile('/mock-deflate-src/test.txt', 'content');

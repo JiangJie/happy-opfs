@@ -242,7 +242,7 @@ describe('Worker Adapter Edge Cases', () => {
             // Since we can't change buffer size after connection, we test via a sync operation
             // that would generate a large request
 
-            // Actually, we need to test the RangeError throw at line 128
+            // Actually, we need to test the RangeError throw at request size limit
             // This requires the request data to be larger than maxDataLength
             // The current buffer is 10MB which is hard to exceed
             // We can test this indirectly by creating data close to the limit

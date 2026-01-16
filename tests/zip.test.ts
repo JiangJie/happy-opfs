@@ -295,7 +295,7 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/stream-empty.zip');
         });
 
-        it('should handle large file with multiple chunks (unzip-stream.ts line 196 else branch)', async () => {
+        it('should handle large file with multiple chunks (multiple chunk processing)', async () => {
             // Create a large file that will be split into multiple chunks during extraction
             // This ensures the ondata callback is called multiple times with final=false
             // before the final call with final=true
@@ -436,7 +436,7 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/stream-single-dest');
         });
 
-        it('should stream zip an empty file (zip-stream.ts line 187)', async () => {
+        it('should stream zip an empty file ', async () => {
             // Create an empty file (size === 0)
             await fs.writeFile('/stream-empty-file.txt', '');
 
@@ -507,7 +507,7 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/stream-empty-no-root');
         });
 
-        it('should stream zip empty directory with preserveRoot=true (line 277)', async () => {
+        it('should stream zip empty directory with preserveRoot=true', async () => {
             // Empty directory with preserveRoot=true (default)
             // first.done = true, but preserveRoot = true, so it creates empty zip with root dir
             await fs.mkdir('/stream-empty-root');
@@ -610,7 +610,7 @@ describe('OPFS Zip Operations', () => {
             expect(result.isErr()).toBe(true);
         });
 
-        it('should use "file" as default filename when URL path is root (zip.ts line 229)', async () => {
+        it('should use "file" as default filename when URL path is root ', async () => {
             // Test URL with only domain (path = '/') - should use 'file' as filename
             const result = await fs.zipFromUrl(MOCK_SERVER, '/root-zipfromurl.zip');
             expect(result.isOk()).toBe(true);
@@ -641,7 +641,7 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/unzip-empty-stream');
         });
 
-        it('should fail on null body stream (unzip-stream.ts line 106)', async () => {
+        it('should fail on null body stream ', async () => {
             // Use 204 response which should definitely return null body according to spec
             const result = await fs.unzipStreamFromUrl(`${ MOCK_SERVER }/api/204`, '/unzip-null-body');
             expect(result.isErr()).toBe(true);
@@ -650,7 +650,7 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/unzip-null-body');
         });
 
-        it('should fail on stream interruption (unzip-stream.ts line 158)', async () => {
+        it('should fail on stream interruption ', async () => {
             const result = await fs.unzipStreamFromUrl(`${ MOCK_SERVER }/api/stream-interrupt`, '/unzip-interrupt');
             expect(result.isErr()).toBe(true);
             // The error message comes from the mock handler or network stack
@@ -693,14 +693,14 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/null-stream.zip');
         });
 
-        it('should fail on stream interruption (zip-stream.ts line 214)', async () => {
+        it('should fail on stream interruption ', async () => {
             const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/stream-interrupt`, '/interrupt-zip.zip');
             expect(result.isErr()).toBe(true);
 
             await fs.remove('/interrupt-zip.zip');
         });
 
-        it('should fail when peekStream fails (zip-stream.ts line 138)', async () => {
+        it('should fail when peekStream fails ', async () => {
             // stream-error-immediate errors on first read, causing peekStream to fail
             const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/stream-error-immediate`, '/peek-error.zip');
             expect(result.isErr()).toBe(true);
@@ -710,7 +710,7 @@ describe('OPFS Zip Operations', () => {
 
         it('should use "file" as default filename when URL path is root', async () => {
             // Test URL with only domain (path = '/') - should use 'file' as filename
-            // This covers zip-stream.ts line 125 - the 'file' fallback branch
+            // This covers the 'file' fallback branch when URL path is root
             const result = await fs.zipStreamFromUrl(MOCK_SERVER, '/root-path.zip');
             expect(result.isOk()).toBe(true);
 
@@ -753,7 +753,7 @@ describe('OPFS Zip Operations', () => {
             expect(result.unwrapErr().message).toContain('absolute');
         });
 
-        it('should fail zipFromUrl with invalid dest path (zip.ts line 201)', async () => {
+        it('should fail zipFromUrl with invalid dest path ', async () => {
             const result = await fs.zipFromUrl(mockZipUrl, 'relative/output.zip');
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toContain('absolute');

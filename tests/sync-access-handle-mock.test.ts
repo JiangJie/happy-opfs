@@ -1,7 +1,7 @@
 /**
- * Mock tests for createSyncAccessHandle branches in:
- * - src/async/core/write.ts (line 57-59, 201-204, 260-351)
- * - src/async/core/read.ts (line 201-204, 210-235)
+ * Mock tests for createSyncAccessHandle branches in write.ts and read.ts.
+ * These tests cover Worker-only sync access handle code paths by mocking
+ * the createSyncAccessHandle method in the main thread.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
@@ -185,7 +185,7 @@ describe('createSyncAccessHandle mock tests', () => {
     });
 
     describe('write.ts sync access branches', () => {
-        it('should use createSyncAccessHandle for writeFile when available (line 57-59)', async () => {
+        it('should use createSyncAccessHandle for writeFile with string data', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -203,7 +203,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(storedData)).toBe('Hello Sync Access');
         });
 
-        it('should use createSyncAccessHandle for writeFile with append (line 57-59)', async () => {
+        it('should use createSyncAccessHandle for writeFile with append option', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -227,7 +227,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(storedData)).toBe('Initial Appended');
         });
 
-        it('should use createSyncAccessHandle for writeFile with ArrayBuffer (line 303-304)', async () => {
+        it('should use createSyncAccessHandle for writeFile with ArrayBuffer data', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -246,7 +246,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(storedData)).toBe('ArrayBuffer Content');
         });
 
-        it('should use createSyncAccessHandle for writeFile with Uint8Array (line 305-306)', async () => {
+        it('should use createSyncAccessHandle for writeFile with Uint8Array data', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -265,7 +265,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(storedData)).toBe('Uint8Array Content');
         });
 
-        it('should use createSyncAccessHandle for writeFile with TypedArray (line 307-308)', async () => {
+        it('should use createSyncAccessHandle for writeFile with TypedArray data', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -284,7 +284,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(storedData)).toBe('Hello');
         });
 
-        it('should use createSyncAccessHandle for writeFile with Blob (line 297)', async () => {
+        it('should use createSyncAccessHandle for writeFile with Blob data', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -303,7 +303,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(storedData)).toBe('Blob Content via Sync');
         });
 
-        it('should handle partial writes with retry (line 341)', async () => {
+        it('should handle partial writes with retry loop', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -323,7 +323,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(storedData)).toBe(data);
         });
 
-        it('should use createSyncAccessHandle for stream write (line 201-204, 264-284)', async () => {
+        it('should use createSyncAccessHandle for stream write', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -356,7 +356,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(writeRes.isOk() || writeRes.isErr()).toBe(true);
         });
 
-        it('should use createSyncAccessHandle for stream append to existing file (line 267-271)', async () => {
+        it('should use createSyncAccessHandle for stream append to existing file', async () => {
             const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -398,7 +398,7 @@ describe('createSyncAccessHandle mock tests', () => {
     });
 
     describe('read.ts sync access branches', () => {
-        it('should use createSyncAccessHandle for readFile bytes (line 201-204, 215-234)', async () => {
+        it('should use createSyncAccessHandle for readFile with bytes encoding', async () => {
             const { mkdir, writeFile, readFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');
@@ -421,7 +421,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(new TextDecoder().decode(data)).toBe('Read Me');
         });
 
-        it('should use createSyncAccessHandle for readFile utf8 (line 226-227)', async () => {
+        it('should use createSyncAccessHandle for readFile with utf8 encoding', async () => {
             const { mkdir, writeFile, readFile } = await import('../src/async/core/mod.ts');
 
             await mkdir('/sync-access-mock-test');

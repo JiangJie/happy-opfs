@@ -318,7 +318,7 @@ describe('OPFS Download/Upload Operations', () => {
             await fs.remove('/empty.bin');
         });
 
-        it('should handle null body response (download.ts line 123)', async () => {
+        it('should handle null body response ', async () => {
             // Test for null body - should fail with EmptyBodyError by default
             const task = fs.downloadFile(`${ MOCK_SERVER }/api/null-body`, '/null-body.bin');
 

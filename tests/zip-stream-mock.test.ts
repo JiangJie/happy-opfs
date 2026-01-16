@@ -1,6 +1,6 @@
 /**
  * Mock tests for src/async/archive/zip-stream.ts
- * Covers the null stream branch (line 129-133)
+ * Covers the null stream handling when fetchT returns empty body.
  */
 import type { FetchInit } from '@happy-ts/fetch-t';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -34,7 +34,7 @@ describe('zip-stream.ts null stream handling', () => {
         await remove('/zip-stream-mock-test');
     });
 
-    it('should return error when stream is null and keepEmptyBody is false (line 132)', async () => {
+    it('should return error when stream is null and keepEmptyBody is false', async () => {
         await mkdir('/zip-stream-mock-test');
 
         // Enable mock to return null stream
@@ -45,7 +45,7 @@ describe('zip-stream.ts null stream handling', () => {
         expect(result.unwrapErr().name).toBe(EMPTY_BODY_ERROR);
     });
 
-    it('should create empty zip when stream is null and keepEmptyBody is true (line 131)', async () => {
+    it('should create empty zip when stream is null and keepEmptyBody is true', async () => {
         await mkdir('/zip-stream-mock-test');
 
         // Enable mock to return null stream

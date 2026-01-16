@@ -1,6 +1,6 @@
 /**
  * Mock tests for src/async/ext.ts
- * Covers the readDir error branch in copy/move operations (line 339-340)
+ * Covers the readDir error branch in copy/move operations.
  */
 import { Err } from 'happy-rusty';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -48,7 +48,7 @@ describe('ext.ts copy/move readDir error handling', () => {
         await remove('/ext-mock-test');
     });
 
-    it('should handle readDir error in copy (ext.ts line 339)', async () => {
+    it('should handle readDir error in copy', async () => {
         // Create source directory
         await mkdir('/ext-mock-test/src');
         await writeFile('/ext-mock-test/src/file.txt', 'content');
@@ -61,7 +61,7 @@ describe('ext.ts copy/move readDir error handling', () => {
         expect(result.unwrapErr().message).toBe('Mocked readDir error after stat');
     });
 
-    it('should handle readDir error in move (ext.ts line 339)', async () => {
+    it('should handle readDir error in move', async () => {
         // Create source directory
         await mkdir('/ext-mock-test/src');
         await writeFile('/ext-mock-test/src/file.txt', 'content');
@@ -74,7 +74,7 @@ describe('ext.ts copy/move readDir error handling', () => {
         expect(result.unwrapErr().message).toBe('Mocked readDir error after stat');
     });
 
-    it('should handle iterator error during directory traversal (ext.ts line 377)', async () => {
+    it('should handle iterator error during directory traversal', async () => {
         // Create source directory
         await mkdir('/ext-mock-test/src');
         await writeFile('/ext-mock-test/src/file.txt', 'content');

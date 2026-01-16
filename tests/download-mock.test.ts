@@ -1,6 +1,6 @@
 /**
  * Mock tests for src/async/transfer/download.ts
- * Covers the null body branch (line 118-120)
+ * Covers the null body handling when fetchT returns response with null body.
  */
 import type { FetchInit } from '@happy-ts/fetch-t';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -45,7 +45,7 @@ describe('download.ts null body handling', () => {
         await remove('/download-mock-test');
     });
 
-    it('should return error when body is null and keepEmptyBody is false (line 118-120)', async () => {
+    it('should return error when body is null and keepEmptyBody is false', async () => {
         await mkdir('/download-mock-test');
 
         // Enable mock to return null body
@@ -58,7 +58,7 @@ describe('download.ts null body handling', () => {
         expect(result.unwrapErr().name).toBe(EMPTY_BODY_ERROR);
     });
 
-    it('should create empty file when body is null and keepEmptyBody is true (line 118-120)', async () => {
+    it('should create empty file when body is null and keepEmptyBody is true', async () => {
         await mkdir('/download-mock-test');
 
         // Enable mock to return null body
