@@ -51,16 +51,17 @@ window.addEventListener('message', (event) => {
         output.textContent = '';
         log('Received SharedArrayBuffer from parent', 'info');
 
-        try {
-            // Attach to the SharedArrayBuffer
-            SyncChannel.attach(event.data.sharedBuffer, { opTimeout: 5000 });
+        // Attach to the SharedArrayBuffer (returns VoidIOResult)
+        const attachResult = SyncChannel.attach(event.data.sharedBuffer, { opTimeout: 5000 });
 
-            log('Attached to sync channel successfully!', 'success');
-            log('Sync APIs are now available', 'success');
-            updateStatus(true);
-        } catch (err) {
-            log(`Failed to attach: ${(err as Error).message}`, 'error');
+        if (attachResult.isErr()) {
+            log(`Failed to attach: ${attachResult.unwrapErr().message}`, 'error');
+            return;
         }
+
+        log('Attached to sync channel successfully!', 'success');
+        log('Sync APIs are now available', 'success');
+        updateStatus(true);
     }
 });
 

@@ -11,6 +11,7 @@
 
 import {
     SyncChannel,
+    isSyncChannelSupported,
     mkdirSync,
     writeFileSync,
     readTextFileSync,
@@ -40,9 +41,9 @@ async function runExample(): Promise<void> {
         return;
     }
 
-    // Check SharedArrayBuffer support
-    if (typeof SharedArrayBuffer === 'undefined') {
-        log('SharedArrayBuffer is not available!', 'error');
+    // Check SyncChannel support (SharedArrayBuffer + cross-origin isolation)
+    if (!isSyncChannelSupported()) {
+        log('SyncChannel is not supported!', 'error');
         log('Sync APIs require these HTTP headers:', 'warning');
         log('  Cross-Origin-Opener-Policy: same-origin', 'warning');
         log('  Cross-Origin-Embedder-Policy: require-corp', 'warning');
@@ -54,21 +55,21 @@ async function runExample(): Promise<void> {
     if (SyncChannel.isReady()) {
         log('✓ Already connected to sync channel', 'success');
     } else {
-        try {
-            // Connect to the sync worker (returns Promise<SharedArrayBuffer>)
-            await SyncChannel.connect(
-                new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
-                {
-                    sharedBufferLength: 10 * 1024 * 1024, // 10MB buffer
-                    opTimeout: 5000, // 5 second timeout
-                },
-            );
+        // Connect to the sync worker (returns AsyncIOResult<SharedArrayBuffer>)
+        const connectResult = await SyncChannel.connect(
+            new Worker(new URL('sync-worker.ts', import.meta.url), { type: 'module' }),
+            {
+                sharedBufferLength: 10 * 1024 * 1024, // 10MB buffer
+                opTimeout: 5000, // 5 second timeout
+            },
+        );
 
-            log('✓ Connected to sync channel', 'success');
-        } catch (err) {
-            log(`✗ Failed to connect: ${(err as Error).message}`, 'error');
+        if (connectResult.isErr()) {
+            log(`✗ Failed to connect: ${connectResult.unwrapErr().message}`, 'error');
             return;
         }
+
+        log('✓ Connected to sync channel', 'success');
     }
 
     // Clean up from previous runs
