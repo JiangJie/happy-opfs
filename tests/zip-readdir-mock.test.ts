@@ -1,13 +1,14 @@
 /**
  * Test for zip and zip-stream readDir error handling using vitest mocking.
- * Covers readDir error and async iterator error scenarios in zip operations.
+ * Covers readDir error, async iterator error, and file read error scenarios in zip operations.
  */
 import { Err, Ok } from 'happy-rusty';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-// Flag to control mock behavior
+// Flags to control mock behavior
 let mockReadDirShouldFail = false;
 let mockIteratorShouldFail = false;
+let mockFileReadShouldFail = false;
 
 // Mock the read module to make readDir fail
 vi.mock('../src/async/core/read.ts', async (importOriginal) => {
@@ -26,6 +27,20 @@ vi.mock('../src/async/core/read.ts', async (importOriginal) => {
                 })();
                 return Promise.resolve(Ok(failingGenerator));
             }
+            if (mockFileReadShouldFail) {
+                // Return an async generator with a file that will fail to read
+                const failingFileGenerator = (async function* () {
+                    yield {
+                        path: 'test.txt',
+                        handle: {
+                            kind: 'file',
+                            name: 'test.txt',
+                            getFile: () => Promise.reject(new Error('Mocked file read error')),
+                        } as FileSystemFileHandle,
+                    };
+                })();
+                return Promise.resolve(Ok(failingFileGenerator));
+            }
             return original.readDir(path, options);
         },
     };
@@ -38,6 +53,7 @@ describe('zip-stream readDir error handling', () => {
     afterEach(async () => {
         mockReadDirShouldFail = false;
         mockIteratorShouldFail = false;
+        mockFileReadShouldFail = false;
         await fs.remove('/mock-readdir-src');
         await fs.remove('/mock-readdir.zip');
     });
@@ -73,8 +89,11 @@ describe('zip readDir error handling', () => {
     afterEach(async () => {
         mockReadDirShouldFail = false;
         mockIteratorShouldFail = false;
+        mockFileReadShouldFail = false;
         await fs.remove('/mock-zip-src');
         await fs.remove('/mock-zip.zip');
+        await fs.remove('/mock-task-src');
+        await fs.remove('/mock-task.zip');
     });
 
     it('should handle readDir error in zip', async () => {
@@ -101,5 +120,19 @@ describe('zip readDir error handling', () => {
 
         expect(result.isErr()).toBe(true);
         expect(result.unwrapErr().message).toBe('Mocked iterator error');
+    });
+
+    it('should handle file read task error in zip', async () => {
+        // Create a directory first (stat will succeed)
+        await fs.mkdir('/mock-task-src');
+
+        // Enable mock file read failure
+        mockFileReadShouldFail = true;
+
+        // This should trigger task error
+        const result = await fs.zip('/mock-task-src', '/mock-task.zip');
+
+        expect(result.isErr()).toBe(true);
+        expect(result.unwrapErr().message).toBe('Mocked file read error');
     });
 });

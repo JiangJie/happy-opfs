@@ -596,6 +596,12 @@ describe('OPFS Sync Operations', () => {
             expect(result.unwrapErr().message).toContain('absolute');
         });
 
+        it('should fail unzipSync with relative source path', () => {
+            const result = fs.unzipSync('relative/archive.zip', '/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
         it('should fail unzipSync with relative dest path', () => {
             fs.mkdirSync('/valid-zip-src');
             fs.writeFileSync('/valid-zip-src/file.txt', 'content');
@@ -619,6 +625,20 @@ describe('OPFS Sync Operations', () => {
             expect(result.isErr()).toBe(true);
             expect(result.unwrapErr().message).toContain('absolute');
             fs.removeSync('/valid-zipsync-src');
+        });
+
+        it('should fail existsSync with conflicting isDirectory and isFile options', () => {
+            // @ts-expect-error Testing invalid options
+            const result = fs.existsSync('/any-path', { isDirectory: true, isFile: true });
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('cannot both be true');
+        });
+
+        it('should fail pruneTempSync with invalid Date', () => {
+            const invalidDate = new Date('invalid');
+            const result = fs.pruneTempSync(invalidDate);
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toBe('Expired must be a valid Date');
         });
     });
 });

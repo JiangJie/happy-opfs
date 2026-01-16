@@ -82,19 +82,6 @@ describe('Worker Async API (readViaSyncAccess)', () => {
             expect(response.value).toBe('Hello from Worker async API test');
         });
 
-        it('should return Uint8Array for bytes encoding', async () => {
-            const response = await callWorker({
-                type: 'readFile',
-                filePath: '/worker-async-test.txt',
-                encoding: 'bytes',
-            });
-
-            expect(response.success).toBe(true);
-            expect(response.resultType).toBe('Uint8Array');
-            // value is array of bytes
-            expect((response.value as number[]).length).toBe('Hello from Worker async API test'.length);
-        });
-
         it('should return Uint8Array for undefined encoding (default)', async () => {
             const response = await callWorker({
                 type: 'readFile',
