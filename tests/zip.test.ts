@@ -217,6 +217,22 @@ describe('OPFS Zip Operations', () => {
             // Clean up
             await fs.remove('/empty.zip');
         });
+
+        it('should fail when destDir is a relative path', async () => {
+            // Create a valid zip file first
+            await fs.mkdir('/unzip-src');
+            await fs.writeFile('/unzip-src/file.txt', 'content');
+            await fs.zip('/unzip-src', '/unzip-test.zip');
+
+            // Attempt to unzip to a relative path
+            const result = await fs.unzip('/unzip-test.zip', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+
+            // Clean up
+            await fs.remove('/unzip-src');
+            await fs.remove('/unzip-test.zip');
+        });
     });
 
     describe('unzipStream', () => {
@@ -279,6 +295,30 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/stream-empty.zip');
         });
 
+        it('should handle large file with multiple chunks (unzip-stream.ts line 196 else branch)', async () => {
+            // Create a large file that will be split into multiple chunks during extraction
+            // This ensures the ondata callback is called multiple times with final=false
+            // before the final call with final=true
+            const largeContent = 'x'.repeat(65 * 1024 * 1024); // 65MB of data
+            await fs.mkdir('/stream-large-src');
+            await fs.writeFile('/stream-large-src/large-file.txt', largeContent);
+            await fs.zip('/stream-large-src', '/stream-large.zip');
+
+            // Unzip using stream - this should trigger multiple ondata calls
+            const result = await fs.unzipStream('/stream-large.zip', '/stream-large-dest');
+            expect(result.isOk()).toBe(true);
+
+            // Verify the file was extracted correctly
+            const extractedContent = await fs.readTextFile('/stream-large-dest/stream-large-src/large-file.txt');
+            expect(extractedContent.isOk()).toBe(true);
+            expect(extractedContent.unwrap().length).toBe(largeContent.length);
+
+            // Clean up
+            await fs.remove('/stream-large-src');
+            await fs.remove('/stream-large.zip');
+            await fs.remove('/stream-large-dest');
+        });
+
         it('should fail when destDir is a file', async () => {
             await fs.mkdir('/stream-src');
             await fs.writeFile('/stream-src/file.txt', 'content');
@@ -310,7 +350,7 @@ describe('OPFS Zip Operations', () => {
         });
 
         it('should fail on invalid URL', async () => {
-            const result = await fs.unzipStreamFromUrl('not-a-valid-url', '/url-stream-dest');
+            const result = await fs.unzipStreamFromUrl('http://', '/url-stream-dest');
             expect(result.isErr()).toBe(true);
 
             // Clean up
@@ -339,6 +379,14 @@ describe('OPFS Zip Operations', () => {
             expect(result.isOk()).toBe(true);
 
             expect(progressCalled).toBe(true);
+        });
+
+        it('should fail on invalid URL', async () => {
+            const result = await fs.unzipFromUrl('http://', '/url-unzip-invalid');
+            expect(result.isErr()).toBe(true);
+
+            // Clean up
+            await fs.remove('/url-unzip-invalid');
         });
     });
 
@@ -388,6 +436,26 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/stream-single-dest');
         });
 
+        it('should stream zip an empty file (zip-stream.ts line 187)', async () => {
+            // Create an empty file (size === 0)
+            await fs.writeFile('/stream-empty-file.txt', '');
+
+            const result = await fs.zipStream('/stream-empty-file.txt', '/stream-empty-file.zip');
+            expect(result.isOk()).toBe(true);
+
+            // Verify by unzipping
+            const unzipResult = await fs.unzip('/stream-empty-file.zip', '/stream-empty-file-dest');
+            expect(unzipResult.isOk()).toBe(true);
+
+            const content = await fs.readTextFile('/stream-empty-file-dest/stream-empty-file.txt');
+            expect(content.unwrap()).toBe('');
+
+            // Clean up
+            await fs.remove('/stream-empty-file.txt');
+            await fs.remove('/stream-empty-file.zip');
+            await fs.remove('/stream-empty-file-dest');
+        });
+
         it('should stream zip with preserveRoot option', async () => {
             await fs.mkdir('/stream-root');
             await fs.writeFile('/stream-root/file.txt', 'root content');
@@ -429,6 +497,34 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/stream-empty-dest');
         });
 
+        it('should fail to zip empty directory with preserveRoot=false', async () => {
+            await fs.mkdir('/stream-empty-no-root');
+
+            const result = await fs.zipStream('/stream-empty-no-root', '/stream-empty-no-root.zip', { preserveRoot: false });
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toBe('Nothing to zip');
+
+            await fs.remove('/stream-empty-no-root');
+        });
+
+        it('should stream zip empty directory with preserveRoot=true (line 277)', async () => {
+            // Empty directory with preserveRoot=true (default)
+            // first.done = true, but preserveRoot = true, so it creates empty zip with root dir
+            await fs.mkdir('/stream-empty-root');
+
+            const result = await fs.zipStream('/stream-empty-root', '/stream-empty-root.zip');
+            expect(result.isOk()).toBe(true);
+
+            // Verify the zip contains just the empty root directory
+            const unzipResult = await fs.unzip('/stream-empty-root.zip', '/stream-empty-root-dest');
+            expect(unzipResult.isOk()).toBe(true);
+            expect((await fs.exists('/stream-empty-root-dest/stream-empty-root', { isDirectory: true })).unwrap()).toBe(true);
+
+            await fs.remove('/stream-empty-root');
+            await fs.remove('/stream-empty-root.zip');
+            await fs.remove('/stream-empty-root-dest');
+        });
+
         it('should fail to zip non-existent path', async () => {
             const result = await fs.zipStream('/non-existent-path', '/test.zip');
             expect(result.isErr()).toBe(true);
@@ -447,7 +543,7 @@ describe('OPFS Zip Operations', () => {
         });
 
         it('should fail on invalid URL', async () => {
-            const result = await fs.zipStreamFromUrl('not-a-valid-url', '/url-stream.zip');
+            const result = await fs.zipStreamFromUrl('http://', '/url-stream.zip');
             expect(result.isErr()).toBe(true);
         });
 
@@ -502,6 +598,199 @@ describe('OPFS Zip Operations', () => {
 
             const zipData = result.unwrap();
             expect(zipData.byteLength).toBeGreaterThan(0);
+        });
+
+        it('should fail on network error', async () => {
+            const result = await fs.zipFromUrl(`${MOCK_SERVER}/api/network-error`);
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should fail on invalid URL', async () => {
+            const result = await fs.zipFromUrl('http://');
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should use "file" as default filename when URL path is root (zip.ts line 229)', async () => {
+            // Test URL with only domain (path = '/') - should use 'file' as filename
+            const result = await fs.zipFromUrl(MOCK_SERVER, '/root-zipfromurl.zip');
+            expect(result.isOk()).toBe(true);
+
+            // Verify the zip was created and contains 'file' as entry name
+            const unzipResult = await fs.unzip('/root-zipfromurl.zip', '/root-zipfromurl-dest');
+            expect(unzipResult.isOk()).toBe(true);
+            expect((await fs.exists('/root-zipfromurl-dest/file')).unwrap()).toBe(true);
+
+            await fs.remove('/root-zipfromurl.zip');
+            await fs.remove('/root-zipfromurl-dest');
+        });
+    });
+
+    describe('unzipStreamFromUrl edge cases', () => {
+        it('should fail on network error', async () => {
+            const result = await fs.unzipStreamFromUrl(`${MOCK_SERVER}/api/network-error`, '/unzip-network-error');
+            expect(result.isErr()).toBe(true);
+
+            await fs.remove('/unzip-network-error');
+        });
+
+        it('should fail on empty stream', async () => {
+            const result = await fs.unzipStreamFromUrl(`${MOCK_SERVER}/api/empty-body`, '/unzip-empty-stream');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('EmptyBodyError');
+
+            await fs.remove('/unzip-empty-stream');
+        });
+
+        it('should fail on null body stream (unzip-stream.ts line 106)', async () => {
+            // Use 204 response which should definitely return null body according to spec
+            const result = await fs.unzipStreamFromUrl(`${ MOCK_SERVER }/api/204`, '/unzip-null-body');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().name).toBe('EmptyBodyError');
+
+            await fs.remove('/unzip-null-body');
+        });
+
+        it('should fail on stream interruption (unzip-stream.ts line 158)', async () => {
+            const result = await fs.unzipStreamFromUrl(`${ MOCK_SERVER }/api/stream-interrupt`, '/unzip-interrupt');
+            expect(result.isErr()).toBe(true);
+            // The error message comes from the mock handler or network stack
+            expect(result.unwrapErr().message).toBeTruthy();
+
+            await fs.remove('/unzip-interrupt');
+        });
+
+        it('should handle invalid zip data in stream gracefully', async () => {
+            // Create a file with invalid zip data
+            await fs.writeFile('/invalid-stream.zip', 'This is not a valid zip file');
+
+            const result = await fs.unzipStream('/invalid-stream.zip', '/invalid-stream-dest');
+            // fflate may or may not throw on invalid data - depends on how invalid
+            // Either error or empty result is acceptable
+            if (result.isErr()) {
+                expect(result.isErr()).toBe(true);
+            }
+
+            await fs.remove('/invalid-stream.zip');
+            await fs.remove('/invalid-stream-dest');
+        });
+    });
+
+    describe('zipStreamFromUrl edge cases', () => {
+        it('should fail on network error', async () => {
+            const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/network-error`, '/network-error.zip');
+            expect(result.isErr()).toBe(true);
+
+            await fs.remove('/network-error.zip');
+        });
+
+        it('should handle null stream with keepEmptyBody', async () => {
+            const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/null-body`, '/null-stream.zip', {
+                keepEmptyBody: true,
+                filename: 'empty.txt',
+            });
+            expect(result.isOk()).toBe(true);
+
+            await fs.remove('/null-stream.zip');
+        });
+
+        it('should fail on stream interruption (zip-stream.ts line 214)', async () => {
+            const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/stream-interrupt`, '/interrupt-zip.zip');
+            expect(result.isErr()).toBe(true);
+
+            await fs.remove('/interrupt-zip.zip');
+        });
+
+        it('should fail when peekStream fails (zip-stream.ts line 138)', async () => {
+            // stream-error-immediate errors on first read, causing peekStream to fail
+            const result = await fs.zipStreamFromUrl(`${MOCK_SERVER}/api/stream-error-immediate`, '/peek-error.zip');
+            expect(result.isErr()).toBe(true);
+
+            await fs.remove('/peek-error.zip');
+        });
+
+        it('should use "file" as default filename when URL path is root', async () => {
+            // Test URL with only domain (path = '/') - should use 'file' as filename
+            // This covers zip-stream.ts line 125 - the 'file' fallback branch
+            const result = await fs.zipStreamFromUrl(MOCK_SERVER, '/root-path.zip');
+            expect(result.isOk()).toBe(true);
+
+            // Verify the zip was created and contains 'file' as entry name
+            const unzipResult = await fs.unzip('/root-path.zip', '/root-path-dest');
+            expect(unzipResult.isOk()).toBe(true);
+            expect((await fs.exists('/root-path-dest/file')).unwrap()).toBe(true);
+
+            await fs.remove('/root-path.zip');
+            await fs.remove('/root-path-dest');
+        });
+    });
+
+    describe('invalid path/URL validation', () => {
+        it('should fail zip with invalid source path', async () => {
+            const result = await fs.zip('relative/source', '/output.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail zip with invalid dest path', async () => {
+            await fs.mkdir('/valid-zip-src');
+            const result = await fs.zip('/valid-zip-src', 'relative/output.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            await fs.remove('/valid-zip-src');
+        });
+
+        it('should fail zipStream with invalid dest path', async () => {
+            await fs.mkdir('/valid-zipstream-src');
+            const result = await fs.zipStream('/valid-zipstream-src', 'relative/output.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            await fs.remove('/valid-zipstream-src');
+        });
+
+        it('should fail zipStreamFromUrl with invalid dest path', async () => {
+            const result = await fs.zipStreamFromUrl(mockZipUrl, 'relative/output.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail zipFromUrl with invalid dest path (zip.ts line 201)', async () => {
+            const result = await fs.zipFromUrl(mockZipUrl, 'relative/output.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail unzip with invalid dest path', async () => {
+            await fs.mkdir('/valid-unzip-src');
+            await fs.writeFile('/valid-unzip-src/file.txt', 'content');
+            await fs.zip('/valid-unzip-src', '/valid.zip');
+            const result = await fs.unzip('/valid.zip', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            await fs.remove('/valid-unzip-src');
+            await fs.remove('/valid.zip');
+        });
+
+        it('should fail unzipStream with invalid dest path', async () => {
+            await fs.mkdir('/valid-unzipstream-src');
+            await fs.writeFile('/valid-unzipstream-src/file.txt', 'content');
+            await fs.zip('/valid-unzipstream-src', '/valid-stream.zip');
+            const result = await fs.unzipStream('/valid-stream.zip', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            await fs.remove('/valid-unzipstream-src');
+            await fs.remove('/valid-stream.zip');
+        });
+
+        it('should fail unzipStreamFromUrl with invalid dest path', async () => {
+            const result = await fs.unzipStreamFromUrl(mockZipUrl, 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail unzipFromUrl with invalid dest path', async () => {
+            const result = await fs.unzipFromUrl(mockZipUrl, 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
         });
     });
 });

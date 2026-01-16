@@ -239,4 +239,32 @@ describe('OPFS Sync Edge Cases', () => {
             expect(buffer.byteLength).toBe(6);
         });
     });
+
+    describe('Validation error branches', () => {
+        it('should return Err when existsSync options has both isDirectory and isFile true (line 403)', () => {
+            // @ts-expect-error Testing invalid options
+            const result = fs.existsSync('/any-path', { isDirectory: true, isFile: true });
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('cannot both be true');
+        });
+
+        it('should return Err when pruneTempSync receives invalid Date (line 459)', () => {
+            const invalidDate = new Date('invalid');
+            const result = fs.pruneTempSync(invalidDate);
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toBe('Expired must be a valid Date');
+        });
+
+        it('should return Err when unzipSync receives invalid zipFilePath (line 563)', () => {
+            const result = fs.unzipSync('relative/path.zip', '/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should return Err when unzipSync receives invalid destDir (line 567)', () => {
+            const result = fs.unzipSync('/valid/path.zip', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+    });
 });

@@ -237,6 +237,19 @@ describe('OPFS Core Operations', () => {
             expect(result.unwrapErr().name).toBe('AbortError');
         });
 
+        it('should return AbortError when signal is aborted with non-Error reason (line 43)', async () => {
+            await fs.mkdir('/test-readdir-abort-non-error');
+
+            const controller = new AbortController();
+            // Abort with a non-Error reason (string) to trigger createAbortError() branch
+            controller.abort('custom string reason');
+
+            const result = await fs.readDir('/test-readdir-abort-non-error', { signal: controller.signal });
+            expect(result.isErr()).toBe(true);
+            // Should still get AbortError since reason is not an Error instance
+            expect(result.unwrapErr().name).toBe('AbortError');
+        });
+
         it('should stop iteration when signal is aborted during traversal', async () => {
             await fs.mkdir('/test-readdir-abort-mid');
             await fs.writeFile('/test-readdir-abort-mid/file1.txt', 'a');
@@ -256,6 +269,28 @@ describe('OPFS Core Operations', () => {
 
             // Should have stopped after 1 entry (the abort check happens before each yield)
             expect(entries.length).toBe(1);
+        });
+
+        it('should stop when signal is aborted between readDir() and first next() (line 47)', async () => {
+            await fs.mkdir('/test-readdir-abort-before-next');
+            await fs.writeFile('/test-readdir-abort-before-next/file1.txt', 'a');
+
+            const controller = new AbortController();
+            // readDir returns Ok with generator, signal not yet aborted
+            const result = await fs.readDir('/test-readdir-abort-before-next', { signal: controller.signal });
+            expect(result.isOk()).toBe(true);
+
+            // Abort AFTER readDir() returns but BEFORE first .next() call
+            controller.abort();
+
+            // Now iterate - generator should immediately return due to line 47 check
+            const entries: fs.DirEntry[] = [];
+            for await (const entry of result.unwrap()) {
+                entries.push(entry);
+            }
+
+            // Should have 0 entries because abort happened before iteration started
+            expect(entries.length).toBe(0);
         });
 
         it('should work with AbortSignal.timeout()', async () => {
@@ -402,6 +437,68 @@ describe('OPFS Core Operations', () => {
 
             expect((await fs.exists('/test-file.txt', { isDirectory: true })).unwrap()).toBe(false);
             expect((await fs.exists('/test-dir', { isDirectory: true })).unwrap()).toBe(true);
+        });
+    });
+
+    describe('invalid path validation', () => {
+        it('should fail createFile with relative path', async () => {
+            const result = await fs.createFile('relative/path.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail mkdir with relative path', async () => {
+            const result = await fs.mkdir('relative/dir');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail writeFile with relative path', async () => {
+            const result = await fs.writeFile('relative/file.txt', 'content');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail readFile with relative path', async () => {
+            const result = await fs.readFile('relative/file.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail readDir with relative path', async () => {
+            const result = await fs.readDir('relative/dir');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail remove with relative path', async () => {
+            const result = await fs.remove('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail stat with relative path', async () => {
+            const result = await fs.stat('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail exists with relative path', async () => {
+            const result = await fs.exists('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail appendFile with relative path', async () => {
+            const result = await fs.appendFile('relative/file.txt', 'content');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail openWritableFileStream with relative path (write.ts line 92)', async () => {
+            const result = await fs.openWritableFileStream('relative/file.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
         });
     });
 });

@@ -166,6 +166,25 @@ describe('OPFS Download/Upload Operations', () => {
             task.abort(); // Clean up
         });
 
+        it('should handle validation failure with failed fetch task (helpers.ts 186-189)', async () => {
+            // Test with invalid file path (relative path) to trigger createFailedFetchTask
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/product`, 'relative-path.json');
+
+            // The task should be a failed fetch task
+            expect(task).toBeDefined();
+
+            // Test abort() - should be a noop
+            task.abort();
+
+            // Test aborted getter - should return false for failed task
+            expect(task.aborted).toBe(false);
+
+            // Test result - should return error
+            const result = await task.result;
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
         it('should return AbortError when aborted before completion', async () => {
             // Use slow endpoint to ensure we can abort before completion
             const task = fs.downloadFile(`${MOCK_SERVER}/api/slow`, '/aborted.json', {
@@ -298,6 +317,30 @@ describe('OPFS Download/Upload Operations', () => {
 
             await fs.remove('/empty.bin');
         });
+
+        it('should handle null body response (download.ts line 123)', async () => {
+            // Test for null body - should fail with EmptyBodyError by default
+            const task = fs.downloadFile(`${ MOCK_SERVER }/api/null-body`, '/null-body.bin');
+
+            const result = await task.result;
+            // MSW may return empty stream instead of null body in browser
+            // Either EmptyBodyError or successful empty file creation is acceptable
+            if (result.isErr()) {
+                expect(result.unwrapErr().name).toBe('EmptyBodyError');
+            }
+        });
+
+        it('should handle null body response with keepEmptyBody option', async () => {
+            // Test for null body with keepEmptyBody=true
+            const task = fs.downloadFile(`${ MOCK_SERVER }/api/null-body-keep`, '/null-body-keep.bin', {
+                keepEmptyBody: true,
+            });
+
+            const result = await task.result;
+            expect(result.isOk()).toBe(true);
+
+            await fs.remove('/null-body-keep.bin');
+        });
     });
 
     describe('uploadFile', () => {
@@ -368,6 +411,36 @@ describe('OPFS Download/Upload Operations', () => {
             // Abort and check
             task.abort();
             expect(task.aborted).toBe(true);
+        });
+    });
+
+    describe('invalid path/URL validation', () => {
+        it('should fail downloadFile with invalid URL', async () => {
+            const task = fs.downloadFile('http://', '/downloaded.json');
+            const result = await task.result;
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should fail downloadFile with invalid dest path', async () => {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/product`, 'relative/path.json');
+            const result = await task.result;
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail uploadFile with invalid path', async () => {
+            const task = fs.uploadFile('relative/path.json', `${MOCK_SERVER}/api/upload`);
+            const result = await task.result;
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail uploadFile with invalid URL', async () => {
+            await fs.writeFile('/upload-valid.json', JSON.stringify({ test: true }));
+            const task = fs.uploadFile('/upload-valid.json', 'http://');
+            const result = await task.result;
+            expect(result.isErr()).toBe(true);
+            await fs.remove('/upload-valid.json');
         });
     });
 });

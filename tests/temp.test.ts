@@ -155,6 +155,15 @@ describe('OPFS Temporary File Operations', () => {
 
             await fs.remove(dirPath);
         });
+
+        it('should handle empty temp directory', async () => {
+            // Ensure temp directory is empty
+            await fs.deleteTemp();
+            await fs.mkdir(fs.TMP_DIR);
+
+            const result = await fs.pruneTemp(new Date());
+            expect(result.isOk()).toBe(true);
+        });
     });
 
     describe('deleteTemp', () => {

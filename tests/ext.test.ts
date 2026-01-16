@@ -214,6 +214,10 @@ describe('OPFS Extended Operations', () => {
             const result = await fs.emptyDir('/empty-dir-test/child');
             expect(result.isErr()).toBe(true);
         });
+
+        // Note: Testing emptyDir('/') is skipped because it would affect other tests
+        // running in parallel. The code path is covered by isRootDir check in ext.ts:70-72
+        // which delegates to remove('/'), tested in core.test.ts
     });
 
     describe('readBlobFile', () => {
@@ -381,6 +385,78 @@ describe('OPFS Extended Operations', () => {
 
             expect((await fs.exists('/copy-empty-subs-dest/empty1', { isDirectory: true })).unwrap()).toBe(true);
             expect((await fs.exists('/copy-empty-subs-dest/empty2', { isDirectory: true })).unwrap()).toBe(true);
+        });
+
+        it('should fail when source does not exist', async () => {
+            const result = await fs.copy('/non-existent-src', '/copy-dest');
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should fail move when source does not exist', async () => {
+            const result = await fs.move('/non-existent-src', '/move-dest');
+            expect(result.isErr()).toBe(true);
+        });
+    });
+
+    describe('Argument validation errors', () => {
+        it('should fail exists with invalid options', async () => {
+            // Actually validateExistsOptions checks if both isFile and isDirectory are true
+            // @ts-expect-error but we want to test the error case
+            const result = await fs.exists('/some/path', { isFile: true, isDirectory: true });
+            expect(result.isErr()).toBe(true);
+        });
+
+        it('should fail copy with invalid source path', async () => {
+            const result = await fs.copy('relative/path', '/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail copy with invalid dest path', async () => {
+            // Setup source so validation passes
+            await fs.writeFile('/valid-src', 'content');
+            const result = await fs.copy('/valid-src', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            await fs.remove('/valid-src');
+        });
+
+        it('should fail move with invalid source path', async () => {
+            const result = await fs.move('relative/path', '/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail move with invalid dest path', async () => {
+            await fs.writeFile('/valid-move-src', 'content');
+            const result = await fs.move('/valid-move-src', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            await fs.remove('/valid-move-src');
+        });
+
+        it('should fail emptyDir with invalid path', async () => {
+            const result = await fs.emptyDir('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail readBlobFile with invalid path', async () => {
+            const result = await fs.readBlobFile('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail readJsonFile with invalid path', async () => {
+            const result = await fs.readJsonFile('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail writeJsonFile with invalid path', async () => {
+            const result = await fs.writeJsonFile('relative/path', { data: 'test' });
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
         });
     });
 });

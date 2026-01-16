@@ -506,4 +506,119 @@ describe('OPFS Sync Operations', () => {
             expect(fs.existsSync(fs.TMP_DIR).unwrap()).toBe(false);
         });
     });
+
+    describe('Sync - invalid path validation', () => {
+        it('should fail createFileSync with relative path', () => {
+            const result = fs.createFileSync('relative/path.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail mkdirSync with relative path', () => {
+            const result = fs.mkdirSync('relative/dir');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail writeFileSync with relative path', () => {
+            const result = fs.writeFileSync('relative/file.txt', 'content');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail readFileSync with relative path', () => {
+            const result = fs.readFileSync('relative/file.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail readDirSync with relative path', () => {
+            const result = fs.readDirSync('relative/dir');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail removeSync with relative path', () => {
+            const result = fs.removeSync('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail statSync with relative path', () => {
+            const result = fs.statSync('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail existsSync with relative path', () => {
+            const result = fs.existsSync('relative/path');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail appendFileSync with relative path', () => {
+            const result = fs.appendFileSync('relative/file.txt', 'content');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail copySync with relative source path', () => {
+            const result = fs.copySync('relative/src', '/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail copySync with relative dest path', () => {
+            fs.writeFileSync('/valid-copy-src.txt', 'content');
+            const result = fs.copySync('/valid-copy-src.txt', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            fs.removeSync('/valid-copy-src.txt');
+        });
+
+        it('should fail moveSync with relative source path', () => {
+            const result = fs.moveSync('relative/src', '/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail moveSync with relative dest path', () => {
+            fs.writeFileSync('/valid-move-src.txt', 'content');
+            const result = fs.moveSync('/valid-move-src.txt', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            fs.removeSync('/valid-move-src.txt');
+        });
+
+        it('should fail emptyDirSync with relative path', () => {
+            const result = fs.emptyDirSync('relative/dir');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail unzipSync with relative dest path', () => {
+            fs.mkdirSync('/valid-zip-src');
+            fs.writeFileSync('/valid-zip-src/file.txt', 'content');
+            fs.zipSync('/valid-zip-src', '/valid.zip');
+            const result = fs.unzipSync('/valid.zip', 'relative/dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            fs.removeSync('/valid-zip-src');
+            fs.removeSync('/valid.zip');
+        });
+
+        it('should fail zipSync with relative source path', () => {
+            const result = fs.zipSync('relative/source', '/output.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
+
+        it('should fail zipSync with relative dest path', () => {
+            fs.mkdirSync('/valid-zipsync-src');
+            const result = fs.zipSync('/valid-zipsync-src', 'relative/output.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+            fs.removeSync('/valid-zipsync-src');
+        });
+    });
 });

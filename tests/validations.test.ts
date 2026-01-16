@@ -240,5 +240,18 @@ describe('Validations', () => {
             expect(err).toBeInstanceOf(TypeError);
             expect(err.message).toContain('Date');
         });
+
+        it('should return Err for invalid Date (NaN time) (line 85)', () => {
+            // new Date('invalid') creates a Date instance but getTime() returns NaN
+            const invalidDate = new Date('invalid');
+            expect(invalidDate instanceof Date).toBe(true);
+            expect(Number.isNaN(invalidDate.getTime())).toBe(true);
+
+            const res = validateExpiredDate(invalidDate);
+            expect(res.isErr()).toBe(true);
+            const err = res.unwrapErr();
+            expect(err).toBeInstanceOf(Error);
+            expect(err.message).toBe('Expired must be a valid Date');
+        });
     });
 });
