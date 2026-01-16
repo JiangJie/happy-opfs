@@ -86,7 +86,7 @@
             log('Running benchmarks in Worker thread...');
             runBtn.disabled = true;
 
-            const worker = new Worker(new URL('./worker-bench.ts', import.meta.url), { type: 'module' });
+            const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
 
             worker.onmessage = (e) => {
                 const results = e.data;
