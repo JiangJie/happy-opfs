@@ -16,11 +16,18 @@
         h1 {
             color: #00d9ff;
         }
+        h2 {
+            color: #00d9ff;
+            font-size: 1.1em;
+            margin-top: 30px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
         a {
             color: #00d9ff;
             text-decoration: none;
             display: block;
-            padding: 10px 0;
+            padding: 8px 0;
         }
         a:hover {
             text-decoration: underline;
@@ -28,23 +35,57 @@
         ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
         li {
-            padding: 5px 0;
+            padding: 2px 0;
+        }
+        .desc {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .note {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+        code {
+            background: #0d1b2a;
+            padding: 2px 6px;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
     <h1>happy-opfs Benchmarks</h1>
+
+    <h2>Compression</h2>
     <ul>
-        <li><a href="./download-stream.html">Stream vs Batch Download</a></li>
-        <li><a href="./read-stream.html">Stream vs Batch Read</a></li>
-        <li><a href="./write-stream.html">Stream vs Batch Write</a></li>
-        <li><a href="./unzip.html">unzip vs unzipSync (main thread)</a></li>
-        <li><a href="./unzip-stream.html">Batch vs Streaming unzip</a></li>
-        <li><a href="./zip.html">zip vs zipSync (main thread)</a></li>
-        <li><a href="./zip-stream.html">Batch vs Streaming zip</a></li>
-        <li><a href="./worker.html">async vs sync inside Worker</a></li>
+        <li><a href="./zip.html">zip vs zipSync <span class="desc">- async vs sync compression</span></a></li>
+        <li><a href="./unzip.html">unzip vs unzipSync <span class="desc">- async vs sync decompression</span></a></li>
+        <li><a href="./zip-stream.html">Batch vs Streaming zip <span class="desc">- memory vs speed tradeoff</span></a></li>
+        <li><a href="./unzip-stream.html">Batch vs Streaming unzip <span class="desc">- memory vs speed tradeoff</span></a></li>
     </ul>
+
+    <h2>File I/O</h2>
+    <ul>
+        <li><a href="./read-stream.html">Stream vs Batch Read <span class="desc">- reading large files</span></a></li>
+        <li><a href="./write-stream.html">Stream vs Batch Write <span class="desc">- writing large files</span></a></li>
+        <li><a href="./download-stream.html">Stream vs Batch Download <span class="desc">- network + file I/O</span></a></li>
+    </ul>
+
+    <h2>Worker</h2>
+    <ul>
+        <li><a href="./worker.html">async vs sync inside Worker <span class="desc">- Worker thread performance</span></a></li>
+    </ul>
+
+    <div class="note">
+        <strong>Running Benchmarks:</strong><br><br>
+        Interactive: <code>pnpm run bench</code> (opens browser)<br>
+        Automated: <code>pnpm run bench:run</code> (headless Playwright)<br>
+        Single: <code>pnpm run bench:run -- zip</code> (run specific benchmark)
+    </div>
 </body>
 </html>

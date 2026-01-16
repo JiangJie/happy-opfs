@@ -299,7 +299,32 @@ The `examples/` directory contains runnable examples for all major features:
 - `download-upload.ts` - File download and upload with progress
 - `stream.ts` - Readable/writable stream operations
 - `zip.ts` - Zip/unzip operations
+- `zip-stream.ts` - Streaming zip/unzip for large files
 - `sync-api.ts` + `sync-worker.ts` - Synchronous file operations via Web Worker
 - `shared-messenger.ts` + `shared-messenger-child.ts` - Sharing sync channel between iframe contexts
 
 Run examples with `pnpm eg` (requires HTTPS, Vite dev server handles this automatically).
+
+## Benchmarks
+
+The `benchmarks/` directory contains performance benchmarks:
+
+### Running Benchmarks
+```bash
+# Interactive mode (opens browser at http://localhost:5173)
+pnpm run bench
+
+# Automated mode (headless Playwright, outputs to console)
+pnpm run bench:run
+
+# Run specific benchmark
+pnpm run bench:run -- zip
+pnpm run bench:run -- stream
+```
+
+### Available Benchmarks
+- **Compression**: `zip.ts`, `unzip.ts`, `zip-stream.ts`, `unzip-stream.ts`
+- **File I/O**: `read-stream.ts`, `write-stream.ts`, `download-stream.ts`
+- **Worker**: `worker.ts` (async vs sync in Worker thread)
+
+Benchmarks use MSW for mock data (configured in `benchmarks/mocks/`).
