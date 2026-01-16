@@ -7,7 +7,8 @@ import * as fs from '../src/mod.ts';
 import { worker } from './mocks/browser.ts';
 import { MOCK_SERVER } from './mocks/constants.ts';
 
-const mockZipUrl = 'https://raw.githubusercontent.com/JiangJie/happy-opfs/main/tests/test.zip';
+// Use MSW mock server URL instead of external GitHub URL
+const mockZipUrl = `${MOCK_SERVER}/files/test.zip`;
 
 describe('OPFS Zip Operations', () => {
     beforeAll(async () => {

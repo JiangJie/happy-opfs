@@ -24,6 +24,32 @@ function generateLargeData(sizeInKB: number): string {
     return chunk.repeat(sizeInKB);
 }
 
+// Mock zip file data (base64 encoded)
+// Contains: zip/dir/child-file.txt, zip/file.txt (empty files)
+const MOCK_ZIP_BASE64 = 'UEsDBBQAAAAAACeoB1kAAAAAAAAAAAAAAAAEACAAemlwL1VUDQAHG3CzZnpws2YGcLNmdXgLAAEE' +
+    'AAAAAAQAAAAAUEsDBBQAAAAAAC+oB1kAAAAAAAAAAAAAAAAIACAAemlwL2Rpci9VVA0ABytws2Z6' +
+    'cLNmEXCzZnV4CwABBAAAAAAEAAAAAFBLAwQUAAgACAAqqAdZAAAAAAAAAAAAAAAAFgAgAHppcC9k' +
+    'aXIvY2hpbGQtZmlsZS50eHRVVA0AByFws2YhcLNmIXCzZnV4CwABBAAAAAAEAAAAAAMAUEsHCAAA' +
+    'AAACAAAAAAAAAFBLAwQUAAgACAAmqAdZAAAAAAAAAAAAAAAADAAgAHppcC9maWxlLnR4dFVUDQAH' +
+    'GXCzZhlws2YZcLNmdXgLAAEEAAAAAAQAAAAAAwBQSwcIAAAAAAIAAAAAAAAAUEsBAhQDFAAAAAAA' +
+    'J6gHWQAAAAAAAAAAAAAAAAQAIAAAAAAAAAAAAP9BAAAAAHppcC9VVA0ABxtws2Z6cLNmBnCzZnV4' +
+    'CwABBAAAAAAEAAAAAFBLAQIUAxQAAAAAAC+oB1kAAAAAAAAAAAAAAAAIACAAAAAAAAAAAAD/QUIA' +
+    'AAB6aXAvZGlyL1VUDQAHK3CzZnpws2YRcLNmdXgLAAEEAAAAAAQAAAAAUEsBAhQDFAAIAAgAKqgH' +
+    'WQAAAAACAAAAAAAAABYAIAAAAAAAAAAAALaBiAAAAHppcC9kaXIvY2hpbGQtZmlsZS50eHRVVA0A' +
+    'ByFws2YhcLNmIXCzZnV4CwABBAAAAAAEAAAAAFBLAQIUAxQACAAIACaoB1kAAAAAAgAAAAAAAAAM' +
+    'ACAAAAAAAAAAAAC2ge4AAAB6aXAvZmlsZS50eHRVVA0ABxlws2YZcLNmGXCzZnV4CwABBAAAAAAE' +
+    'AAAAAFBLBQYAAAAABAAEAGYBAABKAQAAAAA=';
+
+// Decode base64 to Uint8Array
+function base64ToUint8Array(base64: string): Uint8Array {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+}
+
 export const handlers = [
     // GET single product - small JSON response
     http.get(`${MOCK_SERVER}/api/product`, () => {
@@ -246,6 +272,17 @@ export const handlers = [
             status: 200,
             headers: {
                 'Content-Type': 'application/octet-stream',
+            },
+        });
+    }),
+
+    // Mock zip file - for unzipFromUrl/zipFromUrl testing
+    http.get(`${MOCK_SERVER}/files/test.zip`, () => {
+        const zipData = base64ToUint8Array(MOCK_ZIP_BASE64);
+        return new HttpResponse(zipData, {
+            headers: {
+                'Content-Type': 'application/zip',
+                'Content-Length': String(zipData.length),
             },
         });
     }),
