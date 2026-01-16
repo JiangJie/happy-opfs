@@ -103,8 +103,8 @@ You can install [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpg
 
 Coverage is collected using V8 provider in real browser environment.
 
-- `src/worker/opfs_worker.ts` is excluded because it runs in Web Worker context where V8 cannot instrument
-- `src/fs/core/*.ts` has branches running in Worker context, but fully tested through sync API tests
+- `src/sync/channel/listen.ts` is excluded because it runs in Web Worker context where V8 cannot instrument
+- `src/async/core/*.ts` has branches running in Worker context (via `createSyncAccessHandle`), tested through mock tests
 
 ## License
 

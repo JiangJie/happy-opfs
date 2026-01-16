@@ -103,8 +103,8 @@ await remove('/data');
 
 覆盖率在真实浏览器环境中使用 V8 provider 收集。
 
-- `src/worker/opfs_worker.ts` 被排除，因为它运行在 Web Worker 上下文中，V8 无法对其插桩
-- `src/fs/core/*.ts` 有部分分支在 Worker 上下文中运行，但已通过同步 API 测试完整覆盖
+- `src/sync/channel/listen.ts` 被排除，因为它运行在 Web Worker 上下文中，V8 无法对其插桩
+- `src/async/core/*.ts` 有部分分支通过 `createSyncAccessHandle` 在 Worker 上下文中运行，已通过 mock 测试覆盖
 
 ## 许可证
 
