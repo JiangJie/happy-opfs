@@ -23,14 +23,14 @@ interface BenchmarkResult {
 
 // All available benchmarks
 const BENCHMARKS = [
-    { name: 'zip', html: 'zip.html', description: 'zip vs zipSync (main thread)' },
-    { name: 'unzip', html: 'unzip.html', description: 'unzip vs unzipSync (main thread)' },
-    { name: 'zip-stream', html: 'zip-stream.html', description: 'Batch vs Streaming zip' },
-    { name: 'unzip-stream', html: 'unzip-stream.html', description: 'Batch vs Streaming unzip' },
-    { name: 'read-stream', html: 'read-stream.html', description: 'Stream vs Batch Read' },
-    { name: 'write-stream', html: 'write-stream.html', description: 'Stream vs Batch Write' },
-    { name: 'download-stream', html: 'download-stream.html', description: 'Stream vs Batch Download' },
-    { name: 'worker', html: 'worker.html', description: 'async vs sync inside Worker' },
+    { name: 'zip', html: 'zip.html', description: 'zip vs zipSync (main thread)', runButton: '#run' },
+    { name: 'unzip', html: 'unzip.html', description: 'unzip vs unzipSync (main thread)', runButton: '#run' },
+    { name: 'zip-stream', html: 'zip-stream.html', description: 'Batch vs Streaming zip', runButton: '#run' },
+    { name: 'unzip-stream', html: 'unzip-stream.html', description: 'Batch vs Streaming unzip', runButton: '#run' },
+    { name: 'read-stream', html: 'read-stream.html', description: 'Stream vs Batch Read', runButton: '#runAll' },
+    { name: 'write-stream', html: 'write-stream.html', description: 'Stream vs Batch Write', runButton: '#runAll' },
+    { name: 'download-stream', html: 'download-stream.html', description: 'Stream vs Batch Download', runButton: '#runAll' },
+    { name: 'worker', html: 'worker.html', description: 'async vs sync inside Worker', runButton: '#run' },
 ];
 
 const TIMEOUT = 120000; // 2 minutes per benchmark
@@ -42,15 +42,16 @@ async function runBenchmark(page: Page, baseUrl: string, benchmark: typeof BENCH
     try {
         await page.goto(url);
 
-        // Click run button
-        await page.click('#run');
+        // Click run button (use benchmark-specific selector)
+        await page.click(benchmark.runButton);
 
-        // Wait for completion
+        // Wait for completion (case-insensitive check)
         await page.waitForFunction(
             () => {
                 const output = document.getElementById('output');
-                return output?.textContent?.includes('Benchmark Complete') ||
-                       output?.textContent?.includes('Complete');
+                const text = output?.textContent?.toLowerCase() ?? '';
+                return text.includes('benchmark complete') ||
+                       text.includes('complete') && text.includes('benchmark');
             },
             { timeout: TIMEOUT },
         );
