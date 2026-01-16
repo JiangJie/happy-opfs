@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@happy-ts/fetch-t':
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: ^1.9.1
+        version: 1.9.1
       '@std/path':
         specifier: npm:@jsr/std__path@^1.1.4
         version: '@jsr/std__path@1.1.4'
@@ -18,8 +18,8 @@ importers:
         specifier: ^0.8.2
         version: 0.8.2
       happy-rusty:
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: ^1.9.1
+        version: 1.9.1
       tiny-future:
         specifier: ^1.2.0
         version: 1.2.0
@@ -344,8 +344,8 @@ packages:
   '@gerrit0/mini-shiki@3.21.0':
     resolution: {integrity: sha512-9PrsT5DjZA+w3lur/aOIx3FlDeHdyCEFlv9U+fmsVyjPZh61G5SYURQ/1ebe2U63KbDmI2V8IhIUegWb8hjOyg==}
 
-  '@happy-ts/fetch-t@1.9.0':
-    resolution: {integrity: sha512-gdyx/Yue2ZvcflfWwmTYnKBQX/crOGQe94v75gMGCrQiggC7Hk/8iPNi1qGcqZHynEq8X/Wfp85tAI6Zds6cTw==}
+  '@happy-ts/fetch-t@1.9.1':
+    resolution: {integrity: sha512-i0IgjDQj6lNUqRNNQStipzI7VnrSzflFI1yFXpG98vuN9jChhVO/gESTm/2Bh2xDNPMr9uuMrMDlHrarO30cYw==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -1054,8 +1054,8 @@ packages:
     resolution: {integrity: sha512-QsCdAUHAmiDeKeaNojb1OHOPF7NjcWPBR7obdu3NwH2a/oyQaLg5d0aaCy/9My6CdPChYF07dvz5chaXBGaD4g==}
     engines: {node: '>=20.0.0'}
 
-  happy-rusty@1.9.0:
-    resolution: {integrity: sha512-3mAAXawSPJXOjlt8E1TDPU44K7+dDefBKxNK0xuJHYjZH4vQsAunHOE8GK13XjCk4/sHYaSCO4fgZkP171ZlQQ==}
+  happy-rusty@1.9.1:
+    resolution: {integrity: sha512-bsMPcstvxqzG16+67xXbhDoufRLgeX+omACTrzKNZCh5mewclXyc5B1k28DW+gba1G5vqVt/FYEFlCxu0IGrug==}
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -1570,8 +1570,8 @@ packages:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
 
-  type-fest@5.4.0:
-    resolution: {integrity: sha512-wfkA6r0tBpVfGiyO+zbf9e10QkRQSlK9F2UvyfnjoCmrvH2bjHyhPzhugSBOuq1dog3P0+FKckqe+Xf6WKVjwg==}
+  type-fest@5.4.1:
+    resolution: {integrity: sha512-xygQcmneDyzsEuKZrFbRMne5HDqMs++aFzefrJTgEIKjQ3rekM+RPfFCVq2Gp1VIDqddoYeppCj4Pcb+RZW0GQ==}
     engines: {node: '>=20'}
 
   typedoc@0.28.16:
@@ -1984,9 +1984,9 @@ snapshots:
       '@shikijs/types': 3.21.0
       '@shikijs/vscode-textmate': 10.0.2
 
-  '@happy-ts/fetch-t@1.9.0':
+  '@happy-ts/fetch-t@1.9.1':
     dependencies:
-      happy-rusty: 1.9.0
+      happy-rusty: 1.9.1
 
   '@humanfs/core@0.19.1': {}
 
@@ -2750,7 +2750,7 @@ snapshots:
       whatwg-mimetype: 3.0.0
     optional: true
 
-  happy-rusty@1.9.0: {}
+  happy-rusty@1.9.1: {}
 
   has-flag@4.0.0: {}
 
@@ -3015,7 +3015,7 @@ snapshots:
       statuses: 2.0.2
       strict-event-emitter: 0.5.1
       tough-cookie: 6.0.0
-      type-fest: 5.4.0
+      type-fest: 5.4.1
       until-async: 3.0.2
       yargs: 17.7.2
     optionalDependencies:
@@ -3251,7 +3251,7 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
 
-  type-fest@5.4.0:
+  type-fest@5.4.1:
     dependencies:
       tagged-tag: 1.0.0
 
