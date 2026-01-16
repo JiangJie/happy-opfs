@@ -68,9 +68,10 @@ export async function unzipStream(zipFilePath: string, destDir: string): AsyncVo
 export async function unzipStreamFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: UnzipFromUrlRequestInit): AsyncVoidIOResult {
     const zipFileUrlRes = validateUrl(zipFileUrl);
     if (zipFileUrlRes.isErr()) return zipFileUrlRes.asErr();
+    zipFileUrl = zipFileUrlRes.unwrap();
 
     return unzipStreamWith(
-        () => fetchT(zipFileUrlRes.unwrap(), {
+        () => fetchT(zipFileUrl, {
             redirect: 'follow',
             ...requestInit,
             responseType: 'stream',
