@@ -39,6 +39,7 @@
     "test:ui": "pnpm exec vitest --ui",
     "prebench": "pnpm exec msw init benchmarks/public --save=false",
     "bench": "pnpm exec vite --config benchmarks/vite.config.ts",
+    "prebench:run": "pnpm run prebench",
     "bench:run": "node benchmarks/playwright.ts",
     "eg": "pnpm exec vite --config examples/vite.config.ts"
   },

@@ -40,10 +40,13 @@ async function runBenchmark(page: Page, baseUrl: string, benchmark: typeof BENCH
     const startTime = Date.now();
 
     try {
-        await page.goto(url);
+        await page.goto(url, { timeout: TIMEOUT });
+
+        // Wait for page to be ready
+        await page.waitForLoadState('networkidle', { timeout: TIMEOUT });
 
         // Click run button (use benchmark-specific selector)
-        await page.click(benchmark.runButton);
+        await page.click(benchmark.runButton, { timeout: TIMEOUT });
 
         // Wait for completion (case-insensitive check)
         await page.waitForFunction(
