@@ -99,6 +99,38 @@ await remove('/data');
 
 可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) 来可视化查看文件系统。
 
+## 从 1.x 迁移到 2.x
+
+### 破坏性变更 1：`readFile` 默认返回类型
+
+在 1.x 中，`readFile` 默认返回 `ArrayBuffer`。在 2.x 中，默认返回 `Uint8Array`。
+
+```ts
+// 1.x - 默认返回 ArrayBuffer
+const result = await readFile('/path/to/file');
+
+// 2.x - 默认返回 Uint8Array
+const result = await readFile('/path/to/file');
+
+// 迁移方案：如需 ArrayBuffer，使用 .buffer 属性
+const uint8Array = await readFile('/path/to/file');
+const arrayBuffer = uint8Array.unwrap().buffer;
+```
+
+### 破坏性变更 2：移除 `readFileStream` 和 `writeFileStream`
+
+这些已废弃的 API 已被移除，请使用新的替代方案：
+
+```ts
+// 1.x
+const stream = await readFileStream('/path/to/file');
+const writable = await writeFileStream('/path/to/file');
+
+// 2.x
+const stream = await readFile('/path/to/file', { encoding: 'stream' });
+const writable = await openWritableFileStream('/path/to/file');
+```
+
 ## 测试覆盖率
 
 覆盖率在真实浏览器环境中使用 V8 provider 收集。

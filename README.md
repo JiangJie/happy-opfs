@@ -99,6 +99,38 @@ For detailed compatibility, see [MDN - OPFS](https://developer.mozilla.org/en-US
 
 You can install [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) to visually inspect the file system.
 
+## Migrating from 1.x to 2.x
+
+### Breaking Change 1: `readFile` default return type
+
+In 1.x, `readFile` returned `ArrayBuffer` by default. In 2.x, it returns `Uint8Array`.
+
+```ts
+// 1.x - default returned ArrayBuffer
+const result = await readFile('/path/to/file');
+
+// 2.x - default returns Uint8Array
+const result = await readFile('/path/to/file');
+
+// Migration: use .buffer property to get ArrayBuffer if needed
+const uint8Array = await readFile('/path/to/file');
+const arrayBuffer = uint8Array.unwrap().buffer;
+```
+
+### Breaking Change 2: Removed `readFileStream` and `writeFileStream`
+
+These deprecated APIs have been removed. Use the new alternatives:
+
+```ts
+// 1.x
+const stream = await readFileStream('/path/to/file');
+const writable = await writeFileStream('/path/to/file');
+
+// 2.x
+const stream = await readFile('/path/to/file', { encoding: 'stream' });
+const writable = await openWritableFileStream('/path/to/file');
+```
+
 ## Test Coverage
 
 Coverage is collected using V8 provider in real browser environment.
