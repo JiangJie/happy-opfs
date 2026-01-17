@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** `readFile` default encoding changed from returning `File` to `Uint8Array` (use `{ encoding: 'blob' }` for previous behavior)
+- **Breaking:** `readFile` default return type changed from `ArrayBuffer` to `Uint8Array` (use `.buffer` property to get `ArrayBuffer` if needed)
 - **Breaking:** Remove deprecated `readFileStream` and `writeFileStream` APIs (use `readFile` with `{ encoding: 'stream' }` and `writeFile` with `ReadableStream`)
 - **Refactor:** Reorganize project into three-layer architecture (`shared/`, `async/`, `sync/`)
 - **Refactor:** Split `opfs_core.ts` into modular `async/core/` directory structure
