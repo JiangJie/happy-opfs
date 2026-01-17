@@ -68,6 +68,13 @@ export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSy
  * ```typescript
  * statSync('/path/to/dir')
  *     .inspect(handle => isDirectoryHandleLike(handle) && console.log('This is a directory'));
+ *
+ * // Filter directories from readDirSync results
+ * readDirSync('/documents')
+ *     .inspect(entries => {
+ *         const dirs = entries.filter(e => isDirectoryHandleLike(e.handle));
+ *         console.log('Directories:', dirs.map(d => d.path));
+ *     });
  * ```
  */
 export function isDirectoryHandleLike(handle: FileSystemHandleLike): handle is FileSystemDirectoryHandleLike {

@@ -578,6 +578,8 @@ export function unzipSync(zipFilePath: string, destDir: string): VoidIOResult {
  * @param zipFilePath - The destination zip file path.
  * @param options - Optional zip options.
  * @returns A `VoidIOResult` indicating success or failure.
+ * @see {@link zip} for the async version.
+ * @since 1.6.0
  * @example
  * ```typescript
  * zipSync('/documents', '/backups/documents.zip');
@@ -591,6 +593,8 @@ export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOp
  * @param sourcePath - The path to zip.
  * @param options - Optional zip options.
  * @returns An `IOResult` containing the zip data as `Uint8Array`.
+ * @see {@link zip} for the async version.
+ * @since 1.6.0
  * @example
  * ```typescript
  * zipSync('/documents')
