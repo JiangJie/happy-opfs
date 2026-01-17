@@ -8,6 +8,8 @@
 
 import { textDecode, textEncode } from '../shared/codec.ts';
 
+// #region Internal Variables
+
 /**
  * Payload type markers for binary protocol.
  */
@@ -24,6 +26,8 @@ const PayloadType = {
      */
     BINARY_JSON: 1,
 } as const;
+
+// #endregion
 
 /**
  * Operations that can be called from main thread to worker thread.

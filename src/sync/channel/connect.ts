@@ -11,6 +11,8 @@ import type { AttachSyncChannelOptions, ConnectSyncChannelOptions } from '../../
 import { SyncMessenger } from '../protocol.ts';
 import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChannelState } from './state.ts';
 
+// #region Internal Variables
+
 /**
  * Default size of SharedArrayBuffer in bytes (1MB).
  */
@@ -27,6 +29,8 @@ const MIN_BUFFER_LENGTH = 256;
  * Default timeout for sync operations in milliseconds.
  */
 const DEFAULT_OP_TIMEOUT = 1000;
+
+// #endregion
 
 /**
  * Connects to a worker and establishes a sync channel for synchronous file system operations.

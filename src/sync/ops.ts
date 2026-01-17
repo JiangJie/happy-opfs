@@ -265,7 +265,7 @@ export function removeSync(path: string): VoidIOResult {
  * @example
  * ```typescript
  * statSync('/path/to/entry')
- *     .inspect(handle => console.log(`Kind: ${handle.kind}, Name: ${handle.name}`));
+ *     .inspect(handle => console.log(`Kind: ${ handle.kind }, Name: ${ handle.name }`));
  * ```
  */
 export function statSync(path: string): IOResult<FileSystemHandleLike> {

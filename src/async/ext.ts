@@ -239,7 +239,7 @@ export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
     return result.andThenAsync(text => writeFile(filePath, text));
 }
 
-// #region Internal Functions
+// #region Internal Types
 
 /**
  * Handler function type for processing source file to destination.
@@ -248,6 +248,10 @@ export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
  * @param destFilePath - The destination file path.
  */
 type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
+
+// #endregion
+
+// #region Internal Functions
 
 /**
  * Copies a file handle to a new path by reading and writing the file content.

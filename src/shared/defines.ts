@@ -448,8 +448,7 @@ export interface ZipFromUrlRequestInit extends FsRequestInit {
 /**
  * Request init options for {@link unzipFromUrl} and {@link unzipStreamFromUrl}.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface UnzipFromUrlRequestInit extends FsRequestInit { }
+export type UnzipFromUrlRequestInit = FsRequestInit;
 
 /**
  * Result of {@link downloadFile} when the file is saved to a temporary path.

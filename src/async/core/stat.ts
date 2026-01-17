@@ -16,7 +16,7 @@ import { getParentDirHandle, isRootDir, validateAbsolutePath } from '../internal
  * @example
  * ```typescript
  * (await stat('/path/to/entry'))
- *     .inspect(handle => console.log(`Kind: ${handle.kind}, Name: ${handle.name}`));
+ *     .inspect(handle => console.log(`Kind: ${ handle.kind }, Name: ${ handle.name }`));
  * ```
  */
 export async function stat(path: string): AsyncIOResult<FileSystemHandle> {

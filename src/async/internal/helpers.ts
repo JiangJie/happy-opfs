@@ -11,11 +11,15 @@ import { basename, dirname, SEPARATOR } from '@std/path/posix';
 import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
 import { ABORT_ERROR, EMPTY_BODY_ERROR, EMPTY_FILE_ERROR, NOT_FOUND_ERROR, NOTHING_TO_ZIP_ERROR, ROOT_DIR } from '../../shared/mod.ts';
 
+// #region Internal Variables
+
 /**
  * Lazily initialized root directory handle of the file system.
  * Created on first access via `force()`.
  */
 const fsRoot = LazyAsync(() => navigator.storage.getDirectory());
+
+// #endregion
 
 /**
  * Checks if the provided path is the root directory path.
@@ -216,14 +220,6 @@ export function markParentDirsNonEmpty(
 }
 
 /**
- * Extended FileSystemHandle interface with optional remove method.
- * The remove() method is not supported in Firefox/iOS Safari.
- */
-interface RemovableHandle extends FileSystemHandle {
-    remove?(options?: FileSystemRemoveOptions): Promise<void>;
-}
-
-/**
  * Removes a file or directory with cross-browser compatibility.
  * Accepts either a handle or a name string. When a handle is provided and
  * `handle.remove()` is supported (Chrome/Edge), uses native removal.
@@ -271,42 +267,6 @@ export async function removeHandle(
     } else {
         return parentDirHandle.removeEntry(handleOrName.name, options);
     }
-}
-
-// #region Internal Helper Functions
-
-/**
- * Asynchronously obtains a handle to a child directory from the given parent directory handle.
- *
- * @param dirHandle - The handle to the parent directory.
- * @param childDirName - The name of the child directory to retrieve.
- * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
- * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
- */
-async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, childDirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    const handleRes = await tryAsyncResult<FileSystemDirectoryHandle, DOMException>(dirHandle.getDirectoryHandle(childDirName, options));
-    return handleRes.mapErr(err => {
-        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ childDirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
-        error.name = err.name;
-        return error;
-    });
-}
-
-/**
- * Retrieves a file handle for a child file within a directory.
- *
- * @param dirHandle - The directory handle to search within.
- * @param childFileName - The name of the file to retrieve.
- * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
- * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
- */
-async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    const handleRes = await tryAsyncResult<FileSystemFileHandle, DOMException>(dirHandle.getFileHandle(childFileName, options));
-    return handleRes.mapErr(err => {
-        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ childFileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
-        error.name = err.name;
-        return error;
-    });
 }
 
 /**
@@ -387,15 +347,6 @@ export async function peekStream<T>(source: ReadableStream<T>): AsyncIOResult<Pe
 }
 
 /**
- * Extended FileSystemHandle interface with move method.
- * The move() method is not yet in TypeScript's lib.dom.d.ts.
- * @see https://github.com/mdn/browser-compat-data/issues/20341
- */
-interface MovableHandle extends FileSystemHandle {
-    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
-}
-
-/**
  * Moves a file handle to a new path, creating parent directories if needed.
  * This is a higher-level operation that handles path resolution and directory creation.
  *
@@ -411,6 +362,63 @@ export async function moveFileHandle(fileHandle: FileSystemFileHandle, destFileP
     return dirRes.andTryAsync(destDirHandle => {
         const destName = basename(destFilePath);
         return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
+    });
+}
+
+// #region Internal Types
+
+/**
+ * Extended FileSystemHandle interface with optional remove method.
+ * The remove() method is not supported in Firefox/iOS Safari.
+ */
+interface RemovableHandle extends FileSystemHandle {
+    remove?(options?: FileSystemRemoveOptions): Promise<void>;
+}
+
+/**
+ * Extended FileSystemHandle interface with move method.
+ * The move() method is not yet in TypeScript's lib.dom.d.ts.
+ * @see https://github.com/mdn/browser-compat-data/issues/20341
+ */
+interface MovableHandle extends FileSystemHandle {
+    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
+}
+
+// #endregion
+
+// #region Internal Functions
+
+/**
+ * Asynchronously obtains a handle to a child directory from the given parent directory handle.
+ *
+ * @param dirHandle - The handle to the parent directory.
+ * @param childDirName - The name of the child directory to retrieve.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
+ */
+async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, childDirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
+    const handleRes = await tryAsyncResult<FileSystemDirectoryHandle, DOMException>(dirHandle.getDirectoryHandle(childDirName, options));
+    return handleRes.mapErr(err => {
+        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ childDirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+        error.name = err.name;
+        return error;
+    });
+}
+
+/**
+ * Retrieves a file handle for a child file within a directory.
+ *
+ * @param dirHandle - The directory handle to search within.
+ * @param childFileName - The name of the file to retrieve.
+ * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
+ * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
+ */
+async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
+    const handleRes = await tryAsyncResult<FileSystemFileHandle, DOMException>(dirHandle.getFileHandle(childFileName, options));
+    return handleRes.mapErr(err => {
+        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ childFileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+        error.name = err.name;
+        return error;
     });
 }
 

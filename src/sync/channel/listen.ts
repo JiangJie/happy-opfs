@@ -17,6 +17,55 @@ import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemDirector
 import type { ErrorLike, FileMetadata } from '../defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp } from '../protocol.ts';
 
+// #region Internal Variables
+
+/**
+ * Worker thread locked value.
+ * Default.
+ */
+const WORKER_LOCKED = MAIN_UNLOCKED;
+
+/**
+ * Mapping of async operation enums to their corresponding OPFS functions.
+ * Used by the worker loop to dispatch operations from the main thread.
+ *
+ * Key: `WorkerOp` value
+ * Value: The async function to execute
+ */
+const opHandlers = {
+    [WorkerOp.createFile]: createFile,
+    [WorkerOp.mkdir]: mkdir,
+    [WorkerOp.move]: move,
+    [WorkerOp.readDir]: readDir,
+    [WorkerOp.readFile]: readFile,
+    [WorkerOp.remove]: remove,
+    [WorkerOp.stat]: stat,
+    [WorkerOp.writeFile]: writeFile,
+    [WorkerOp.appendFile]: appendFile,
+    [WorkerOp.copy]: copy,
+    [WorkerOp.emptyDir]: emptyDir,
+    [WorkerOp.exists]: exists,
+    [WorkerOp.deleteTemp]: deleteTemp,
+    [WorkerOp.mkTemp]: mkTemp,
+    [WorkerOp.pruneTemp]: pruneTemp,
+    [WorkerOp.readBlobFile]: readBlobFile,
+    [WorkerOp.unzip]: unzip,
+    [WorkerOp.zip]: zip,
+};
+
+/**
+ * Cache the messenger instance.
+ */
+let messenger: SyncMessenger;
+
+/**
+ * Flag to track if listenSyncChannel has been called.
+ * Used to prevent multiple event listeners from being registered.
+ */
+let isListening = false;
+
+// #endregion
+
 /**
  * Starts listening for sync channel requests in a Web Worker.
  * Waits for a SharedArrayBuffer from the main thread and begins processing requests.
@@ -70,7 +119,7 @@ export function listenSyncChannel(): VoidIOResult {
     return RESULT_VOID;
 }
 
-// #region Internal Types and Constants
+// #region Internal Types
 
 /**
  * Message sent from main thread to worker to initialize sync channel.
@@ -86,51 +135,6 @@ interface SyncChannelInitMessage {
      */
     sab: SharedArrayBuffer;
 }
-
-/**
- * Worker thread locked value.
- * Default.
- */
-const WORKER_LOCKED = MAIN_UNLOCKED;
-
-/**
- * Mapping of async operation enums to their corresponding OPFS functions.
- * Used by the worker loop to dispatch operations from the main thread.
- *
- * Key: `WorkerOp` value
- * Value: The async function to execute
- */
-const opHandlers = {
-    [WorkerOp.createFile]: createFile,
-    [WorkerOp.mkdir]: mkdir,
-    [WorkerOp.move]: move,
-    [WorkerOp.readDir]: readDir,
-    [WorkerOp.readFile]: readFile,
-    [WorkerOp.remove]: remove,
-    [WorkerOp.stat]: stat,
-    [WorkerOp.writeFile]: writeFile,
-    [WorkerOp.appendFile]: appendFile,
-    [WorkerOp.copy]: copy,
-    [WorkerOp.emptyDir]: emptyDir,
-    [WorkerOp.exists]: exists,
-    [WorkerOp.deleteTemp]: deleteTemp,
-    [WorkerOp.mkTemp]: mkTemp,
-    [WorkerOp.pruneTemp]: pruneTemp,
-    [WorkerOp.readBlobFile]: readBlobFile,
-    [WorkerOp.unzip]: unzip,
-    [WorkerOp.zip]: zip,
-};
-
-/**
- * Cache the messenger instance.
- */
-let messenger: SyncMessenger;
-
-/**
- * Flag to track if listenSyncChannel has been called.
- * Used to prevent multiple event listeners from being registered.
- */
-let isListening = false;
 
 // #endregion
 

@@ -84,6 +84,8 @@ export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, re
     );
 }
 
+// #region Internal Functions
+
 /**
  * Common unzip implementation for both local and remote sources.
  * @param getBytes - Function to get zip data.
@@ -151,3 +153,5 @@ function batchUnzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoi
 
     return future.promise;
 }
+
+// #endregion

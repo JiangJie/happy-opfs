@@ -10,11 +10,6 @@ import { createEmptyBodyError, createNothingToZipError, validateAbsolutePath, va
 import { EMPTY_BYTES } from './helpers.ts';
 
 /**
- * Result type for zip operation.
- */
-type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
-
-/**
  * Zip a file or directory and write to a zip file.
  * Equivalent to `zip -r <zipFilePath> <sourcePath>`.
  *
@@ -52,7 +47,7 @@ export function zip(sourcePath: string, zipFilePath: string, options?: ZipOption
  * ```typescript
  * // Zip a directory and get the data
  * (await zip('/documents'))
- *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
+ *     .inspect(zipData => console.log(`Zip size: ${ zipData.byteLength } bytes`));
  * ```
  */
 export function zip(sourcePath: string, options?: ZipOptions): AsyncIOResult<Uint8Array<ArrayBuffer>>;
@@ -187,7 +182,7 @@ export function zipFromUrl(sourceUrl: string | URL, zipFilePath: string, request
  * ```typescript
  * // Zip a remote file and get the data
  * (await zipFromUrl('https://example.com/file.txt'))
- *     .inspect(zipData => console.log(`Zip size: ${zipData.byteLength} bytes`));
+ *     .inspect(zipData => console.log(`Zip size: ${ zipData.byteLength } bytes`));
  * ```
  */
 export function zipFromUrl(sourceUrl: string | URL, requestInit?: ZipFromUrlRequestInit): AsyncIOResult<Uint8Array<ArrayBuffer>>;
@@ -232,6 +227,15 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
         [sourceName]: bytes,
     }, zipFilePath);
 }
+
+// #region Internal Types
+
+/**
+ * Result type for zip operation.
+ */
+type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
+
+// #endregion
 
 // #region Internal Functions
 

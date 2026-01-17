@@ -48,7 +48,7 @@ export function isDirectoryHandle(handle: FileSystemHandle): handle is FileSyste
  * @example
  * ```typescript
  * statSync('/path/to/file')
- *     .inspect(handle => isFileHandleLike(handle) && console.log(`File size: ${handle.size}`));
+ *     .inspect(handle => isFileHandleLike(handle) && console.log(`File size: ${ handle.size }`));
  * ```
  */
 export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSystemFileHandleLike {

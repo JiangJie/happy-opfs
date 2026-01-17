@@ -26,7 +26,7 @@ import { generateTempPath } from '../tmp.ts';
  * // Download to a temporary file
  * const task = downloadFile('https://example.com/file.pdf');
  * (await task.result)
- *     .inspect(({ tempFilePath }) => console.log(`File downloaded to: ${tempFilePath}`));
+ *     .inspect(({ tempFilePath }) => console.log(`File downloaded to: ${ tempFilePath }`));
  * ```
  */
 export function downloadFile(fileUrl: string | URL, requestInit?: DownloadRequestInit): FetchTask<DownloadFileTempResponse>;

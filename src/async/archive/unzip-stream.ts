@@ -82,6 +82,8 @@ export async function unzipStreamFromUrl(zipFileUrl: string | URL, destDir: stri
     );
 }
 
+// #region Internal Functions
+
 /**
  * Common streaming unzip implementation for both local and remote sources.
  * @param getStream - Function to get the readable stream.
@@ -202,3 +204,5 @@ function extractFile(file: UnzipFile, destPath: string): AsyncVoidIOResult {
 
     return writeFile(destPath, stream);
 }
+
+// #endregion
