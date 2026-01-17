@@ -218,6 +218,40 @@ Located in `src/sync/protocol.ts`:
 - Error messages do NOT end with periods
 - Custom error types use helper functions (e.g., `createNotFoundError()`)
 
+#### 8. Binary Protocol Format
+The protocol (`src/sync/protocol.ts`) supports two payload types:
+- **JSON** (`PayloadType.JSON`): `[type: 1B][json bytes]`
+- **BINARY_JSON** (`PayloadType.BINARY_JSON`): `[type: 1B][json length: 4B][json bytes][binary bytes]`
+
+When the last element of the payload is `Uint8Array`, BINARY_JSON format is used automatically to avoid JSON serialization overhead.
+
+### Code Organization
+
+#### `#region` Conventions
+Internal code uses `#region` / `#endregion` to organize non-exported code:
+
+- **`#region Internal Variables`** - Placed BEFORE exports, for internal `const`/`let` variables
+- **`#region Internal Types`** - Placed AFTER exports, for internal `type`/`interface` definitions
+- **`#region Internal Functions`** - Placed AFTER exports, for internal helper functions
+
+Example:
+```typescript
+// #region Internal Variables
+const SOME_CONSTANT = 'value';
+// #endregion
+
+// Public exports
+export function publicApi() { ... }
+
+// #region Internal Types
+interface InternalConfig { ... }
+// #endregion
+
+// #region Internal Functions
+function helperFunction() { ... }
+// #endregion
+```
+
 ### Important Implementation Details
 
 #### Type Assertions for Uint8Array
