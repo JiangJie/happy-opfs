@@ -135,6 +135,8 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | Download
     })();
 
     return {
+        // FetchTask.abort() accepts `any` for the reason parameter to match
+        // the native AbortController.abort(reason?: any) signature
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         abort(reason?: any): void {
             fetchTask.abort(reason);
