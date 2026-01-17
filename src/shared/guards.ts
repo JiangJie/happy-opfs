@@ -60,7 +60,7 @@ export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSy
  *
  * @param handle - The `FileSystemHandleLike` object to check.
  * @returns `true` if the handle-like object represents a directory, otherwise `false`.
- * @since unreleased
+ * @since 2.0.0
  * @see {@link isDirectoryHandle} for async directory handles
  * @see {@link isFileHandleLike} for checking file handle-like objects
  * @see {@link statSync} for getting sync handle-like objects

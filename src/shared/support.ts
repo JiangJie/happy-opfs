@@ -31,7 +31,7 @@ export function isOPFSSupported(): boolean {
  * ```
  *
  * @returns `true` if SyncChannel is supported, `false` otherwise.
- * @since unreleased
+ * @since 2.0.0
  * @see {@link isOPFSSupported} for checking OPFS support
  * @example
  * ```typescript
