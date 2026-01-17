@@ -1,9 +1,9 @@
 {
   "name": "happy-opfs",
-  "description": "A browser-compatible fs module inspired by the Deno fs and @std/fs APIs, based on OPFS implementation.",
+  "description": "A browser-compatible file system module based on OPFS, inspired by Deno fs APIs. Supports async/sync operations, streaming zip/unzip, and Result-based error handling.",
   "author": "jiang115jie@gmail.com",
   "license": "MIT",
-  "version": "1.12.0",
+  "version": "2.0.0",
   "type": "module",
   "main": "dist/main.cjs",
   "module": "dist/main.mjs",
@@ -59,10 +59,12 @@
     "worker",
     "sync",
     "async",
+    "stream",
     "upload",
     "download",
     "zip",
-    "unzip"
+    "unzip",
+    "typescript"
   ],
   "devDependencies": {
     "@eslint/js": "^9.39.2",

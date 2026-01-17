@@ -2,14 +2,14 @@
   "$schema": "https://jsr.io/schema/config-file.v1.json",
   "name": "@happy-js/happy-opfs",
   "license": "MIT",
-  "version": "1.12.0",
+  "version": "2.0.0",
   "exports": "./src/mod.ts",
   "imports": {
-    "@happy-ts/fetch-t": "npm:@happy-ts/fetch-t@^1.9.1",
+    "@happy-ts/fetch-t": "jsr:@happy-ts/fetch-t@^1.9.1",
     "@std/path": "jsr:@std/path@^1.1.4",
     "fflate": "npm:fflate@^0.8.2",
-    "happy-rusty": "npm:happy-rusty@^1.9.1",
-    "tiny-future": "npm:tiny-future@^1.2.0"
+    "happy-rusty": "jsr:@happy-js/happy-rusty@^1.9.1",
+    "tiny-future": "jsr:@happy-js/tiny-future@^1.2.0"
   },
   "publish": {
     "include": [

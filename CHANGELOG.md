@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-01-17
+
+### Added
+
+- `zipStream()` and `zipStreamFromUrl()` for streaming zip compression (memory-efficient for large files)
+- `unzipStream()` and `unzipStreamFromUrl()` for streaming unzip decompression
+- `isSyncChannelSupported()` to check SharedArrayBuffer/Atomics availability
+- `isDirectoryHandleLike()` type guard for sync API handle-like objects
+- `readFile` overload for dynamic encoding options at runtime
+- `readFileSync` overload for dynamic encoding options at runtime
+- `readDir` now supports `AbortSignal` for early termination
+- `keepEmptyBody` option for `downloadFile` and `zipFromUrl` to handle empty responses
+- `EMPTY_BODY_ERROR` and `EMPTY_FILE_ERROR` constants for empty content detection
+- `NothingToZipError` when attempting to zip empty directory with `preserveRoot: false`
+- Directory entries are now included in zip files (previously only files)
+- Path validation for all sync API functions
+- Streaming zip/unzip example in `examples/`
+- Comprehensive benchmarks for zip, unzip, read, write, and download operations
+
+### Changed
+
+- **Breaking:** `readFile` default encoding changed from returning `File` to `Uint8Array` (use `{ encoding: 'blob' }` for previous behavior)
+- **Breaking:** Remove deprecated `readFileStream` and `writeFileStream` APIs (use `readFile` with `{ encoding: 'stream' }` and `writeFile` with `ReadableStream`)
+- **Refactor:** Reorganize project into three-layer architecture (`shared/`, `async/`, `sync/`)
+- **Refactor:** Split `opfs_core.ts` into modular `async/core/` directory structure
+- **Refactor:** Reorganize sync module with `channel/` folder structure
+- **Refactor:** Replace assertion functions with validation functions returning `Result` types
+- **Refactor:** Implement binary protocol for efficient cross-thread data transfer
+- **Refactor:** Use `#region` format for code section separators
+- **Perf:** Prefer `FileSystemSyncAccessHandle` in Worker context for read/write operations
+- **Perf:** Use `FileReaderSync` in Worker context for faster zip file reads
+- **Perf:** Use streaming download instead of blob for `downloadFile`
+- **Docs:** Add `@since` version annotations to all public APIs
+- **Docs:** Add `@see` cross-references between related APIs
+- **Docs:** Move `@internal` from function-level to file-level JSDoc
+
+### Fixed
+
+- Handle root directory removal on Firefox/Safari (fallback for missing `handle.remove()`)
+- Prevent incomplete files when stream write is interrupted (atomic write via temp file)
+- Prevent duplicate event listeners in `SyncChannel.listen()`
+- Fix `peekStream` cancel and empty stream handling
+- Reject empty zippable to match standard zip command behavior
+- Standardize error message capitalization (uppercase start, no trailing period)
+- Validate `Date` value in `pruneTemp` with proper error messages
+- Move state setting after validation in `SyncChannel.connect()`
+
 ## [1.12.0] - 2025-12-22
 
 ### Changed
@@ -445,6 +492,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
+[2.0.0]: https://github.com/JiangJie/happy-opfs/compare/v1.12.0...v2.0.0
 [1.12.0]: https://github.com/JiangJie/happy-opfs/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/JiangJie/happy-opfs/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/JiangJie/happy-opfs/compare/v1.9.0...v1.10.0
