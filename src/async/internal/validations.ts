@@ -83,6 +83,6 @@ export function validateExpiredDate(expired: Date): VoidIOResult {
     }
 
     return Number.isNaN(expired.getTime())
-        ? Err(new Error('Expired must be a valid Date'))
+        ? Err(new TypeError('Expired must be a valid Date'))
         : RESULT_VOID;
 }
