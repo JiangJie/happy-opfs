@@ -35,6 +35,6 @@ export function textEncode(data: string): Uint8Array<ArrayBuffer> {
  * @param data - The binary data to decode.
  * @returns The decoded string.
  */
-export function textDecode(data: Uint8Array): string {
+export function textDecode(data: AllowSharedBufferSource): string {
     return decoder.force().decode(data);
 }
