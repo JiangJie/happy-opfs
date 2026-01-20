@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-01-20
+
+### Added
+- Runtime content type validation for `writeFile()` and `writeFileSync()` to prevent silent failures with invalid content types
+- Comprehensive test coverage for content type validation
+
+### Changed
+- Refactored sync module to use `writeFile({ append: true })` instead of dedicated `appendFile` operation
+- Moved shared internal utilities (codec.ts, helpers.ts, validations.ts) to `src/shared/internal/` directory for better code organization
+
 ## [2.0.0] - 2025-01-17
 
 ### Added
@@ -492,6 +502,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
+[2.0.0]: https://github.com/JiangJie/happy-opfs/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/JiangJie/happy-opfs/compare/v1.12.0...v2.0.0
 [1.12.0]: https://github.com/JiangJie/happy-opfs/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/JiangJie/happy-opfs/compare/v1.10.0...v1.11.0
