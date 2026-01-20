@@ -1,5 +1,5 @@
 /**
- * Internal validation functions for async operations.
+ * Internal shared validation functions for async and sync operations.
  * These functions return Result types instead of throwing exceptions.
  *
  * @internal
@@ -8,7 +8,7 @@
 
 import { normalize } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { ROOT_DIR, type ExistsOptions, type WriteFileContent, type WriteSyncFileContent } from '../../shared/mod.ts';
+import { ROOT_DIR, type ExistsOptions, type WriteFileContent, type WriteSyncFileContent } from '../mod.ts';
 
 /**
  * Validates that the provided path is an absolute path and normalizes it.

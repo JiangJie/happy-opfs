@@ -1,6 +1,7 @@
 import { basename } from '@std/path/posix';
 import { Err, RESULT_VOID, type AsyncVoidIOResult } from 'happy-rusty';
-import { getParentDirHandle, isNotFoundError, isRootDir, removeHandle, validateAbsolutePath } from '../internal/mod.ts';
+import { validateAbsolutePath } from '../../shared/internal/mod.ts';
+import { getParentDirHandle, isNotFoundError, isRootDir, removeHandle } from '../internal/mod.ts';
 
 /**
  * Removes a file or directory at the specified path, similar to `rm -rf`.

@@ -3,9 +3,10 @@ import { join, SEPARATOR } from '@std/path/posix';
 import { unzip as decompress } from 'fflate/browser';
 import { Err, type AsyncIOResult, type AsyncVoidIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
+import { validateUrl } from '../../shared/internal/mod.ts';
 import type { UnzipFromUrlRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
-import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty, validateUrl } from '../internal/mod.ts';
+import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty } from '../internal/mod.ts';
 import { validateDestDir } from './helpers.ts';
 
 /**

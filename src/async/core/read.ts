@@ -1,10 +1,8 @@
 import { join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
-import { textDecode } from '../../shared/codec.ts';
-import { readBlobBytes } from '../../shared/helpers.ts';
+import { readBlobBytes, textDecode, validateAbsolutePath } from '../../shared/internal/mod.ts';
 import { isDirectoryHandle, type DirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions } from '../../shared/mod.ts';
-import { createAbortError, getDirHandle, getFileHandle, validateAbsolutePath } from '../internal/mod.ts';
-
+import { createAbortError, getDirHandle, getFileHandle } from '../internal/mod.ts';
 /**
  * Reads the contents of a directory at the specified path.
  *

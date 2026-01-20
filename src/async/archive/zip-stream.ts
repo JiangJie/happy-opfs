@@ -2,9 +2,10 @@ import { fetchT } from '@happy-ts/fetch-t';
 import { basename, join, SEPARATOR } from '@std/path/posix';
 import { Zip, ZipDeflate, ZipPassThrough, zipSync } from 'fflate/browser';
 import { Err, tryAsyncResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
 import { isFileHandle, type DirEntry, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
-import { createEmptyBodyError, createNothingToZipError, peekStream, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { createEmptyBodyError, createNothingToZipError, peekStream } from '../internal/mod.ts';
 import { EMPTY_BYTES } from './helpers.ts';
 
 /**

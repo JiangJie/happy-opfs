@@ -1,8 +1,9 @@
 import { join, SEPARATOR } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import { validateAbsolutePath, validateExistsOptions } from '../shared/internal/mod.ts';
 import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import { aggregateResults, isNotFoundError, isRootDir, markParentDirsNonEmpty, moveFileHandle, validateAbsolutePath, validateExistsOptions } from './internal/mod.ts';
+import { aggregateResults, isNotFoundError, isRootDir, markParentDirsNonEmpty, moveFileHandle } from './internal/mod.ts';
 
 /**
  * Appends content to a file at the specified path.

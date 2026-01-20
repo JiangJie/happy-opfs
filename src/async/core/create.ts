@@ -1,5 +1,6 @@
 import { RESULT_VOID, type AsyncVoidIOResult } from 'happy-rusty';
-import { getDirHandle, getFileHandle, validateAbsolutePath } from '../internal/mod.ts';
+import { validateAbsolutePath } from '../../shared/internal/mod.ts';
+import { getDirHandle, getFileHandle } from '../internal/mod.ts';
 
 /**
  * Creates a new empty file at the specified path, similar to the `touch` command.

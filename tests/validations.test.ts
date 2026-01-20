@@ -3,7 +3,7 @@
  * Tests: validateAbsolutePath, validateUrl, validateExistsOptions, validateExpiredDate
  */
 import { describe, expect, it } from 'vitest';
-import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateUrl } from '../src/async/internal/validations.ts';
+import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateUrl } from '../src/shared/internal/mod.ts';
 
 describe('Validations', () => {
     describe('validateAbsolutePath', () => {

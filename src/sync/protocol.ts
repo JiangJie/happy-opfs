@@ -6,7 +6,7 @@
  * @module
  */
 
-import { textDecode, textEncode } from '../shared/codec.ts';
+import { textDecode, textEncode } from '../shared/internal/mod.ts';
 
 // #region Internal Variables
 

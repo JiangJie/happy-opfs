@@ -3,7 +3,7 @@
  * Covers the blob.bytes() branch by mocking Blob.prototype.bytes
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { readBlobBytes } from '../src/shared/helpers.ts';
+import { readBlobBytes } from '../src/shared/internal/mod.ts';
 
 describe('shared/helpers.ts mock tests', () => {
     describe('readBlobBytes with mocked Blob.bytes', () => {

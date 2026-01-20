@@ -11,7 +11,7 @@ import {
     writeFile,
     zip,
 } from '../../async/mod.ts';
-import { readBlobBytesSync } from '../../shared/helpers.ts';
+import { readBlobBytesSync } from '../../shared/internal/mod.ts';
 import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemDirectoryHandleLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from '../defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp } from '../protocol.ts';

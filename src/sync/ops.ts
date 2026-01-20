@@ -6,8 +6,7 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../async/internal/mod.ts';
-import { textDecode, textEncode } from '../shared/codec.ts';
+import { textDecode, textEncode, validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../shared/internal/mod.ts';
 import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';

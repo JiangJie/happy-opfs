@@ -6,8 +6,8 @@
  */
 
 import { Err, type AsyncIOResult } from 'happy-rusty';
+import { validateAbsolutePath } from '../../shared/internal/mod.ts';
 import { exists } from '../ext.ts';
-import { validateAbsolutePath } from '../internal/mod.ts';
 
 /**
  * Empty bytes constant, used for directory entries in zip or empty file content.

@@ -3,10 +3,10 @@ import { basename, join, SEPARATOR } from '@std/path/posix';
 import { zip as compress, type AsyncZippable } from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
-import { readBlobBytes, readBlobBytesSync } from '../../shared/helpers.ts';
+import { readBlobBytes, readBlobBytesSync, validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
 import { isFileHandle, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
-import { createEmptyBodyError, createNothingToZipError, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { createEmptyBodyError, createNothingToZipError } from '../internal/mod.ts';
 import { EMPTY_BYTES } from './helpers.ts';
 
 /**

@@ -1,9 +1,10 @@
 import { fetchT, type FetchResult, type FetchTask } from '@happy-ts/fetch-t';
 import { basename } from '@std/path/posix';
 import { Err } from 'happy-rusty';
+import { validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
 import type { UploadRequestInit } from '../../shared/mod.ts';
 import { readBlobFile } from '../ext.ts';
-import { createAbortError, createFailedFetchTask, validateAbsolutePath, validateUrl } from '../internal/mod.ts';
+import { createAbortError, createFailedFetchTask } from '../internal/mod.ts';
 
 /**
  * Uploads a file from the specified path to a URL.
