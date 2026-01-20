@@ -8,7 +8,7 @@
 
 import { normalize } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { ROOT_DIR, type ExistsOptions } from '../../shared/mod.ts';
+import { ROOT_DIR, type ExistsOptions, type WriteFileContent, type WriteSyncFileContent } from '../../shared/mod.ts';
 
 /**
  * Validates that the provided path is an absolute path and normalizes it.
@@ -86,3 +86,72 @@ export function validateExpiredDate(expired: Date): VoidIOResult {
         ? Err(new TypeError('Expired must be a valid Date'))
         : RESULT_VOID;
 }
+
+/**
+ * Validates that the provided content is a valid type for writeFile (async).
+ * Supports: string, Blob, ArrayBuffer, TypedArray, ReadableStream<Uint8Array>.
+ *
+ * @param contents - The content to validate.
+ * @returns A `VoidIOResult` indicating success, or an error if type is invalid.
+ */
+export function validateWriteFileContent(contents: WriteFileContent): VoidIOResult {
+    // Check for ReadableStream first (async only)
+    if (isBinaryReadableStream(contents)) {
+        return RESULT_VOID;
+    }
+
+    // Check for Blob (async only)
+    if (contents instanceof Blob) {
+        return RESULT_VOID;
+    }
+
+    // Check for sync-compatible types (string, ArrayBuffer, TypedArray)
+    if (isWriteSyncFileContent(contents)) {
+        return RESULT_VOID;
+    }
+
+    return Err(new TypeError('Invalid content type for writeFile. Expected string, Blob, ArrayBuffer, TypedArray, or ReadableStream'));
+}
+
+/**
+ * Validates that the provided content is a valid type for writeFileSync (sync).
+ * Supports: string, ArrayBuffer, TypedArray.
+ * Note: Blob and ReadableStream are NOT supported in sync operations.
+ *
+ * @param contents - The content to validate.
+ * @returns A `VoidIOResult` indicating success, or an error if type is invalid.
+ */
+export function validateWriteSyncFileContent(contents: WriteSyncFileContent): VoidIOResult {
+    if (!isWriteSyncFileContent(contents)) {
+        return Err(new TypeError('Invalid content type for writeFileSync. Expected string, ArrayBuffer, or TypedArray'));
+    }
+
+    return RESULT_VOID;
+}
+
+// #region Internal functions
+
+/**
+ * Type guard for detecting binary ReadableStream input for file writing.
+ *
+ * @param x - The value to check.
+ * @returns `true` if the value is a ReadableStream.
+ */
+function isBinaryReadableStream(x: unknown): x is ReadableStream<Uint8Array<ArrayBuffer>> {
+    return typeof ReadableStream !== 'undefined' && x instanceof ReadableStream;
+}
+
+/**
+ * Type guard for detecting valid sync file content types.
+ * Supports: string, ArrayBuffer, ArrayBufferView (TypedArray/DataView).
+ *
+ * @param contents - The value to check.
+ * @returns `true` if the value is a valid sync file content type.
+ */
+function isWriteSyncFileContent(contents: unknown): contents is WriteSyncFileContent {
+    return typeof contents === 'string' ||
+        contents instanceof ArrayBuffer ||
+        ArrayBuffer.isView(contents);
+}
+
+// #endregion

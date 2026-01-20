@@ -6,7 +6,7 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { validateAbsolutePath, validateExistsOptions, validateExpiredDate } from '../async/internal/mod.ts';
+import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../async/internal/mod.ts';
 import { textDecode, textEncode } from '../shared/codec.ts';
 import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
@@ -300,6 +300,10 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
     if (filePathRes.isErr()) return filePathRes.asErr();
     filePath = filePathRes.unwrap();
 
+    // Validate content type at entry point to prevent silent failures
+    const contentRes = validateWriteSyncFileContent(contents);
+    if (contentRes.isErr()) return contentRes.asErr();
+
     // Put Uint8Array as the last argument for binary protocol
     return callWorkerOp(WorkerOp.writeFile, filePath, options, serializeWriteContents(contents));
 }
@@ -319,12 +323,7 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  * ```
  */
 export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
-    const filePathRes = validateAbsolutePath(filePath);
-    if (filePathRes.isErr()) return filePathRes.asErr();
-    filePath = filePathRes.unwrap();
-
-    // Put Uint8Array as the last argument for binary protocol
-    return callWorkerOp(WorkerOp.appendFile, filePath, serializeWriteContents(contents));
+    return writeFileSync(filePath, contents, { append: true });
 }
 
 /**

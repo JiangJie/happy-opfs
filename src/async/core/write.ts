@@ -2,7 +2,7 @@ import { tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happ
 import { textEncode } from '../../shared/codec.ts';
 import { readBlobBytesSync } from '../../shared/helpers.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
-import { getFileHandle, isNotFoundError, moveFileHandle, validateAbsolutePath } from '../internal/mod.ts';
+import { getFileHandle, isNotFoundError, moveFileHandle, validateAbsolutePath, validateWriteFileContent } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
 import { remove } from './remove.ts';
 
@@ -41,6 +41,10 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
     const filePathRes = validateAbsolutePath(filePath);
     if (filePathRes.isErr()) return filePathRes.asErr();
     filePath = filePathRes.unwrap();
+
+    // Validate content type at entry point to prevent silent failures
+    const contentRes = validateWriteFileContent(contents);
+    if (contentRes.isErr()) return contentRes.asErr();
 
     // For stream content, use temp file strategy when creating new files
     if (isBinaryReadableStream(contents)) {
