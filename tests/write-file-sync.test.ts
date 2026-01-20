@@ -3,6 +3,7 @@
  * These tests execute writeFile in a Worker context where createSyncAccessHandle is used
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import type { WriteSyncFileContent } from '../src/mod.ts';
 import * as fs from '../src/mod.ts';
 
 /**
@@ -412,6 +413,31 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
             const result = fs.readFileSync('/non-existent-worker-file.txt');
             expect(result.isErr()).toBe(true);
         });
+    });
+
+    describe('Invalid content types (runtime validation)', () => {
+        const invalidContents = [
+            { name: 'number', value: 123 },
+            { name: 'object', value: { key: 'value' } },
+            { name: 'null', value: null },
+            { name: 'undefined', value: undefined },
+            { name: 'array', value: [1, 2, 3] },
+            { name: 'boolean', value: true },
+            { name: 'symbol', value: Symbol('test') },
+            { name: 'function', value: () => { } },
+            { name: 'Blob', value: new Blob(['test']) },
+            { name: 'ReadableStream', value: new ReadableStream() },
+        ];
+
+        for (const { name, value } of invalidContents) {
+            it(`should reject ${ name } at runtime`, () => {
+                const result = fs.writeFileSync('/test.txt', value as unknown as WriteSyncFileContent);
+                expect(result.isErr()).toBe(true);
+                const err = result.unwrapErr();
+                expect(err).toBeInstanceOf(TypeError);
+                expect(err.message).toContain('Invalid content type');
+            });
+        }
     });
 
     describe('Edge cases (createSyncAccessHandle path)', () => {

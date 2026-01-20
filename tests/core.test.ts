@@ -3,6 +3,7 @@
  * Tests: createFile, mkdir, readDir, readFile, writeFile, remove, stat
  */
 import { afterEach, describe, expect, it } from 'vitest';
+import type { WriteFileContent } from '../src/mod.ts';
 import * as fs from '../src/mod.ts';
 
 describe('OPFS Core Operations', () => {
@@ -190,6 +191,29 @@ describe('OPFS Core Operations', () => {
         it('should fail to read non-existent file', async () => {
             const result = await fs.readFile('/non-existent-file.txt');
             expect(result.isErr()).toBe(true);
+        });
+
+        describe('invalid content types (runtime validation)', () => {
+            const invalidContents = [
+                { name: 'number', value: 123 },
+                { name: 'object', value: { key: 'value' } },
+                { name: 'null', value: null },
+                { name: 'undefined', value: undefined },
+                { name: 'array', value: [1, 2, 3] },
+                { name: 'boolean', value: true },
+                { name: 'symbol', value: Symbol('test') },
+                { name: 'function', value: () => { } },
+            ];
+
+            for (const { name, value } of invalidContents) {
+                it(`should reject ${ name } at runtime`, async () => {
+                    const result = await fs.writeFile('/test.txt', value as unknown as WriteFileContent);
+                    expect(result.isErr()).toBe(true);
+                    const err = result.unwrapErr();
+                    expect(err).toBeInstanceOf(TypeError);
+                    expect(err.message).toContain('Invalid content type');
+                });
+            }
         });
     });
 
