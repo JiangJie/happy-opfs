@@ -44,16 +44,15 @@ export const WorkerOp = {
     stat: 6,
     writeFile: 7,
     // ext
-    appendFile: 8,
-    copy: 9,
-    emptyDir: 10,
-    exists: 11,
-    deleteTemp: 12,
-    mkTemp: 13,
-    pruneTemp: 14,
-    readBlobFile: 15,
-    unzip: 16,
-    zip: 17,
+    copy: 8,
+    emptyDir: 9,
+    exists: 10,
+    deleteTemp: 11,
+    mkTemp: 12,
+    pruneTemp: 13,
+    readBlobFile: 14,
+    unzip: 15,
+    zip: 16,
 } as const;
 
 /**

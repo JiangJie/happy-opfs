@@ -1,6 +1,5 @@
 import { Err, RESULT_VOID, type AsyncIOResult, type VoidIOResult } from 'happy-rusty';
 import {
-    appendFile,
     copy, createFile,
     deleteTemp,
     emptyDir, exists,
@@ -41,7 +40,6 @@ const opHandlers = {
     [WorkerOp.remove]: remove,
     [WorkerOp.stat]: stat,
     [WorkerOp.writeFile]: writeFile,
-    [WorkerOp.appendFile]: appendFile,
     [WorkerOp.copy]: copy,
     [WorkerOp.emptyDir]: emptyDir,
     [WorkerOp.exists]: exists,
