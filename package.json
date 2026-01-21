@@ -41,6 +41,7 @@
     "bench": "pnpm exec vite --config benchmarks/vite.config.ts",
     "prebench:run": "pnpm run prebench",
     "bench:run": "node benchmarks/playwright.ts",
+    "bench:vitest": "pnpm exec vitest bench --run",
     "eg": "pnpm exec vite --config examples/vite.config.ts"
   },
   "repository": {
