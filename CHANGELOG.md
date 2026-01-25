@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-01-26
+
+### Added
+- `create` option for `appendFile()` and `appendFileSync()` to control file creation behavior
+- Performance benchmarks for fflate unzip vs unzipSync comparison
+
+### Changed
+- Upgrade vitest packages to v4.0.18
+- Upgrade playwright to v1.58.0
+- Upgrade rollup to v4.56.0
+- Upgrade typescript-eslint to v8.53.1
+- Upgrade @stylistic/eslint-plugin to v5.7.1
+
+### Fixed
+- Improve test coverage for `readBlobBytes()` with native Blob.bytes() and arrayBuffer() fallback paths
+
 ## [2.0.1] - 2026-01-20
 
 ### Added
@@ -502,7 +518,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
-[2.0.0]: https://github.com/JiangJie/happy-opfs/compare/v2.0.0...v2.0.1
+[2.0.2]: https://github.com/JiangJie/happy-opfs/compare/v2.0.1...v2.0.2
+[2.0.1]: https://github.com/JiangJie/happy-opfs/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/JiangJie/happy-opfs/compare/v1.12.0...v2.0.0
 [1.12.0]: https://github.com/JiangJie/happy-opfs/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/JiangJie/happy-opfs/compare/v1.10.0...v1.11.0

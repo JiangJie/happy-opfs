@@ -3,7 +3,7 @@
   "description": "A browser-compatible file system module based on OPFS, inspired by Deno fs APIs. Supports async/sync operations, streaming zip/unzip, and Result-based error handling.",
   "author": "jiang115jie@gmail.com",
   "license": "MIT",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "type": "module",
   "main": "dist/main.cjs",
   "module": "dist/main.mjs",
