@@ -79,6 +79,22 @@ describe('OPFS Extended Operations', () => {
             const buffer = result.unwrap();
             expect(buffer.byteLength).toBe(6);
         });
+
+        it('should append to existing file with create: false', async () => {
+            await fs.writeFile('/test-append-create-false.txt', 'Hello');
+            const result = await fs.appendFile('/test-append-create-false.txt', ' World', { create: false });
+            expect(result.isOk()).toBe(true);
+
+            const content = await fs.readTextFile('/test-append-create-false.txt');
+            expect(content.unwrap()).toBe('Hello World');
+
+            await fs.remove('/test-append-create-false.txt');
+        });
+
+        it('should fail to append with create: false when file not exists', async () => {
+            const result = await fs.appendFile('/test-append-no-create.txt', 'content', { create: false });
+            expect(result.isErr()).toBe(true);
+        });
     });
 
     describe('copy', () => {

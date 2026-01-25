@@ -1,27 +1,34 @@
 import { join, SEPARATOR } from '@std/path/posix';
 import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { validateAbsolutePath, validateExistsOptions } from '../shared/internal/mod.ts';
-import { isDirectoryHandle, isFileHandle, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
+import { isDirectoryHandle, isFileHandle, type AppendOptions, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
 import { aggregateResults, isNotFoundError, isRootDir, markParentDirsNonEmpty, moveFileHandle } from './internal/mod.ts';
 
 /**
  * Appends content to a file at the specified path.
- * Creates the file if it doesn't exist.
+ * Creates the file if it doesn't exist (unless `create: false` is specified).
  *
  * @param filePath - The absolute path of the file to append to.
  * @param contents - The content to append (string, ArrayBuffer, TypedArray, or Blob).
+ * @param options - Optional append options.
+ * @param options.create - Whether to create the file if it doesn't exist. Default: `true`.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  * @since 1.0.0
  * @see {@link writeFile} with `append: true` option
  * @example
  * ```typescript
+ * // Append to file, create if doesn't exist (default behavior)
  * await appendFile('/path/to/log.txt', 'New log entry\n');
+ *
+ * // Append only if file exists, fail if it doesn't
+ * await appendFile('/path/to/log.txt', 'New log entry\n', { create: false });
  * ```
  */
-export function appendFile(filePath: string, contents: WriteFileContent): AsyncVoidIOResult {
+export function appendFile(filePath: string, contents: WriteFileContent, options?: AppendOptions): AsyncVoidIOResult {
     return writeFile(filePath, contents, {
         append: true,
+        create: options?.create,
     });
 }
 

@@ -88,6 +88,17 @@ export interface WriteOptions {
 }
 
 /**
+ * Options for appending to files.
+ */
+export interface AppendOptions {
+    /**
+     * Whether to create the file if it does not exist.
+     * @defaultValue `true`
+     */
+    create?: boolean;
+}
+
+/**
  * Options for reading directories synchronously.
  */
 export interface ReadDirSyncOptions {

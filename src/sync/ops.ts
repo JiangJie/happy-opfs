@@ -7,7 +7,7 @@
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { textDecode, textEncode, validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../shared/internal/mod.ts';
-import { TIMEOUT_ERROR, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
+import { TIMEOUT_ERROR, type AppendOptions, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
 import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp, type SyncMessenger } from './protocol.ts';
@@ -313,16 +313,25 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  *
  * @param filePath - The absolute path of the file to append to.
  * @param contents - The content to append (ArrayBuffer, TypedArray, or string).
+ * @param options - Optional append options.
+ * @param options.create - Whether to create the file if it doesn't exist. Default: `true`.
  * @returns A `VoidIOResult` indicating success or failure.
  * @see {@link appendFile} for the async version.
  * @since 1.1.0
  * @example
  * ```typescript
+ * // Append to file, create if doesn't exist (default behavior)
  * appendFileSync('/path/to/log.txt', 'New log entry\n');
+ *
+ * // Append only if file exists, fail if it doesn't
+ * appendFileSync('/path/to/log.txt', 'New log entry\n', { create: false });
  * ```
  */
-export function appendFileSync(filePath: string, contents: WriteSyncFileContent): VoidIOResult {
-    return writeFileSync(filePath, contents, { append: true });
+export function appendFileSync(filePath: string, contents: WriteSyncFileContent, options?: AppendOptions): VoidIOResult {
+    return writeFileSync(filePath, contents, {
+        append: true,
+        create: options?.create,
+    });
 }
 
 /**

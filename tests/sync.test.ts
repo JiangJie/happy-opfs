@@ -102,6 +102,22 @@ describe('OPFS Sync Operations', () => {
             expect(result.unwrap()).toBe('Hello World');
         });
 
+        it('should append to existing file with create: false', () => {
+            fs.writeFileSync('/sync-append-create-false.txt', 'Hello');
+            const result = fs.appendFileSync('/sync-append-create-false.txt', ' World', { create: false });
+            expect(result.isOk()).toBe(true);
+
+            const content = fs.readTextFileSync('/sync-append-create-false.txt');
+            expect(content.unwrap()).toBe('Hello World');
+
+            fs.removeSync('/sync-append-create-false.txt');
+        });
+
+        it('should fail to append with create: false when file not exists', () => {
+            const result = fs.appendFileSync('/sync-append-no-create.txt', 'content', { create: false });
+            expect(result.isErr()).toBe(true);
+        });
+
         it('should fail to read non-existent file', () => {
             const result = fs.readFileSync('/sync-non-existent.txt');
             expect(result.isErr()).toBe(true);
