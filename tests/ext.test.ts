@@ -53,6 +53,8 @@ describe('OPFS Extended Operations', () => {
         await fs.remove('/copy-empty-dest');
         await fs.remove('/copy-empty-subs-src');
         await fs.remove('/copy-empty-subs-dest');
+        await fs.remove('/copy-issue7-src');
+        await fs.remove('/copy-issue7-dest');
     });
 
     describe('appendFile', () => {
@@ -411,6 +413,40 @@ describe('OPFS Extended Operations', () => {
         it('should fail move when source does not exist', async () => {
             const result = await fs.move('/non-existent-src', '/move-dest');
             expect(result.isErr()).toBe(true);
+        });
+
+        it('should not create source folder name inside destination (issue #7)', async () => {
+            // Setup: Create folder structure matching issue #7 report
+            // /copy-issue7-src
+            // ├─file.txt
+            // ├─anotherFile.txt
+            // └─innerFolder
+            //   └─innerFile.txt
+            await fs.mkdir('/copy-issue7-src/innerFolder');
+            await fs.writeFile('/copy-issue7-src/file.txt', 'file content');
+            await fs.writeFile('/copy-issue7-src/anotherFile.txt', 'another content');
+            await fs.writeFile('/copy-issue7-src/innerFolder/innerFile.txt', 'inner content');
+
+            // Execute copy
+            const result = await fs.copy('/copy-issue7-src', '/copy-issue7-dest');
+            expect(result.isOk()).toBe(true);
+
+            // Verify expected structure exists in destination
+            expect((await fs.exists('/copy-issue7-dest/file.txt')).unwrap()).toBe(true);
+            expect((await fs.exists('/copy-issue7-dest/anotherFile.txt')).unwrap()).toBe(true);
+            expect((await fs.exists('/copy-issue7-dest/innerFolder')).unwrap()).toBe(true);
+            expect((await fs.exists('/copy-issue7-dest/innerFolder/innerFile.txt')).unwrap()).toBe(true);
+
+            // BUG CHECK: /copy-issue7-dest/copy-issue7-src should NOT exist
+            // Issue #7 reported that an empty folder with source name was created in destination
+            const buggyDirExists = await fs.exists('/copy-issue7-dest/copy-issue7-src');
+            expect(buggyDirExists.unwrap()).toBe(false);
+
+            // Verify file contents are correct
+            const content1 = await fs.readTextFile('/copy-issue7-dest/file.txt');
+            expect(content1.unwrap()).toBe('file content');
+            const content2 = await fs.readTextFile('/copy-issue7-dest/innerFolder/innerFile.txt');
+            expect(content2.unwrap()).toBe('inner content');
         });
     });
 

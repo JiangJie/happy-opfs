@@ -75,6 +75,56 @@ async function runExample(): Promise<void> {
     copyResult.inspect(() => log('✓ Copied hello.txt to backup.txt'));
     copyResult.inspectErr((err) => log(`✗ Failed to copy file: ${err.message}`, true));
 
+    // 6.1 Copy directory with structure comparison
+    log('\n=== Copying Directory (Structure Comparison) ===');
+
+    // Create source directory structure
+    await fs.mkdir('/example/copyTest/subFolder');
+    await fs.writeFile('/example/copyTest/rootFile.txt', 'root content');
+    await fs.writeFile('/example/copyTest/subFolder/nestedFile.txt', 'nested content');
+
+    // Helper function to list directory structure
+    async function listStructure(dirPath: string): Promise<string[]> {
+        const entries: string[] = [];
+        const result = await fs.readDir(dirPath, { recursive: true });
+        if (result.isOk()) {
+            for await (const entry of result.unwrap()) {
+                const icon = fs.isFileHandle(entry.handle) ? '📄' : '📁';
+                entries.push(`${icon} ${entry.path}`);
+            }
+        }
+        return entries.sort();
+    }
+
+    // Show BEFORE structure
+    log('Before copy - /example/copyTest structure:');
+    const beforeEntries = await listStructure('/example/copyTest');
+    for (const entry of beforeEntries) {
+        log(`  ${entry}`);
+    }
+
+    // Execute copy
+    const dirCopyResult = await fs.copy('/example/copyTest', '/example/copyTestDest');
+    dirCopyResult.inspect(() => log('✓ Copied /example/copyTest to /example/copyTestDest'));
+    dirCopyResult.inspectErr((err) => log(`✗ Failed to copy directory: ${err.message}`, true));
+
+    // Show AFTER structure
+    log('After copy - /example/copyTestDest structure:');
+    const afterEntries = await listStructure('/example/copyTestDest');
+    for (const entry of afterEntries) {
+        log(`  ${entry}`);
+    }
+
+    // Verify: source folder name should NOT appear inside destination
+    const bugCheck = await fs.exists('/example/copyTestDest/copyTest');
+    if (bugCheck.isOk()) {
+        if (bugCheck.unwrap()) {
+            log('⚠ BUG: /example/copyTestDest/copyTest exists (should not!)', true);
+        } else {
+            log('✓ No bug: source folder name not duplicated in destination');
+        }
+    }
+
     // 7. Move file
     log('\n=== Moving Files ===');
     const moveResult = await fs.move('/example/data/hello.txt', '/example/data/renamed.txt');
