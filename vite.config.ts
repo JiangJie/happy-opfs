@@ -33,9 +33,11 @@ export default defineConfig({
             output: [
                 {
                     format: 'cjs',
+                    topLevelVar: false,
                 },
                 {
                     format: 'esm',
+                    topLevelVar: false,
                 },
             ],
             external: [
@@ -45,7 +47,10 @@ export default defineConfig({
                 'tiny-future',
                 'fflate/browser',
             ],
-            treeshake: 'smallest',
+            treeshake: {
+                moduleSideEffects: false,
+                propertyReadSideEffects: false,
+            },
         },
     },
     test: {

@@ -8,7 +8,7 @@
  *   pnpm run bench:run -- zip    # Run specific benchmark
  *
  * Or directly:
- *   npx tsx benchmarks/playwright.ts [benchmark-name]
+ *   node benchmarks/playwright.ts [benchmark-name]
  */
 import { chromium, type Page } from 'playwright';
 import { createServer, type ViteDevServer } from 'vite';

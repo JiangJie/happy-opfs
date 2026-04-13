@@ -141,11 +141,10 @@ async function runBenchmark(
     const peakMemories: number[] = [];
     const trackMemory = hasMemoryAPI();
     let baselineMemory = 0;
-    let downloadedBytes = 0;
 
     // Warmup
     log('  Warming up...', 'info');
-    downloadedBytes = await fn();
+    let downloadedBytes = await fn();
     await tryGC();
 
     if (trackMemory) {
