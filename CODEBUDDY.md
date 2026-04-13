@@ -95,12 +95,15 @@ src/
 │
 ├── shared/                     # Shared utilities (thread-agnostic)
 │   ├── mod.ts                 # Aggregates shared modules
-│   ├── codec.ts               # Text encoding/decoding with cached encoders
 │   ├── constants.ts           # Application-wide constants
 │   ├── defines.ts             # Shared TypeScript type definitions
 │   ├── guards.ts              # Type guard functions (isAbsolutePath, etc.)
-│   ├── helpers.ts             # Shared helper functions
-│   └── support.ts             # OPFS feature detection
+│   ├── support.ts             # OPFS feature detection
+│   └── internal/              # Internal utilities (@internal tagged)
+│       ├── mod.ts             # Aggregates internal modules
+│       ├── codec.ts           # UTF-8 encoding/decoding with cached encoders
+│       ├── helpers.ts         # Shared helper functions
+│       └── validations.ts     # Path/URL validation
 │
 ├── async/                      # Async OPFS operations (main thread)
 │   ├── mod.ts                 # Aggregates all async modules
@@ -124,8 +127,7 @@ src/
 │   │   └── upload.ts          # Upload to URL
 │   ├── internal/              # Internal utilities (@internal tagged)
 │   │   ├── mod.ts             # Aggregates internal modules
-│   │   ├── validations.ts     # Path/URL validation
-│   │   └── helpers.ts         # Internal helpers
+│   │   └── helpers.ts         # Internal helpers (handle traversal, error factories)
 │   ├── ext.ts                 # Extended operations (copy, move, exists, emptyDir)
 │   └── tmp.ts                 # Temporary file operations
 │
@@ -188,7 +190,7 @@ if (result.isOk()) {
 - Paths must be absolute (start with `/`)
 - Root directory: `/`
 - Temporary directory: `/tmp`
-- Path validation via `validateAbsolutePath()` in `async/internal/validations.ts`
+- Path validation via `validateAbsolutePath()` in `shared/internal/validations.ts`
 
 #### 4. URL Parameter Support
 Functions accepting URL parameters (`downloadFile`, `uploadFile`, `zipFromUrl`, `unzipFromUrl`) support both:
@@ -199,7 +201,7 @@ URL validation uses `URL.canParse()` with fallback to `new URL()` for older brow
 
 #### 5. Handle-Based File System
 - Internal implementation uses FileSystemHandle hierarchy
-- Helper functions in `helpers.ts` manage handle retrieval and traversal
+- Helper functions in `async/internal/helpers.ts` manage handle retrieval and traversal
 - Public API uses path strings, internal code uses handles
 
 #### 6. Worker Communication Protocol
