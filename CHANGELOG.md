@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2026-04-13
+
+### Changed
+- Add `/*#__PURE__*/` annotations to top-level function calls for better tree-shaking
+- Rename internal `textEncode`/`textDecode` to `encodeUtf8`/`decodeUtf8`
+- Upgrade dev dependencies: eslint 10, typescript 6, vite 8, vitest 4.1, playwright 1.59
+- Upgrade happy-rusty to 1.9.2
+- Adjust Vite/Rollup build config: add `topLevelVar: false`, refine treeshake options
+- Remove unused `tsx` dev dependency
+- Update OPFS Explorer Chrome Web Store link
+
 ## [2.0.2] - 2026-01-26
 
 ### Added
@@ -518,6 +529,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
+[2.0.3]: https://github.com/JiangJie/happy-opfs/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/JiangJie/happy-opfs/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/JiangJie/happy-opfs/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/JiangJie/happy-opfs/compare/v1.12.0...v2.0.0
