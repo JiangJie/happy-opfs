@@ -6,7 +6,7 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { textDecode, textEncode, validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../shared/internal/mod.ts';
+import { decodeUtf8, encodeUtf8, validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../shared/internal/mod.ts';
 import { TIMEOUT_ERROR, type AppendOptions, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
@@ -218,7 +218,7 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions): IORes
     const readRes = callWorkerOp<Uint8Array<ArrayBuffer>>(WorkerOp.readFile, filePath);
     return readRes.map(bytes => {
         if (encoding === 'utf8') {
-            return textDecode(bytes);
+            return decodeUtf8(bytes);
         }
         // 'bytes' or undefined (default)
         return bytes;
@@ -685,7 +685,7 @@ function serializeWriteContents(contents: WriteSyncFileContent): Uint8Array<Arra
         return new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
     }
     // String -> Uint8Array via TextEncoder
-    return textEncode(contents);
+    return encodeUtf8(contents);
 }
 
 /**

@@ -1,6 +1,6 @@
 import { join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
-import { readBlobBytes, textDecode, validateAbsolutePath } from '../../shared/internal/mod.ts';
+import { decodeUtf8, readBlobBytes, validateAbsolutePath } from '../../shared/internal/mod.ts';
 import { isDirectoryHandle, type DirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions } from '../../shared/mod.ts';
 import { createAbortError, getDirHandle, getFileHandle } from '../internal/mod.ts';
 /**
@@ -219,7 +219,7 @@ async function readViaSyncAccess(
         accessHandle.read(bytes, { at: 0 });
 
         if (encoding === 'utf8') {
-            return textDecode(bytes);
+            return decodeUtf8(bytes);
         }
         // 'bytes' or undefined (default)
         return bytes;

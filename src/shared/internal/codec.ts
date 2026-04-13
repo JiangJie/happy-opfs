@@ -25,7 +25,7 @@ const decoder = /*#__PURE__*/ Lazy(() => new TextDecoder());
  * @param data - The string to encode.
  * @returns A `Uint8Array` containing the encoded data.
  */
-export function textEncode(data: string): Uint8Array<ArrayBuffer> {
+export function encodeUtf8(data: string): Uint8Array<ArrayBuffer> {
     return encoder.force().encode(data);
 }
 
@@ -35,6 +35,6 @@ export function textEncode(data: string): Uint8Array<ArrayBuffer> {
  * @param data - The binary data to decode.
  * @returns The decoded string.
  */
-export function textDecode(data: AllowSharedBufferSource): string {
+export function decodeUtf8(data: AllowSharedBufferSource): string {
     return decoder.force().decode(data);
 }

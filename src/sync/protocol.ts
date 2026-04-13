@@ -6,7 +6,7 @@
  * @module
  */
 
-import { textDecode, textEncode } from '../shared/internal/mod.ts';
+import { decodeUtf8, encodeUtf8 } from '../shared/internal/mod.ts';
 
 // #region Internal Variables
 
@@ -114,7 +114,7 @@ export function encodePayload(value: unknown[]): Uint8Array<ArrayBuffer> {
     if (lastItem instanceof Uint8Array) {
         // BINARY_JSON format: [type: 1B][json length: 4B][json bytes][binary bytes]
         const jsonValue = value.slice(0, -1);
-        const json = textEncode(JSON.stringify(jsonValue));
+        const json = encodeUtf8(JSON.stringify(jsonValue));
         const result = new Uint8Array(1 + 4 + json.byteLength + lastItem.byteLength);
         result[0] = PayloadType.BINARY_JSON;
         new DataView(result.buffer).setUint32(1, json.byteLength);
@@ -124,7 +124,7 @@ export function encodePayload(value: unknown[]): Uint8Array<ArrayBuffer> {
     }
 
     // JSON format: [type: 1B][json bytes]
-    const json = textEncode(JSON.stringify(value));
+    const json = encodeUtf8(JSON.stringify(value));
     const result = new Uint8Array(1 + json.byteLength);
     result[0] = PayloadType.JSON;
     result.set(json, 1);
@@ -154,7 +154,7 @@ export function decodePayload<T extends unknown[]>(payload: Uint8Array<SharedArr
         // 2. Returned data needs its own ArrayBuffer (caller may access .buffer property)
         const json = payload.slice(5, 5 + jsonLen);
         const data = payload.slice(5 + jsonLen);
-        const parsed: unknown[] = JSON.parse(textDecode(json));
+        const parsed: unknown[] = JSON.parse(decodeUtf8(json));
 
         // Restore binary data as the last element
         parsed.push(data);
@@ -164,7 +164,7 @@ export function decodePayload<T extends unknown[]>(payload: Uint8Array<SharedArr
 
     // JSON format: [type: 1B][json bytes]
     // Use slice() because TextDecoder cannot accept SharedArrayBuffer views
-    return JSON.parse(textDecode(payload.slice(1)));
+    return JSON.parse(decodeUtf8(payload.slice(1)));
 }
 
 /**

@@ -1,5 +1,5 @@
 import { tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { readBlobBytesSync, textEncode, validateAbsolutePath, validateWriteFileContent } from '../../shared/internal/mod.ts';
+import { encodeUtf8, readBlobBytesSync, validateAbsolutePath, validateWriteFileContent } from '../../shared/internal/mod.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
 import { getFileHandle, isNotFoundError, moveFileHandle } from '../internal/mod.ts';
 import { generateTempPath } from '../tmp.ts';
@@ -295,7 +295,7 @@ async function writeDataViaSyncAccess(
         // Always write as Uint8Array to avoid copying buffer.
         let bytes: Uint8Array<ArrayBuffer>;
         if (typeof contents === 'string') {
-            bytes = textEncode(contents);
+            bytes = encodeUtf8(contents);
         } else if (contents instanceof Blob) {
             bytes = readBlobBytesSync(contents);
         } else if (contents instanceof ArrayBuffer) {
