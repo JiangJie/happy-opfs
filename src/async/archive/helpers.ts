@@ -12,7 +12,7 @@ import { exists } from '../ext.ts';
 /**
  * Empty bytes constant, used for directory entries in zip or empty file content.
  */
-export const EMPTY_BYTES: Uint8Array<ArrayBuffer> = new Uint8Array(0);
+export const EMPTY_BYTES: Uint8Array<ArrayBuffer> = /*#__PURE__*/ new Uint8Array(0);
 
 /**
  * Validates that destDir is an absolute path and is not an existing file.

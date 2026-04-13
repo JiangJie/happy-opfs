@@ -17,7 +17,7 @@ import { ABORT_ERROR, EMPTY_BODY_ERROR, EMPTY_FILE_ERROR, NOT_FOUND_ERROR, NOTHI
  * Lazily initialized root directory handle of the file system.
  * Created on first access via `force()`.
  */
-const fsRoot = LazyAsync(() => navigator.storage.getDirectory());
+const fsRoot = /*#__PURE__*/ LazyAsync(() => navigator.storage.getDirectory());
 
 // #endregion
 

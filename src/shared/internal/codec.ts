@@ -11,13 +11,13 @@ import { Lazy } from 'happy-rusty';
  * Lazily initialized `TextEncoder` instance.
  * Created on first access via `force()`.
  */
-const encoder = Lazy(() => new TextEncoder());
+const encoder = /*#__PURE__*/ Lazy(() => new TextEncoder());
 
 /**
  * Lazily initialized `TextDecoder` instance.
  * Created on first access via `force()`.
  */
-const decoder = Lazy(() => new TextDecoder());
+const decoder = /*#__PURE__*/ Lazy(() => new TextDecoder());
 
 /**
  * Encodes a string to a UTF-8 `Uint8Array`.
