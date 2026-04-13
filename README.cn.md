@@ -97,7 +97,7 @@ await remove('/data');
 
 详细兼容性信息请参阅 [MDN - OPFS](https://developer.mozilla.org/zh-CN/docs/Web/API/File_System_API/Origin_private_file_system#browser_compatibility)。
 
-可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) 来可视化查看文件系统。
+可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/opfs-explorer/hhegfidnlemidclkkldeekjamkfcamic) 来可视化查看文件系统。
 
 ## 从 1.x 迁移到 2.x
 

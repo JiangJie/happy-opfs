@@ -97,7 +97,7 @@ See more examples in the [examples/](./examples/) directory:
 
 For detailed compatibility, see [MDN - OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system#browser_compatibility).
 
-You can install [OPFS Explorer](https://chromewebstore.google.com/detail/acndjpgkpaclldomagafnognkcgjignd) to visually inspect the file system.
+You can install [OPFS Explorer](https://chromewebstore.google.com/detail/opfs-explorer/hhegfidnlemidclkkldeekjamkfcamic) to visually inspect the file system.
 
 ## Migrating from 1.x to 2.x
 
