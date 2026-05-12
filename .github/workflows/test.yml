@@ -27,14 +27,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright Dependencies
-        run: |
-          sudo apt-get update
-          export DEBIAN_FRONTEND=noninteractive
-          pnpm exec playwright install-deps chromium
-
       - name: Install playwright
-        run: pnpm run playwright:install
+        run: pnpm exec playwright install chromium
 
       - name: Run tests
         run: pnpm test
