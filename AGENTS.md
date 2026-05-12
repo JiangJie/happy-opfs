@@ -15,6 +15,23 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 - `@happy-ts/fetch-t` - For download/upload operations
 - `tiny-future` - For Promise-based future/deferred patterns
 
+### Top-Level Layout
+
+- `src/` - Library source (see detailed tree under *Code Architecture*)
+- `tests/` - Vitest + Playwright browser tests and MSW mocks
+- `examples/` - Runnable feature demos (served over HTTPS via `vite-plugin-mkcert`)
+- `benchmarks/` - Performance benchmarks (served over HTTP on the default Vite port)
+- `dist/` - Build output (`main.cjs`, `main.mjs`, `types.d.ts`)
+- `docs/` - Generated TypeDoc output (not committed to source; regenerate with `pnpm run docs`)
+
+### Tooling Versions
+
+`package.json` is the source of truth for tool versions. The repo uses `pnpm` (see `pnpm-workspace.yaml` below) and TypeScript. When in doubt, read `package.json` rather than relying on documented versions.
+
+### pnpm Workspace
+
+`pnpm-workspace.yaml` is present and currently only sets `allowBuilds: { msw: true }` to permit MSW's postinstall step. The repo is a single package — do not assume a monorepo layout or add workspace packages without explicit direction.
+
 ## Development Commands
 
 ### Package Manager
@@ -64,6 +81,8 @@ pnpm exec vitest run tests/core.test.ts
 pnpm exec vitest run -t "readFile"
 ```
 
+**MSW service-worker freshness:** `pnpm test` runs a `pretest` hook (`msw init tests/public`) that regenerates the mock service worker. If you invoke `vitest` directly (bypassing the npm script), the MSW worker may be stale — run `pnpm exec msw init tests/public --save=false` manually, or prefer `pnpm test` / `pnpm run test:watch`. The same applies to benchmarks (`prebench` → `benchmarks/public`).
+
 Tests are located in `tests/` directory. The test environment:
 - Uses Playwright's Chromium browser in headless mode
 - Automatically configures HTTPS and required COOP/COEP headers
@@ -88,6 +107,8 @@ Download and upload tests use MSW instead of external APIs:
 #### Module Organization
 
 The project organizes code into three main layers based on execution context and visibility:
+
+> When modifying `src/` structure, keep the tree below in sync — or prefer reading the actual directory and treating this tree as a snapshot. `package.json` and the `src/` tree on disk are the authoritative sources; this document can drift.
 
 ```
 src/
