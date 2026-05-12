@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -28,7 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install playwright
-        run: pnpm exec playwright install chromium
+        run: pnpm run playwright:install
 
       - name: Run tests
         run: pnpm test
