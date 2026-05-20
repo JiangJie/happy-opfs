@@ -7,7 +7,7 @@
   "imports": {
     "@happy-ts/fetch-t": "jsr:@happy-ts/fetch-t@^1.9.1",
     "@std/path": "jsr:@std/path@^1.1.4",
-    "fflate": "npm:fflate@^0.8.2",
+    "fflate": "npm:fflate@^0.8.3",
     "happy-rusty": "jsr:@happy-js/happy-rusty@^1.9.2",
     "tiny-future": "jsr:@happy-js/tiny-future@^1.2.0"
   },
