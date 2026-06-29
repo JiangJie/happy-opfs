@@ -4,7 +4,7 @@ import { zip as compress, type AsyncZippable } from 'fflate/browser';
 import { Err, Ok, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import { readBlobBytes, readBlobBytesSync, validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
-import { isFileHandle, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
+import { isFileHandle, type ZipFromUrlRequestInit, type ZipLevel, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
 import { createEmptyBodyError, createNothingToZipError } from '../internal/mod.ts';
 import { EMPTY_BYTES } from './helpers.ts';
@@ -137,7 +137,7 @@ export async function zip(sourcePath: string, zipFilePath?: string | ZipOptions,
         return Err(createNothingToZipError()) as ZipIOResult;
     }
 
-    return zipTo(zippable, zipFilePath);
+    return zipTo(zippable, zipFilePath, options?.level);
 }
 
 /**
@@ -213,7 +213,7 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
 
     const bytes = fetchRes.unwrap();
 
-    const { filename, keepEmptyBody = false } = requestInit ?? {};
+    const { filename, keepEmptyBody = false, level } = requestInit ?? {};
 
     // body can be null for 204/304 responses or HEAD requests
     if (!keepEmptyBody && bytes.byteLength === 0) {
@@ -225,7 +225,7 @@ export async function zipFromUrl(sourceUrl: string | URL, zipFilePath?: string |
 
     return zipTo({
         [sourceName]: bytes,
-    }, zipFilePath);
+    }, zipFilePath, level);
 }
 
 // #region Internal Types
@@ -243,12 +243,14 @@ type ZipIOResult = IOResult<Uint8Array<ArrayBuffer>> | VoidIOResult;
  * Zip data and optionally write to the target path.
  * @param zippable - Zippable data.
  * @param zipFilePath - Target zip file path. If provided, writes to file; otherwise returns bytes.
+ * @param level - Compression level (0-9). `undefined` uses fflate's default (6).
  */
-function zipTo(zippable: AsyncZippable, zipFilePath?: string): Promise<ZipIOResult> {
+function zipTo(zippable: AsyncZippable, zipFilePath?: string, level?: ZipLevel): Promise<ZipIOResult> {
     const future = new Future<ZipIOResult>();
 
     compress(zippable, {
         consume: true,
+        level,
     }, async (err, bytesLike) => {
         if (err) {
             future.resolve(Err(err) as ZipIOResult);

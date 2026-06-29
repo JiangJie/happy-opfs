@@ -3,7 +3,7 @@ import { basename, join, SEPARATOR } from '@std/path/posix';
 import { Zip, ZipDeflate, ZipPassThrough, zipSync } from 'fflate/browser';
 import { Err, tryAsyncResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
-import { isFileHandle, type DirEntry, type ZipFromUrlRequestInit, type ZipOptions } from '../../shared/mod.ts';
+import { isFileHandle, type DirEntry, type ZipFromUrlRequestInit, type ZipLevel, type ZipOptions } from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
 import { createEmptyBodyError, createNothingToZipError, peekStream } from '../internal/mod.ts';
 import { EMPTY_BYTES } from './helpers.ts';
@@ -42,10 +42,11 @@ export async function zipStream(sourcePath: string, zipFilePath: string, options
 
     const sourceHandle = statRes.unwrap();
     const sourceName = basename(sourcePath);
+    const { level } = options ?? {};
 
     if (isFileHandle(sourceHandle)) {
         // Single file - stream read and compress
-        return streamZipFile(sourceHandle, sourceName, zipFilePath);
+        return streamZipFile(sourceHandle, sourceName, zipFilePath, level);
     }
 
     // Directory - stream compress entries directly
@@ -72,6 +73,7 @@ export async function zipStream(sourcePath: string, zipFilePath: string, options
         sourceName,
         zipFilePath,
         preserveRoot,
+        level,
     );
 }
 
@@ -121,7 +123,7 @@ export async function zipStreamFromUrl(sourceUrl: string | URL, zipFilePath: str
     if (fetchRes.isErr()) return fetchRes.asErr();
 
     const stream = fetchRes.unwrap();
-    const { filename, keepEmptyBody = false } = requestInit ?? {};
+    const { filename, keepEmptyBody = false, level } = requestInit ?? {};
     // Use provided filename, or basename of pathname, or 'file' as fallback
     const sourceName = filename ?? (sourceUrl.pathname !== SEPARATOR ? basename(sourceUrl.pathname) : 'file');
 
@@ -144,7 +146,7 @@ export async function zipStreamFromUrl(sourceUrl: string | URL, zipFilePath: str
             : Err(createEmptyBodyError());
     }
 
-    return streamZipFromStream(peek.stream, sourceName, zipFilePath);
+    return streamZipFromStream(peek.stream, sourceName, zipFilePath, level);
 }
 
 // #region Internal Functions
@@ -177,15 +179,35 @@ function addEmptyEntry(zip: Zip, entryName: string): void {
 }
 
 /**
+ * Create a zip entry for a file, choosing the strategy based on compression level.
+ *
+ * - `level === 0`: use `ZipPassThrough` (store, no compression) — avoids DEFLATE overhead
+ *   for already-compressed data.
+ * - `level === 1..9`: use `ZipDeflate` with the given level.
+ * - `level === undefined`: use `ZipDeflate` with fflate's default (6).
+ *
+ * Both `ZipPassThrough` and `ZipDeflate` implement `ZipInputFile`, so they share the
+ * `push(chunk, final)` interface consumed by the caller.
+ */
+function createZipEntry(entryName: string, level?: ZipLevel): ZipDeflate | ZipPassThrough {
+    if (level === 0) {
+        return new ZipPassThrough(entryName);
+    }
+    return level != null
+        ? new ZipDeflate(entryName, { level })
+        : new ZipDeflate(entryName);
+}
+
+/**
  * Stream zip a single file handle.
  */
-async function streamZipFile(fileHandle: FileSystemFileHandle, entryName: string, zipFilePath: string): AsyncVoidIOResult {
+async function streamZipFile(fileHandle: FileSystemFileHandle, entryName: string, zipFilePath: string, level?: ZipLevel): AsyncVoidIOResult {
     const fileRes = await tryAsyncResult(fileHandle.getFile());
 
     return fileRes.andThenAsync(file => {
         return file.size === 0
             ? zipEmptyFile(entryName, zipFilePath)
-            : streamZipFromStream(file.stream(), entryName, zipFilePath);
+            : streamZipFromStream(file.stream(), entryName, zipFilePath, level);
     });
 }
 
@@ -196,11 +218,12 @@ function streamZipFromStream(
     sourceStream: ReadableStream<Uint8Array<ArrayBuffer>>,
     entryName: string,
     zipFilePath: string,
+    level?: ZipLevel,
 ): AsyncVoidIOResult {
     const zipStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
         async start(controller) {
             const zip = createZip(controller);
-            const entry = new ZipDeflate(entryName);
+            const entry = createZipEntry(entryName, level);
             zip.add(entry);
 
             try {
@@ -240,6 +263,7 @@ function streamZipEntries(
     sourceName: string,
     zipFilePath: string,
     preserveRoot: boolean,
+    level?: ZipLevel,
 ): AsyncVoidIOResult {
     const zipStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
         async start(controller) {
@@ -262,7 +286,7 @@ function streamZipEntries(
 
                 // File entry - stream read and compress
                 const file = await handle.getFile();
-                const entry = new ZipDeflate(entryName);
+                const entry = createZipEntry(entryName, level);
                 zip.add(entry);
 
                 for await (const chunk of file.stream()) {

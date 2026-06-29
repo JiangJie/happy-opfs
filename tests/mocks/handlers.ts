@@ -88,6 +88,17 @@ export const handlers = [
         return HttpResponse.json({ file: 'data.json' });
     }),
 
+    // GET compressible text - for compression level testing
+    http.get(`${MOCK_SERVER}/files/compressible.txt`, () => {
+        const text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(200);
+        return new HttpResponse(text, {
+            headers: {
+                'Content-Type': 'text/plain',
+                'Content-Length': String(text.length),
+            },
+        });
+    }),
+
     // GET slow response - for abort testing
     http.get(`${MOCK_SERVER}/api/slow`, async () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));

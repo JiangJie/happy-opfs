@@ -387,6 +387,20 @@ export type TempOptions =
 // ==================== Archive Options ====================
 
 /**
+ * Compression level for zip operations, aligning with fflate's `DeflateOptions.level`.
+ *
+ * - `0`: No compression (store only) — best for already-compressed data (images, videos, archives)
+ * - `1`: Fastest compression
+ * - `6`: Default compression (balanced)
+ * - `9`: Best compression (slowest)
+ *
+ * Higher values usually take disproportionately longer than the reduction in final size.
+ * Binary data typically benefits more from higher levels than text data.
+ * @since 2.1.0
+ */
+export type ZipLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+/**
  * Options for `zip`.
  */
 export interface ZipOptions {
@@ -397,6 +411,28 @@ export interface ZipOptions {
      * @defaultValue `true`
      */
     preserveRoot?: boolean;
+
+    /**
+     * Compression level for the zip operation.
+     *
+     * - `0`: No compression (store only) — best for already-compressed data
+     * - `1`: Fastest compression
+     * - `6`: Default compression (balanced)
+     * - `9`: Best compression (slowest)
+     *
+     * Aligns with fflate's `DeflateOptions.level`.
+     * @defaultValue `6`
+     * @since 2.1.0
+     * @example
+     * ```typescript
+     * // Store without compression (for already-compressed files like images/videos)
+     * await zip('/photos', '/photos.zip', { level: 0 });
+     *
+     * // Best compression (for text-heavy data, slower)
+     * await zip('/documents', '/documents.zip', { level: 9 });
+     * ```
+     */
+    level?: ZipLevel;
 }
 
 // ==================== Network Types ====================
@@ -454,6 +490,20 @@ export interface ZipFromUrlRequestInit extends FsRequestInit {
      * @defaultValue `false`
      */
     keepEmptyBody?: boolean;
+
+    /**
+     * Compression level for the zip operation.
+     *
+     * - `0`: No compression (store only) — best for already-compressed data
+     * - `1`: Fastest compression
+     * - `6`: Default compression (balanced)
+     * - `9`: Best compression (slowest)
+     *
+     * Aligns with fflate's `DeflateOptions.level`.
+     * @defaultValue `6`
+     * @since 2.1.0
+     */
+    level?: ZipLevel;
 }
 
 /**

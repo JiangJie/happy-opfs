@@ -9,6 +9,7 @@ import { MOCK_SERVER } from './mocks/constants.ts';
 
 // Use MSW mock server URL instead of external GitHub URL
 const mockZipUrl = `${MOCK_SERVER}/files/test.zip`;
+const mockCompressibleUrl = `${MOCK_SERVER}/files/compressible.txt`;
 
 describe('OPFS Zip Operations', () => {
     beforeAll(async () => {
@@ -41,6 +42,10 @@ describe('OPFS Zip Operations', () => {
         await fs.remove('/url-unzip');
         await fs.remove('/url-unzip-progress');
         await fs.remove('/url.zip');
+        await fs.remove('/url-level-0.zip');
+        await fs.remove('/url-level-9.zip');
+        await fs.remove('/url-stream-level-0.zip');
+        await fs.remove('/url-stream-level-9.zip');
     });
 
     describe('zip', () => {
@@ -151,6 +156,79 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/dir-test');
             await fs.remove('/dir-test.zip');
             await fs.remove('/dir-test-unzipped');
+        });
+
+        it('should apply compression level (level 0 vs level 9)', async () => {
+            // 准备可压缩的文本数据
+            await fs.mkdir('/zip-level-test');
+            const content = 'Lorem ipsum dolor sit amet '.repeat(1000);
+            await fs.writeFile('/zip-level-test/file.txt', content);
+
+            // level: 0 (store, no compression)
+            const r0 = await fs.zip('/zip-level-test', '/zip-level-0.zip', { level: 0 });
+            expect(r0.isOk()).toBe(true);
+
+            // level: 9 (best compression)
+            const r9 = await fs.zip('/zip-level-test', '/zip-level-9.zip', { level: 9 });
+            expect(r9.isOk()).toBe(true);
+
+            const size0 = (await fs.readFile('/zip-level-0.zip')).unwrap().byteLength;
+            const size9 = (await fs.readFile('/zip-level-9.zip')).unwrap().byteLength;
+
+            // level 9 对文本数据应显著小于 level 0
+            expect(size9).toBeLessThan(size0);
+
+            await fs.remove('/zip-level-test');
+            await fs.remove('/zip-level-0.zip');
+            await fs.remove('/zip-level-9.zip');
+        });
+
+        it('should preserve content integrity across compression levels', async () => {
+            await fs.mkdir('/zip-integrity-test');
+            const content = 'compression test data '.repeat(500);
+            await fs.writeFile('/zip-integrity-test/file.txt', content);
+
+            const levels = [0, 1, 6, 9] as const;
+            for (const level of levels) {
+                const zipPath = `/zip-integrity-${level}.zip`;
+                const r = await fs.zip('/zip-integrity-test', zipPath, { level });
+                expect(r.isOk()).toBe(true);
+
+                // 解压验证内容一致
+                const dest = `/zip-integrity-dest-${level}`;
+                const unzipR = await fs.unzip(zipPath, dest);
+                expect(unzipR.isOk()).toBe(true);
+
+                const restored = (await fs.readFile(`${dest}/zip-integrity-test/file.txt`, { encoding: 'utf8' })).unwrap();
+                expect(restored).toBe(content);
+
+                await fs.remove(zipPath);
+                await fs.remove(dest);
+            }
+
+            await fs.remove('/zip-integrity-test');
+        });
+
+        it('should apply compression level to zipStream', async () => {
+            await fs.mkdir('/zip-stream-level-test');
+            const content = 'stream compress data '.repeat(1000);
+            await fs.writeFile('/zip-stream-level-test/file.txt', content);
+
+            const r0 = await fs.zipStream('/zip-stream-level-test', '/zip-stream-level-0.zip', { level: 0 });
+            expect(r0.isOk()).toBe(true);
+
+            const r9 = await fs.zipStream('/zip-stream-level-test', '/zip-stream-level-9.zip', { level: 9 });
+            expect(r9.isOk()).toBe(true);
+
+            const size0 = (await fs.readFile('/zip-stream-level-0.zip')).unwrap().byteLength;
+            const size9 = (await fs.readFile('/zip-stream-level-9.zip')).unwrap().byteLength;
+
+            // 流式版本 level 9 也应小于 level 0
+            expect(size9).toBeLessThan(size0);
+
+            await fs.remove('/zip-stream-level-test');
+            await fs.remove('/zip-stream-level-0.zip');
+            await fs.remove('/zip-stream-level-9.zip');
         });
     });
 
@@ -543,6 +621,20 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/url-stream.zip');
         });
 
+        it('should apply compression level from URL (streaming)', async () => {
+            const r0 = await fs.zipStreamFromUrl(mockCompressibleUrl, '/url-stream-level-0.zip', { level: 0 });
+            expect(r0.isOk()).toBe(true);
+
+            const r9 = await fs.zipStreamFromUrl(mockCompressibleUrl, '/url-stream-level-9.zip', { level: 9 });
+            expect(r9.isOk()).toBe(true);
+
+            const size0 = (await fs.readFile('/url-stream-level-0.zip')).unwrap().byteLength;
+            const size9 = (await fs.readFile('/url-stream-level-9.zip')).unwrap().byteLength;
+
+            // 流式版本 level 9 也应小于 level 0
+            expect(size9).toBeLessThan(size0);
+        });
+
         it('should fail on invalid URL', async () => {
             const result = await fs.zipStreamFromUrl('http://', '/url-stream.zip');
             expect(result.isErr()).toBe(true);
@@ -582,6 +674,21 @@ describe('OPFS Zip Operations', () => {
 
             expect(buffer instanceof Uint8Array).toBe(true);
             expect(buffer.byteLength).toBeGreaterThan(0);
+        });
+
+        it('should apply compression level from URL', async () => {
+            // 下载可压缩文本,对比 level 0 vs 9 体积
+            const r0 = await fs.zipFromUrl(mockCompressibleUrl, '/url-level-0.zip', { level: 0 });
+            expect(r0.isOk()).toBe(true);
+
+            const r9 = await fs.zipFromUrl(mockCompressibleUrl, '/url-level-9.zip', { level: 9 });
+            expect(r9.isOk()).toBe(true);
+
+            const size0 = (await fs.readFile('/url-level-0.zip')).unwrap().byteLength;
+            const size9 = (await fs.readFile('/url-level-9.zip')).unwrap().byteLength;
+
+            // level 9 对文本应显著小于 level 0
+            expect(size9).toBeLessThan(size0);
         });
 
         it('should fail on empty response by default', async () => {
