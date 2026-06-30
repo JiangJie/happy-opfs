@@ -23,6 +23,7 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 - `benchmarks/` - Performance benchmarks (served over HTTP on the default Vite port)
 - `dist/` - Build output (`main.cjs`, `main.mjs`, `types.d.ts`)
 - `docs/` - Generated TypeDoc output (not committed to source; regenerate with `pnpm run docs`)
+- `README.md` / `README.cn.md` - English and Chinese READMEs; keep both in sync when editing user-facing docs
 
 ### Tooling Versions
 
@@ -31,6 +32,16 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 ### pnpm Workspace
 
 `pnpm-workspace.yaml` is present and currently only sets `allowBuilds: { msw: true }` to permit MSW's postinstall step. The repo is a single package — do not assume a monorepo layout or add workspace packages without explicit direction.
+
+### Dual Publishing (npm + JSR)
+
+This package publishes to **both** registries:
+- **npm** — driven by `package.json` (build artifacts in `dist/`)
+- **JSR** — `@happy-js/happy-opfs`, driven by `jsr.json` (ships raw `src/`, entry `./src/mod.ts`)
+
+When bumping the version or changing dependencies, update **both** manifests:
+- `package.json` `version` and `jsr.json` `version` must stay in sync.
+- `package.json` `dependencies` and `jsr.json` `imports` must mirror each other (note JSR uses `jsr:`/`npm:` specifiers, e.g. `happy-rusty` → `jsr:@happy-js/happy-rusty`).
 
 ## Development Commands
 
@@ -277,6 +288,10 @@ function helperFunction() { ... }
 
 ### Important Implementation Details
 
+#### v2 API Changes (context for the codebase)
+- `readFile` returns `Uint8Array` by default (was `ArrayBuffer` in 1.x) — hence the `as Uint8Array<ArrayBuffer>` assertions when writing data back.
+- `readFileStream`/`writeFileStream` were removed; use `readFile(path, { encoding: 'stream' })` and `openWritableFileStream(path)` instead.
+
 #### Type Assertions for Uint8Array
 When passing Uint8Array data to writeFile operations, explicit type assertions may be needed:
 ```typescript
@@ -377,6 +392,9 @@ pnpm run bench:run
 # Run specific benchmark
 pnpm run bench:run -- zip
 pnpm run bench:run -- stream
+
+# Vitest bench mode (microbenchmarks)
+pnpm run bench:vitest
 ```
 
 ### Available Benchmarks
