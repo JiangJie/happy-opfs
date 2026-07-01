@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-07-01
+
+### Added
+- `level` option for the zip/unzip family (`zip`, `unzip`, `zipFromUrl`, `unzipFromUrl`, `zipStream`, `unzipStream`, `zipStreamFromUrl`, `unzipStreamFromUrl`) to control compression level (0-9)
+
+### Fixed
+- Prevent `connectSyncChannel` from hanging when the worker fails to load
+- Correct `callWorkerOp` response type annotation
+
+### Changed
+- Extract `toBytesView` helper to dedupe content-to-bytes conversion
+- Move temp path utilities (`generateTempPath`, `isTempPath`) to `shared/` to break a circular import
+- Add `@since` tags to all public exported APIs in `shared/`
+- Bump dependencies: `@happy-ts/fetch-t` 1.9.1→1.10.0, `@std/path` 1.1.4→1.1.6, `happy-rusty` 1.9.2→1.10.0, plus dev dependencies
+- Rename `CODEBUDDY.md` to `AGENTS.md` and document dual publishing, v2 API context, pnpm workspace, and MSW freshness
+- Add zip streaming APIs to README features table
+
 ## [2.0.3] - 2026-04-13
 
 ### Changed
@@ -529,6 +546,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
+[2.1.0]: https://github.com/JiangJie/happy-opfs/compare/v2.0.3...v2.1.0
 [2.0.3]: https://github.com/JiangJie/happy-opfs/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/JiangJie/happy-opfs/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/JiangJie/happy-opfs/compare/v2.0.0...v2.0.1
