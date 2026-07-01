@@ -1,8 +1,8 @@
 import { tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { encodeUtf8, readBlobBytesSync, validateAbsolutePath, validateWriteFileContent } from '../../shared/internal/mod.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
+import { generateTempPath } from '../../shared/mod.ts';
 import { getFileHandle, isNotFoundError, moveFileHandle } from '../internal/mod.ts';
-import { generateTempPath } from '../tmp.ts';
 import { remove } from './remove.ts';
 
 /**

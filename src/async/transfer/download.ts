@@ -3,9 +3,9 @@ import { extname } from '@std/path/posix';
 import { Err, Ok } from 'happy-rusty';
 import { validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
 import type { DownloadFileTempResponse, DownloadRequestInit } from '../../shared/mod.ts';
+import { generateTempPath } from '../../shared/mod.ts';
 import { createFile, writeFile } from '../core/mod.ts';
 import { createEmptyBodyError, createFailedFetchTask, peekStream } from '../internal/mod.ts';
-import { generateTempPath } from '../tmp.ts';
 
 /**
  * Downloads a file from a URL and saves it to a temporary file.
