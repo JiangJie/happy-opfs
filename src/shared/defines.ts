@@ -5,12 +5,16 @@ import type { FetchInit } from '@happy-ts/fetch-t';
 /**
  * Represents the possible content types that can be written to a file asynchronously.
  * Includes `BufferSource` (ArrayBuffer or TypedArray), `Blob`, `string`, or a binary `ReadableStream`.
+ *
+ * @since 1.0.0
  */
 export type WriteFileContent = BufferSource | Blob | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Represents the possible content types that can be written to a file synchronously.
  * Excludes `Blob` (requires async read) and `ReadableStream` (inherently async).
+ *
+ * @since 1.7.0
  */
 export type WriteSyncFileContent = Exclude<WriteFileContent, Blob | ReadableStream<Uint8Array<ArrayBuffer>>>;
 
@@ -21,12 +25,16 @@ export type WriteSyncFileContent = Exclude<WriteFileContent, Blob | ReadableStre
  * - `'utf8'`: `string`
  * - `'blob'`: `File`
  * - `'stream'`: `ReadableStream<Uint8Array>`
+ *
+ * @since 1.0.0
  */
 export type ReadFileContent = Uint8Array<ArrayBuffer> | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Represents the possible content types for synchronous file reads.
  * Excludes `ReadableStream` since it cannot be returned synchronously.
+ *
+ * @since 2.0.0
  */
 export type ReadSyncFileContent = Exclude<ReadFileContent, ReadableStream<Uint8Array<ArrayBuffer>>>;
 
@@ -36,12 +44,16 @@ export type ReadSyncFileContent = Exclude<ReadFileContent, ReadableStream<Uint8A
  * - `'utf8'`: Returns decoded `string`
  * - `'blob'`: Returns `File` object with metadata
  * - `'stream'`: Returns `ReadableStream<Uint8Array>` for streaming reads
+ *
+ * @since 1.0.0
  */
 export type FileEncoding = 'bytes' | 'utf8' | 'blob' | 'stream';
 
 /**
  * Supported file encodings for synchronous file reads.
  * Excludes `'stream'` since `ReadableStream` cannot be returned synchronously.
+ *
+ * @since 2.0.0
  */
 export type FileSyncEncoding = Exclude<FileEncoding, 'stream'>;
 
@@ -49,6 +61,8 @@ export type FileSyncEncoding = Exclude<FileEncoding, 'stream'>;
 
 /**
  * Options for reading files with specified encoding.
+ *
+ * @since 1.0.0
  */
 export interface ReadOptions {
     /**
@@ -60,6 +74,8 @@ export interface ReadOptions {
 
 /**
  * Options for reading files synchronously.
+ *
+ * @since 2.0.0
  */
 export interface ReadSyncOptions {
     /**
@@ -72,6 +88,8 @@ export interface ReadSyncOptions {
 
 /**
  * Options for writing files, including flags for creation and appending.
+ *
+ * @since 1.0.0
  */
 export interface WriteOptions {
     /**
@@ -89,6 +107,8 @@ export interface WriteOptions {
 
 /**
  * Options for appending to files.
+ *
+ * @since 2.0.2
  */
 export interface AppendOptions {
     /**
@@ -100,6 +120,8 @@ export interface AppendOptions {
 
 /**
  * Options for reading directories synchronously.
+ *
+ * @since 2.0.0
  */
 export interface ReadDirSyncOptions {
     /**
@@ -111,6 +133,8 @@ export interface ReadDirSyncOptions {
 
 /**
  * Options for reading directories.
+ *
+ * @since 1.0.18
  */
 export interface ReadDirOptions extends ReadDirSyncOptions {
     /**
@@ -126,6 +150,7 @@ export interface ReadDirOptions extends ReadDirSyncOptions {
  * The `isDirectory` and `isFile` options are mutually exclusive.
  * Setting both to `true` will result in a compile-time error (and runtime error as fallback).
  *
+ * @since 1.0.0
  * @example
  * ```typescript
  * // Check if path exists (any type)
@@ -166,6 +191,8 @@ export type ExistsOptions =
 
 /**
  * Options for `copy`.
+ *
+ * @since 1.7.0
  */
 export interface CopyOptions {
     /**
@@ -177,6 +204,8 @@ export interface CopyOptions {
 
 /**
  * Options for `move`.
+ *
+ * @since 1.8.2
  */
 export interface MoveOptions {
     /**
@@ -190,6 +219,8 @@ export interface MoveOptions {
 
 /**
  * An entry returned by `readDir`.
+ *
+ * @since 1.12.0
  */
 export interface DirEntry {
     /**
@@ -221,6 +252,8 @@ export interface DirEntry {
  * **When it's used:**
  * - Returned by `readDirSync()` in the sync API
  * - Internally used when worker sends directory entries back to main thread
+ *
+ * @since 1.12.0
  */
 export interface DirEntryLike {
     /**
@@ -250,6 +283,8 @@ export interface DirEntryLike {
  * - Returned by `statSync()` for directory entries
  * - Used as the `handle` property in `DirEntryLike`
  * - Internally converted from `FileSystemHandle` via `serializeFileSystemHandle()`
+ *
+ * @since 1.1.0
  */
 export interface FileSystemHandleLike {
     /**
@@ -278,6 +313,8 @@ export interface FileSystemHandleLike {
  * - Returned by `statSync()` for file entries
  * - Used in `DirEntryLike.handle` when the entry is a file
  * - Use `isFileHandleLike()` to narrow from `FileSystemHandleLike`
+ *
+ * @since 1.3.0
  */
 export interface FileSystemFileHandleLike extends FileSystemHandleLike {
     /**
@@ -314,6 +351,8 @@ export interface FileSystemFileHandleLike extends FileSystemHandleLike {
  * **When it's used:**
  * - Returned by `statSync()` for directory entries
  * - Used in `DirEntryLike.handle` when the entry is a directory
+ *
+ * @since 2.0.0
  */
 export interface FileSystemDirectoryHandleLike extends FileSystemHandleLike {
     /**
@@ -330,6 +369,7 @@ export interface FileSystemDirectoryHandleLike extends FileSystemHandleLike {
  * The `isDirectory` and `extname` options are mutually exclusive.
  * Setting both will result in a compile-time error; at runtime `extname` is ignored for directories.
  *
+ * @since 1.7.0
  * @example
  * ```typescript
  * // Create a temporary file
@@ -402,6 +442,8 @@ export type ZipLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 /**
  * Options for `zip`.
+ *
+ * @since 1.6.0
  */
 export interface ZipOptions {
     /**
@@ -447,11 +489,15 @@ export interface ZipOptions {
  * - {@link unzipFromUrl}
  *
  * It supports `timeout` and `onProgress` (see fetch-t docs for exact semantics).
+ *
+ * @since 1.0.14
  */
 export type FsRequestInit = Omit<FetchInit, 'abortable' | 'responseType'>;
 
 /**
  * Request init options for {@link uploadFile}.
+ *
+ * @since 1.0.17
  */
 export interface UploadRequestInit extends FsRequestInit {
     /**
@@ -462,6 +508,8 @@ export interface UploadRequestInit extends FsRequestInit {
 
 /**
  * Request init options for {@link downloadFile}.
+ *
+ * @since 2.0.0
  */
 export interface DownloadRequestInit extends FsRequestInit {
     /**
@@ -475,6 +523,8 @@ export interface DownloadRequestInit extends FsRequestInit {
 
 /**
  * Request init options for {@link zipFromUrl}.
+ *
+ * @since 2.0.0
  */
 export interface ZipFromUrlRequestInit extends FsRequestInit {
     /**
@@ -508,11 +558,15 @@ export interface ZipFromUrlRequestInit extends FsRequestInit {
 
 /**
  * Request init options for {@link unzipFromUrl} and {@link unzipStreamFromUrl}.
+ *
+ * @since 2.0.0
  */
 export type UnzipFromUrlRequestInit = FsRequestInit;
 
 /**
  * Result of {@link downloadFile} when the file is saved to a temporary path.
+ *
+ * @since 1.7.2
  */
 export interface DownloadFileTempResponse {
     /**
@@ -530,6 +584,8 @@ export interface DownloadFileTempResponse {
 
 /**
  * Options for `SyncChannel.connect`.
+ *
+ * @since 2.0.0
  */
 export interface ConnectSyncChannelOptions {
     /**
@@ -561,6 +617,8 @@ export interface ConnectSyncChannelOptions {
 
 /**
  * Options for `SyncChannel.attach`.
+ *
+ * @since 2.0.0
  */
 export interface AttachSyncChannelOptions {
     /**
