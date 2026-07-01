@@ -69,26 +69,26 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@vitest/browser-playwright": "^4.1.6",
-    "@vitest/coverage-v8": "^4.1.6",
-    "@vitest/ui": "^4.1.6",
-    "eslint": "^10.4.0",
+    "@vitest/browser-playwright": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/ui": "^4.1.9",
+    "eslint": "^10.6.0",
     "msw": "^2.14.6",
-    "playwright": "^1.60.0",
-    "rollup": "^4.60.4",
+    "playwright": "^1.61.1",
+    "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
     "typedoc": "^0.28.19",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.4",
-    "vite": "^8.0.13",
-    "vite-plugin-mkcert": "^2.0.0",
-    "vitest": "^4.1.6"
+    "typescript-eslint": "^8.62.1",
+    "vite": "^8.1.1",
+    "vite-plugin-mkcert": "^2.1.0",
+    "vitest": "^4.1.9"
   },
   "dependencies": {
-    "@happy-ts/fetch-t": "^1.9.1",
-    "@std/path": "npm:@jsr/std__path@^1.1.4",
+    "@happy-ts/fetch-t": "^1.10.0",
+    "@std/path": "npm:@jsr/std__path@^1.1.6",
     "fflate": "^0.8.3",
-    "happy-rusty": "^1.9.2",
+    "happy-rusty": "^1.10.0",
     "tiny-future": "^1.2.0"
   }
 }
