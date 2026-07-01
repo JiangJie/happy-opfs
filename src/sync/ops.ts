@@ -783,7 +783,7 @@ function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
         .andThen(response => {
             // Deserialize response: [error, result] or [error] if failed
             // For binary protocol, if result contains Uint8Array, it's the last element
-            const decodedResponse = decodePayload<[Error, ...unknown[]]>(response);
+            const decodedResponse = decodePayload<[ErrorLike | null, ...unknown[]]>(response);
             const err = decodedResponse[0];
             if (err) {
                 return Err(deserializeError(err));
