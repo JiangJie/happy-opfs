@@ -1,5 +1,5 @@
 import { tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { encodeUtf8, readBlobBytesSync, validateAbsolutePath, validateWriteFileContent } from '../../shared/internal/mod.ts';
+import { readBlobBytesSync, toBytesView, validateAbsolutePath, validateWriteFileContent } from '../../shared/internal/mod.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
 import { generateTempPath } from '../../shared/mod.ts';
 import { getFileHandle, isNotFoundError, moveFileHandle } from '../internal/mod.ts';
@@ -293,18 +293,11 @@ async function writeDataViaSyncAccess(
 
     try {
         // Always write as Uint8Array to avoid copying buffer.
-        let bytes: Uint8Array<ArrayBuffer>;
-        if (typeof contents === 'string') {
-            bytes = encodeUtf8(contents);
-        } else if (contents instanceof Blob) {
-            bytes = readBlobBytesSync(contents);
-        } else if (contents instanceof ArrayBuffer) {
-            bytes = new Uint8Array(contents);
-        } else if (contents instanceof Uint8Array) {
-            bytes = contents as Uint8Array<ArrayBuffer>;
-        } else {
-            bytes = new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
-        }
+        // Blob must be handled separately (readBlobBytesSync) before toBytesView,
+        // since toBytesView does not accept Blob.
+        const bytes = contents instanceof Blob
+            ? readBlobBytesSync(contents)
+            : toBytesView(contents);
 
         if (!append) {
             accessHandle.truncate(0);

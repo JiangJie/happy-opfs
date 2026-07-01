@@ -6,7 +6,7 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { decodeUtf8, encodeUtf8, validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../shared/internal/mod.ts';
+import { decodeUtf8, toBytesView, validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../shared/internal/mod.ts';
 import { TIMEOUT_ERROR, type AppendOptions, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
@@ -304,7 +304,7 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
     if (contentRes.isErr()) return contentRes.asErr();
 
     // Put Uint8Array as the last argument for binary protocol
-    return callWorkerOp(WorkerOp.writeFile, filePath, options, serializeWriteContents(contents));
+    return callWorkerOp(WorkerOp.writeFile, filePath, options, toBytesView(contents));
 }
 
 /**
@@ -664,28 +664,6 @@ function deserializeFile(metadata: FileMetadata, data: Uint8Array<ArrayBuffer>):
         type: metadata.type,
         lastModified: metadata.lastModified,
     });
-}
-
-/**
- * Serializes write contents to Uint8Array for binary protocol transport.
- * All content types are converted to Uint8Array for efficient binary transfer.
- *
- * @param contents - The content to serialize (ArrayBuffer, TypedArray, or string).
- * @returns Uint8Array containing the binary data.
- */
-function serializeWriteContents(contents: WriteSyncFileContent): Uint8Array<ArrayBuffer> {
-    if (contents instanceof Uint8Array) {
-        return contents as Uint8Array<ArrayBuffer>;
-    }
-    if (contents instanceof ArrayBuffer) {
-        return new Uint8Array(contents);
-    }
-    if (ArrayBuffer.isView(contents)) {
-        // Other TypedArray -> Uint8Array (handle potential byteOffset)
-        return new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
-    }
-    // String -> Uint8Array via TextEncoder
-    return encodeUtf8(contents);
 }
 
 /**

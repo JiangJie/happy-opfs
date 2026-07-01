@@ -5,6 +5,9 @@
  * @module
  */
 
+import type { WriteSyncFileContent } from '../defines.ts';
+import { encodeUtf8 } from './codec.ts';
+
 /**
  * Asynchronously reads a Blob's content as a Uint8Array.
  * Uses native `bytes()` method if available, otherwise falls back to `arrayBuffer()`.
@@ -31,4 +34,29 @@ export async function readBlobBytes(blob: Blob): Promise<Uint8Array<ArrayBuffer>
 export function readBlobBytesSync(blob: Blob): Uint8Array<ArrayBuffer> {
     const reader = new FileReaderSync();
     return new Uint8Array(reader.readAsArrayBuffer(blob));
+}
+
+/**
+ * Converts a `WriteSyncFileContent` to a `Uint8Array` without copying the buffer.
+ * Handles `Uint8Array`, `ArrayBuffer`, other `ArrayBufferView` (e.g. TypedArray),
+ * and `string` (via UTF-8 encoding). `Blob` is intentionally NOT handled here —
+ * callers that accept `Blob` (e.g. the async `writeFile`) must convert it via
+ * `readBlobBytesSync` before calling this helper.
+ *
+ * @param contents - The content to convert. Must not be a `Blob` or `ReadableStream`.
+ * @returns A `Uint8Array` view over the given content.
+ */
+export function toBytesView(contents: WriteSyncFileContent): Uint8Array<ArrayBuffer> {
+    if (contents instanceof Uint8Array) {
+        return contents as Uint8Array<ArrayBuffer>;
+    }
+    if (contents instanceof ArrayBuffer) {
+        return new Uint8Array(contents);
+    }
+    if (ArrayBuffer.isView(contents)) {
+        // Other TypedArray -> Uint8Array (handle potential byteOffset)
+        return new Uint8Array(contents.buffer, contents.byteOffset, contents.byteLength);
+    }
+    // String -> Uint8Array via TextEncoder
+    return encodeUtf8(contents);
 }
