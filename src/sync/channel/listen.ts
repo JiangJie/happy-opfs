@@ -105,7 +105,10 @@ export function listenSyncChannel(): VoidIOResult {
 
         messenger = new SyncMessenger(sab);
 
-        // Notify main thread that worker is ready via dedicated MessagePort
+        // Notify main thread that the worker is ready. This MessagePort is
+        // used for the one-shot handshake only — after this, requests and
+        // responses flow through the SharedArrayBuffer-based SyncMessenger.
+        // The main thread detaches port1.onmessage after receiving this signal.
         port.postMessage(null);
 
         // Start waiting for requests

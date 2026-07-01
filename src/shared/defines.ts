@@ -546,6 +546,17 @@ export interface ConnectSyncChannelOptions {
      * @defaultValue `1000` (1 second)
      */
     opTimeout?: number;
+
+    /**
+     * The timeout in milliseconds for establishing the connection itself
+     * (worker startup, script load, and `SyncChannel.listen()` readiness).
+     * If the worker does not signal readiness within this time, a
+     * `TimeoutError` is returned. Distinct from `opTimeout`, which governs
+     * individual sync operations after the channel is ready.
+     * @defaultValue `10000` (10 seconds)
+     * @since 2.1.0
+     */
+    connectTimeout?: number;
 }
 
 /**

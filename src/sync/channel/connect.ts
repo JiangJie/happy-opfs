@@ -7,6 +7,7 @@
 
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
+import { TIMEOUT_ERROR } from '../../shared/mod.ts';
 import type { AttachSyncChannelOptions, ConnectSyncChannelOptions } from '../../shared/mod.ts';
 import { SyncMessenger } from '../protocol.ts';
 import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChannelState } from './state.ts';
@@ -30,6 +31,12 @@ const MIN_BUFFER_LENGTH = 256;
  */
 const DEFAULT_OP_TIMEOUT = 1000;
 
+/**
+ * Default timeout for establishing the connection in milliseconds.
+ * Covers worker startup, script load, and `SyncChannel.listen()` readiness.
+ */
+const DEFAULT_CONNECT_TIMEOUT = 10000;
+
 // #endregion
 
 /**
@@ -46,7 +53,7 @@ const DEFAULT_OP_TIMEOUT = 1000;
  * // Connect to worker and get SharedArrayBuffer
  * const result = await SyncChannel.connect(
  *     new URL('./worker.js', import.meta.url),
- *     { sharedBufferLength: 1024 * 1024, opTimeout: 5000 }
+ *     { sharedBufferLength: 1024 * 1024, opTimeout: 5000, connectTimeout: 10000 }
  * );
  * result.inspect(sharedBuffer => {
  *     // Share with iframe
@@ -66,6 +73,7 @@ export async function connectSyncChannel(worker: Worker | URL | string, options?
     const {
         sharedBufferLength = DEFAULT_BUFFER_LENGTH,
         opTimeout = DEFAULT_OP_TIMEOUT,
+        connectTimeout = DEFAULT_CONNECT_TIMEOUT,
     } = options ?? {};
 
     // check parameters
@@ -77,6 +85,9 @@ export async function connectSyncChannel(worker: Worker | URL | string, options?
     }
     if (!(Number.isInteger(opTimeout) && opTimeout > 0)) {
         return Err(new TypeError('opTimeout must be a positive integer'));
+    }
+    if (!(Number.isInteger(connectTimeout) && connectTimeout > 0)) {
+        return Err(new TypeError('connectTimeout must be a positive integer'));
     }
 
     // May throw if worker url is invalid
@@ -95,19 +106,67 @@ export async function connectSyncChannel(worker: Worker | URL | string, options?
 
     const sab = new SharedArrayBuffer(sharedBufferLength);
     const channel = new MessageChannel();
-
     const future = new Future<SharedArrayBuffer>();
 
-    // Use MessageChannel for isolated communication
-    // port1 stays in main thread, port2 is transferred to worker
+    // Whether this function created the worker. Only owned workers may be
+    // terminated on failure; caller-supplied Workers are left intact.
+    const ownsWorker = !(worker instanceof Worker);
+
+    // Shared teardown: clear the timer and detach all event sources
+    // (error listener + port onmessage). Called exactly once — success and
+    // failure paths below are the only callers, and teardown detaches every
+    // other event source, so no second caller can reach teardown again.
+    const teardown = (): void => {
+        clearTimeout(timer);
+        workerAdapter.removeEventListener('error', onError);
+        channel.port1.onmessage = null;
+    };
+
+    // Failure path: close port, terminate owned worker, reset state so the
+    // caller may retry, and reject the future — connectSyncChannel returns
+    // Err instead of hanging forever when the worker never calls
+    // SyncChannel.listen().
+    const cleanup = (reason: unknown): void => {
+        teardown();
+        channel.port1.close();
+        if (ownsWorker) {
+            workerAdapter.terminate();
+        }
+        setSyncChannelState('idle');
+        future.reject(reason);
+    };
+
+    const onError = (e: ErrorEvent): void => {
+        cleanup(e.error ?? new Error(e.message || 'Worker failed to load'));
+    };
+
+    const timer = setTimeout(
+        () => cleanup(new DOMException('Sync channel connection timed out', TIMEOUT_ERROR)),
+        connectTimeout,
+    );
+
+    workerAdapter.addEventListener('error', onError);
+
+    // Use MessageChannel for the one-shot handshake only: worker sends a
+    // single null payload via port2 once it has called SyncChannel.listen()
+    // (see listen.ts). After that, all further communication goes through
+    // the SharedArrayBuffer-based SyncMessenger, not this port — so the
+    // onmessage handler fires exactly once and is detached by teardown().
+    // port1 stays in main thread, port2 is transferred to worker.
     channel.port1.onmessage = (): void => {
+        teardown();
         setMessenger(new SyncMessenger(sab));
         future.resolve(sab);
     };
 
     workerAdapter.postMessage({ port: channel.port2, sab }, [channel.port2]);
 
-    return Ok(await future.promise);
+    try {
+        return Ok(await future.promise);
+    } catch (e) {
+        // future.reject path already cleaned up state/resources
+        return Err(e as Error);
+    }
 }
 
 /**
