@@ -48,7 +48,7 @@ jsr add @happy-js/happy-opfs
 | **Extended** | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile` |
 | **Stream** | `readFile` with `{ encoding: 'stream' }`, `openWritableFileStream` |
 | **Temp** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp` |
-| **Zip** | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl` |
+| **Zip** | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl`, `zipStream`, `unzipStream`, `zipStreamFromUrl`, `unzipStreamFromUrl` |
 | **Network** | `downloadFile`, `uploadFile` |
 | **Sync** | All core operations have sync versions (e.g., `mkdirSync`, `readFileSync`) via Web Workers. Use `SyncChannel.connect`, `SyncChannel.listen`, `SyncChannel.attach`, `SyncChannel.isReady` for setup |
 

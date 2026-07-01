@@ -131,6 +131,7 @@ src/
 │   ├── defines.ts             # Shared TypeScript type definitions
 │   ├── guards.ts              # Type guard functions (isAbsolutePath, etc.)
 │   ├── support.ts             # OPFS feature detection
+│   ├── tmp.ts                 # Temporary path utilities (generateTempPath, isTempPath)
 │   └── internal/              # Internal utilities (@internal tagged)
 │       ├── mod.ts             # Aggregates internal modules
 │       ├── codec.ts           # UTF-8 encoding/decoding with cached encoders
