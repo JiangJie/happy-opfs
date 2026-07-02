@@ -10,4 +10,5 @@ export * from './create.ts';
 export * from './read.ts';
 export * from './remove.ts';
 export * from './stat.ts';
+export * from './truncate.ts';
 export * from './write.ts';

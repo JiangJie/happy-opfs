@@ -34,7 +34,7 @@ const PayloadType = {
  * Each value corresponds to a specific file system operation.
  */
 export const WorkerOp = {
-    // core
+    // core (0-99)
     createFile: 0,
     mkdir: 1,
     move: 2,
@@ -42,17 +42,18 @@ export const WorkerOp = {
     readFile: 4,
     remove: 5,
     stat: 6,
-    writeFile: 7,
-    // ext
-    copy: 8,
-    emptyDir: 9,
-    exists: 10,
-    deleteTemp: 11,
-    mkTemp: 12,
-    pruneTemp: 13,
-    readBlobFile: 14,
-    unzip: 15,
-    zip: 16,
+    truncate: 7,
+    writeFile: 8,
+    // ext (100+)
+    copy: 100,
+    emptyDir: 101,
+    exists: 102,
+    deleteTemp: 103,
+    mkTemp: 104,
+    pruneTemp: 105,
+    readBlobFile: 106,
+    unzip: 107,
+    zip: 108,
 } as const;
 
 /**

@@ -146,7 +146,8 @@ src/
 │   │   ├── read.ts            # File reading operations
 │   │   ├── write.ts           # File writing operations
 │   │   ├── remove.ts          # File/directory removal
-│   │   └── stat.ts            # File/directory metadata
+│   │   ├── stat.ts            # File/directory metadata
+│   │   └── truncate.ts        # File truncation (resize)
 │   ├── archive/               # Archive operations
 │   │   ├── mod.ts             # Aggregates archive modules
 │   │   ├── helpers.ts         # Archive helper functions

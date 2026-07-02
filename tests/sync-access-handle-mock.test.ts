@@ -456,4 +456,42 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(readRes.unwrap()).toBeInstanceOf(File);
         });
     });
+
+    describe('truncate.ts sync access branch', () => {
+        it('should use createSyncAccessHandle for truncate to smaller size', async () => {
+            const { mkdir, writeFile, truncate } = await import('../src/async/core/mod.ts');
+
+            await mkdir('/sync-access-mock-test');
+            mockSyncAccessEnabled = true;
+
+            await writeFile('/sync-access-mock-test/trunc.txt', 'Hello World');
+            const res = await truncate('/sync-access-mock-test/trunc.txt', 5);
+            expect(res.isOk()).toBe(true);
+
+            const storedData = mockFileStore.get('trunc.txt');
+            expect(storedData).toBeDefined();
+            const data = storedData!;
+            expect(data.byteLength).toBe(5);
+            expect(new TextDecoder().decode(data)).toBe('Hello');
+        });
+
+        it('should extend file with zero bytes via sync access handle', async () => {
+            const { mkdir, writeFile, truncate } = await import('../src/async/core/mod.ts');
+
+            await mkdir('/sync-access-mock-test');
+            mockSyncAccessEnabled = true;
+
+            await writeFile('/sync-access-mock-test/extend.txt', 'Hi');
+            const res = await truncate('/sync-access-mock-test/extend.txt', 5);
+            expect(res.isOk()).toBe(true);
+
+            const storedData = mockFileStore.get('extend.txt');
+            expect(storedData).toBeDefined();
+            const data = storedData!;
+            expect(data.byteLength).toBe(5);
+            expect(data[0]).toBe(0x48); // 'H'
+            expect(data[1]).toBe(0x69); // 'i'
+            expect(data[2]).toBe(0);    // zero-padded
+        });
+    });
 });

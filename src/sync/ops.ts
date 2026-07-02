@@ -276,6 +276,37 @@ export function statSync(path: string): IOResult<FileSystemHandleLike> {
 }
 
 /**
+ * Synchronous version of `truncate`.
+ * Truncates (resizes) a file to the specified size.
+ *
+ * If `len` is smaller than the current file size, the file is shortened and
+ * the trailing data is discarded. If `len` is larger, the file is extended
+ * with zero bytes (`\x00`).
+ *
+ * @param filePath - The absolute path of the file to truncate.
+ * @param len - The target size in bytes. Must be a non-negative integer.
+ * @returns A `VoidIOResult` indicating success or failure.
+ * @see {@link truncate} for the async version.
+ * @since 2.2.0
+ * @example
+ * ```typescript
+ * truncateSync('/log.txt', 5)
+ *     .inspect(() => console.log('File truncated'));
+ * ```
+ */
+export function truncateSync(filePath: string, len: number): VoidIOResult {
+    const filePathRes = validateAbsolutePath(filePath);
+    if (filePathRes.isErr()) return filePathRes.asErr();
+    filePath = filePathRes.unwrap();
+
+    if (!Number.isInteger(len) || len < 0) {
+        return Err(new TypeError(`Size must be a non-negative integer, got ${ len }`));
+    }
+
+    return callWorkerOp(WorkerOp.truncate, filePath, len);
+}
+
+/**
  * Synchronous version of `writeFile`.
  * Writes content to a file at the specified path.
  *

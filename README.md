@@ -44,7 +44,7 @@ jsr add @happy-js/happy-opfs
 
 | Category | APIs |
 |----------|------|
-| **Core** | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat` |
+| **Core** | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat`, `truncate` |
 | **Extended** | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile` |
 | **Stream** | `readFile` with `{ encoding: 'stream' }`, `openWritableFileStream` |
 | **Temp** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp` |
