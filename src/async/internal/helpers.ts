@@ -348,7 +348,12 @@ export async function peekStream<T>(source: ReadableStream<T>): AsyncIOResult<Pe
 
 /**
  * Moves a file handle to a new path, creating parent directories if needed.
- * This is a higher-level operation that handles path resolution and directory creation.
+ *
+ * Uses the native `move()` when available (instant rename; supported by all
+ * modern browsers — Chrome 102+, Firefox 111+, Safari 15.2+ — though not on
+ * the standards track). Falls back to copy semantics for older browsers without
+ * `move()` — the caller is responsible for removing the source path after a
+ * successful move.
  *
  * @param fileHandle - The file handle to move.
  * @param destFilePath - The destination absolute file path.
@@ -359,9 +364,28 @@ export async function moveFileHandle(fileHandle: FileSystemFileHandle, destFileP
         create: true,
     });
 
-    return dirRes.andTryAsync(destDirHandle => {
+    return dirRes.andTryAsync(async destDirHandle => {
         const destName = basename(destFilePath);
-        return (fileHandle as unknown as MovableHandle).move(destDirHandle, destName);
+        const movable = fileHandle as unknown as MovableHandle;
+
+        // Native move (instant rename) when supported
+        if (typeof movable.move === 'function') {
+            return movable.move(destDirHandle, destName);
+        }
+
+        // Fallback: copy file content to dest (older browsers without handle.move())
+        // Inlined to avoid circular dep on write.ts (write.ts imports this module)
+        // getFile() and dest writable acquisition are independent — run in parallel
+        const [file, writable] = await Promise.all([
+            fileHandle.getFile(),
+            destDirHandle.getFileHandle(destName, { create: true })
+                .then(handle => handle.createWritable()),
+        ]);
+        try {
+            await writable.write(file);
+        } finally {
+            await writable.close();
+        }
     });
 }
 
