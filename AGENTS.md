@@ -21,7 +21,7 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 - `tests/` - Vitest + Playwright browser tests and MSW mocks
 - `examples/` - Runnable feature demos (served over HTTPS via `vite-plugin-mkcert`)
 - `benchmarks/` - Performance benchmarks (served over HTTP on the default Vite port)
-- `dist/` - Build output (per-entry CJS/ESM modules plus `types.d.ts`; see *Build Configuration*)
+- `dist/` - Build output (per-entry CJS/ESM modules plus `types.d.ts`/`types.d.cts`; see *Build Configuration*)
 - `docs/` - Generated TypeDoc output (not committed to source; regenerate with `pnpm run docs`)
 - `README.md` / `README.cn.md` - English and Chinese READMEs; keep both in sync when editing user-facing docs
 
@@ -61,6 +61,9 @@ pnpm run lint
 
 # Build (runs prebuild: check types, lint)
 pnpm run build
+
+# Verify the actual npm tarball before publishing (also runs build)
+pnpm run verify:package
 
 # Generate documentation
 pnpm run docs
@@ -319,9 +322,11 @@ Common error constants exported from `src/shared/constants.ts`:
   - `sync` and `SyncChannel` must both reference the single `_internal` module so channel state is not duplicated
   - A CJS post-processing plugin rewrites Rolldown's source-path `export *` requires and preserves the original `SyncChannel` namespace keys
 
-- **Rollup** (`rollup.config.ts`): Generates the bundled root declaration file
-  - Uses `rollup-plugin-dts` for `.d.ts` bundling
-  - Output: `dist/types.d.ts`
+- **Rollup** (`rollup.config.ts`): Generates the bundled root declaration files
+  - Uses `rollup-plugin-dts` for declaration bundling
+  - Outputs: `dist/types.d.ts` for ESM and `dist/types.d.cts` for CJS
+
+- **Package verification** (`verify_package.ts`): Packs the npm tarball and validates its exports, ESM/CJS runtime loading, consumer types, publint, and Are the Types Wrong before `npm publish`
 
 - **Vitest** (configured in `vite.config.ts`): Browser-based testing
   - Uses Playwright Chromium in headless mode

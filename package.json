@@ -10,9 +10,14 @@
   "types": "dist/types.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types.d.ts",
-      "import": "./dist/main.mjs",
-      "require": "./dist/main.cjs",
+      "import": {
+        "types": "./dist/types.d.ts",
+        "default": "./dist/main.mjs"
+      },
+      "require": {
+        "types": "./dist/types.d.cts",
+        "default": "./dist/main.cjs"
+      },
       "default": "./dist/main.mjs"
     },
     "./package.json": "./package.json"
@@ -29,8 +34,9 @@
     "lint": "pnpm exec eslint .",
     "prebuild": "pnpm run check && pnpm run lint",
     "build": "node build.ts && pnpm exec rollup --config rollup.config.ts",
+    "verify:package": "pnpm run build && node verify_package.ts",
     "docs": "pnpm exec typedoc",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "pnpm run verify:package",
     "playwright:install": "pnpm exec playwright install chromium-headless-shell",
     "pretest": "pnpm exec msw init tests/public --save=false",
     "test": "pnpm exec vitest run --coverage",
@@ -67,6 +73,7 @@
     "typescript"
   ],
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@vitest/browser-playwright": "^4.1.9",
@@ -75,6 +82,7 @@
     "eslint": "^10.6.0",
     "msw": "^2.14.6",
     "playwright": "^1.61.1",
+    "publint": "^0.3.22",
     "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
     "typedoc": "^0.28.19",

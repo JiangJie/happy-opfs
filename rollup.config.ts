@@ -7,11 +7,19 @@ const config: RollupOptions[] = [
         plugins: [
             dts(),
         ],
-        output: {
-            file: 'dist/types.d.ts',
-            format: 'esm',
-            sourcemap: false,
-        },
+        // NodeNext infers declaration module format from the extension, so the CJS and ESM entries need separate files.
+        output: [
+            {
+                file: 'dist/types.d.ts',
+                format: 'esm',
+                sourcemap: false,
+            },
+            {
+                file: 'dist/types.d.cts',
+                format: 'esm',
+                sourcemap: false,
+            },
+        ],
         treeshake: 'smallest',
     },
 ];
