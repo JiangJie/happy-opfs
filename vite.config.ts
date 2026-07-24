@@ -19,40 +19,6 @@ export default defineConfig({
         },
     },
     publicDir: 'tests/public',
-    build: {
-        copyPublicDir: false,
-        target: 'esnext',
-        minify: false,
-        sourcemap: true,
-        outDir: 'dist',
-        lib: {
-            entry: 'src/mod.ts',
-            fileName: format => `main.${ format === 'esm' ? 'mjs' : 'cjs' }`,
-        },
-        rollupOptions: {
-            output: [
-                {
-                    format: 'cjs',
-                    topLevelVar: false,
-                },
-                {
-                    format: 'esm',
-                    topLevelVar: false,
-                },
-            ],
-            external: [
-                /^@std\/path/,
-                'happy-rusty',
-                '@happy-ts/fetch-t',
-                'tiny-future',
-                'fflate/browser',
-            ],
-            treeshake: {
-                moduleSideEffects: false,
-                propertyReadSideEffects: false,
-            },
-        },
-    },
     test: {
         // Use Playwright browser environment for OPFS testing
         browser: {

@@ -28,7 +28,7 @@
     "check": "pnpm exec tsc --noEmit",
     "lint": "pnpm exec eslint .",
     "prebuild": "pnpm run check && pnpm run lint",
-    "build": "pnpm exec vite build && pnpm exec rollup --config rollup.config.ts",
+    "build": "node build.ts && pnpm exec rollup --config rollup.config.ts",
     "docs": "pnpm exec typedoc",
     "prepublishOnly": "pnpm run build",
     "playwright:install": "pnpm exec playwright install chromium-headless-shell",

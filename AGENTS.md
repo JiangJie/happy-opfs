@@ -21,7 +21,7 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 - `tests/` - Vitest + Playwright browser tests and MSW mocks
 - `examples/` - Runnable feature demos (served over HTTPS via `vite-plugin-mkcert`)
 - `benchmarks/` - Performance benchmarks (served over HTTP on the default Vite port)
-- `dist/` - Build output (`main.cjs`, `main.mjs`, `types.d.ts`)
+- `dist/` - Build output (per-entry CJS/ESM modules plus `types.d.ts`; see *Build Configuration*)
 - `docs/` - Generated TypeDoc output (not committed to source; regenerate with `pnpm run docs`)
 - `README.md` / `README.cn.md` - English and Chinese READMEs; keep both in sync when editing user-facing docs
 
@@ -312,16 +312,18 @@ Common error constants exported from `src/shared/constants.ts`:
 
 ### Build Configuration
 
-- **Vite** (vite.config.ts): Builds library with CJS and ESM outputs
-  - Input: `src/mod.ts`
-  - Outputs: `dist/main.cjs`, `dist/main.mjs`
-  - `copyPublicDir: false` to prevent test files in dist
+- **Vite** (invoked programmatically by `build.ts`): Builds each runtime entry independently in CJS and ESM formats
+  - Runtime modules: `main`, `async`, `shared`, `sync`, and `SyncChannel`; only `main` is exposed through `package.json` exports
+  - Internal module: virtual build entry `_internal` (shared helpers, sync protocol, and channel state; not declared in `package.json` exports or represented by a source-only barrel)
+  - Cross-entry imports stay external and are rewritten to sibling `dist/*.{mjs,cjs}` files; this preserves `SyncChannel` as a real module namespace for downstream tree-shaking
+  - `sync` and `SyncChannel` must both reference the single `_internal` module so channel state is not duplicated
+  - A CJS post-processing plugin rewrites Rolldown's source-path `export *` requires and preserves the original `SyncChannel` namespace keys
 
-- **Rollup** (rollup.config.ts): Generates bundled type declarations
+- **Rollup** (`rollup.config.ts`): Generates the bundled root declaration file
   - Uses `rollup-plugin-dts` for `.d.ts` bundling
   - Output: `dist/types.d.ts`
 
-- **Vitest** (configured in vite.config.ts): Browser-based testing
+- **Vitest** (configured in `vite.config.ts`): Browser-based testing
   - Uses Playwright Chromium in headless mode
   - Coverage via v8 provider
   - Tests run sequentially for OPFS isolation
