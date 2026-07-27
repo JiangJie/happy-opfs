@@ -108,6 +108,7 @@ Tests are located in `tests/` directory. The test environment:
 - `tests/worker.ts` - Main worker for sync API tests
 - `tests/worker-check-connected.ts` - Worker for connection checking tests
 - `tests/worker-async-api.ts` - Worker for async API tests
+- `tests/worker-no-listen.ts` - Worker fixture that never calls `SyncChannel.listen()` (used by `00-connect-failure.test.ts` to verify connect timeout)
 
 ### Mock Server (MSW)
 Download and upload tests use MSW instead of external APIs:
@@ -313,6 +314,13 @@ Common error constants exported from `src/shared/constants.ts`:
 - `TMP_DIR` - Temporary directory path (`/tmp`)
 - `ABORT_ERROR`, `TIMEOUT_ERROR` - Re-exported from `@happy-ts/fetch-t`
 
+#### WorkerOp Reserved Ranges
+The `WorkerOp` constants in `src/sync/protocol.ts` use reserved numeric ranges that mirror the core/ext grouping:
+- Core operations (`src/async/core/`): `0-99`
+- Everything else (`ext.ts`, tmp, archive): `100+`
+
+When adding a new operation, take the next free slot within its category's range — do not renumber existing values.
+
 ### Build Configuration
 
 - **Vite** (invoked programmatically by `build.ts`): Builds each runtime entry independently in CJS and ESM formats
@@ -369,7 +377,7 @@ This project uses Conventional Commits:
 
 7. **Test Coverage Limitations:**
    - `src/sync/channel/listen.ts` is excluded from coverage (runs in Worker thread, V8 cannot instrument)
-   - `src/async/core/*.ts` has uncovered branches that run in Worker context (tested via sync API)
+   - `src/async/core/*.ts` has branches running in Worker context (via `createSyncAccessHandle`), covered by mock tests (e.g. `sync-access-handle-mock.test.ts`)
    - `src/mod.ts` and type definition files (`defines.ts`) are excluded (re-exports and type definitions only)
 
 ## Examples
