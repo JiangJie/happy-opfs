@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-07-27
+
+### Added
+- `truncate()` and `truncateSync()` APIs to resize files in place
+
+### Fixed
+- Add fallback to inline copy for browsers without native `handle.move()`, fixing `move()` and stream writes on older browsers
+- Preserve `SyncChannel` tree-shaking in downstream bundles via per-entry external build, so sync-only consumers no longer retain the whole library
+
+### Changed
+- Add strict prepublish package verification against the packed tarball (ESM/CJS smoke tests, publint, Are the Types Wrong)
+- Bump dev dependencies: eslint 10.8, playwright 1.62, vite 8.1.5, vitest 4.1.10, msw 2.15, typedoc 0.28.20, typescript-eslint 8.65
+- Upgrade GitHub Actions to latest majors with immutable SHA pinning
+- Document `WorkerOp` reserved ranges and update test/coverage notes in AGENTS.md
+
 ## [2.1.0] - 2026-07-01
 
 ### Added
@@ -546,6 +561,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
+[2.2.0]: https://github.com/JiangJie/happy-opfs/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/JiangJie/happy-opfs/compare/v2.0.3...v2.1.0
 [2.0.3]: https://github.com/JiangJie/happy-opfs/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/JiangJie/happy-opfs/compare/v2.0.1...v2.0.2
