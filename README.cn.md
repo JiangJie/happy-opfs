@@ -58,7 +58,7 @@ jsr add @happy-js/happy-opfs
 本地运行示例：
 
 ```sh
-pnpm run eg
+pnpm run examples
 # 打开 https://localhost:5173
 ```
 

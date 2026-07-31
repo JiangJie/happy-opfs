@@ -86,7 +86,7 @@ pnpm run verify:package
 pnpm run docs
 
 # Run examples (opens https://localhost:5173)
-pnpm run eg
+pnpm run examples
 ```
 
 All tooling config lives in a single `vite.config.ts` (imported from `vite-plus`): `test` (Vitest), `lint` (oxlint + tsgolint), `fmt` (oxfmt), and `pack` (tsdown) blocks. `pnpm run build` is gated by a `prebuild` hook (runs the `check` script, i.e. `vp check`), so a "build" failure is often actually a format/lint/type error.
@@ -102,17 +102,17 @@ pnpm run playwright:install
 # Run all tests
 pnpm test
 
-# Run tests in watch mode
-pnpm run test:watch
-
 # Run a specific test file
 pnpm exec vp test run tests/core.test.ts
 
 # Run tests matching a pattern
 pnpm exec vp test run -t "readFile"
+
+# Watch a single file while iterating
+pnpm exec vp test watch tests/core.test.ts
 ```
 
-**MSW service-worker freshness:** `pnpm test` runs a `pretest` hook (`msw init tests/public`) that regenerates the mock service worker. If you invoke `vp test` directly (bypassing the npm script), the MSW worker may be stale — run `pnpm exec msw init tests/public --save=false` manually, or prefer `pnpm test` / `pnpm run test:watch`. The same applies to benchmarks (`prebench` → `benchmarks/public`).
+**MSW service-worker freshness:** `pnpm test` runs a `pretest` hook (`msw init tests/public`) that regenerates the mock service worker. If you invoke `vp test` directly (bypassing the npm script), the MSW worker may be stale — run `pnpm exec msw init tests/public --save=false` manually, or prefer `pnpm test`. The same applies to benchmarks (`prebench` → `benchmarks/public`, also wired to `bench:run` via `prebench:run`).
 
 Tests are located in `tests/` directory. The test environment:
 
@@ -437,7 +437,7 @@ The `examples/` directory contains runnable examples for all major features:
 - `sync-api.ts` + `sync-worker.ts` - Synchronous file operations via Web Worker
 - `shared-messenger.ts` + `shared-messenger-child.ts` - Sharing sync channel between iframe contexts
 
-Run examples with `pnpm eg` (requires HTTPS, the `vp dev` server handles this automatically via `vite-plugin-mkcert`).
+Run examples with `pnpm examples` (requires HTTPS, the `vp dev` server handles this automatically via `vite-plugin-mkcert`).
 
 ## Benchmarks
 
