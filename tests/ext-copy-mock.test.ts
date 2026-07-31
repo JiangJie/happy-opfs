@@ -10,26 +10,27 @@ let mockReadDirShouldFail = false;
 // Mock readDir to return an iterator that throws during iteration
 let mockIteratorShouldThrow = false;
 
-vi.mock('../src/async/core/read.ts', async (importOriginal) => {
+vi.mock('../src/async/core/read.ts', async importOriginal => {
     const original = await importOriginal<typeof import('../src/async/core/read.ts')>();
     const { Ok } = await import('happy-rusty');
     return {
         ...original,
-        readDir: async (path: string, options?: { recursive?: boolean; }) => {
+        readDir: async (path: string, options?: { recursive?: boolean }) => {
             if (mockReadDirShouldFail) {
                 return Err(new Error('Mocked readDir error after stat'));
             }
             if (mockIteratorShouldThrow) {
                 // Return an async iterator that throws during iteration
-                const throwingIterator: AsyncIterable<{ path: string; handle: FileSystemHandle; }> = {
-                    [Symbol.asyncIterator]() {
-                        return {
-                            async next() {
-                                throw new Error('Iterator error during traversal');
-                            },
-                        };
-                    },
-                };
+                const throwingIterator: AsyncIterable<{ path: string; handle: FileSystemHandle }> =
+                    {
+                        [Symbol.asyncIterator]() {
+                            return {
+                                async next() {
+                                    throw new Error('Iterator error during traversal');
+                                },
+                            };
+                        },
+                    };
                 return Ok(throwingIterator);
             }
             return original.readDir(path, options);

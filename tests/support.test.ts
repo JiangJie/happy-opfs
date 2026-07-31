@@ -21,7 +21,7 @@ describe('Support', () => {
             const result1 = isOPFSSupported();
             const result2 = isOPFSSupported();
             const result3 = isOPFSSupported();
-            
+
             expect(result1).toBe(result2);
             expect(result2).toBe(result3);
         });
@@ -37,7 +37,7 @@ describe('Support', () => {
             // In cross-origin isolated environments, both should be available
             const hasSharedArrayBuffer = typeof SharedArrayBuffer === 'function';
             const hasAtomics = typeof Atomics === 'object';
-            
+
             expect(isSyncChannelSupported()).toBe(hasSharedArrayBuffer && hasAtomics);
         });
 
@@ -45,7 +45,7 @@ describe('Support', () => {
             const result1 = isSyncChannelSupported();
             const result2 = isSyncChannelSupported();
             const result3 = isSyncChannelSupported();
-            
+
             expect(result1).toBe(result2);
             expect(result2).toBe(result3);
         });

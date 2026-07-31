@@ -81,7 +81,7 @@ async function tryGC(): Promise<void> {
 function extractSizeFromUrl(url: string): number | null {
     const match = url.match(/\/bytes\/(\d+)/);
     if (match) {
-        return parseInt(match[1]!, 10);
+        return parseInt(match[1], 10);
     }
     return null;
 }
@@ -109,7 +109,7 @@ interface MemorySample {
 async function runWithMemorySampling<T>(
     fn: () => Promise<T>,
     intervalMs = 10,
-): Promise<{ result: T; samples: MemorySample[]; peakMemory: number; }> {
+): Promise<{ result: T; samples: MemorySample[]; peakMemory: number }> {
     const samples: MemorySample[] = [];
     let peakMemory = 0;
     let sampling = true;
@@ -165,23 +165,38 @@ async function runBenchmark(
             downloadedBytes = bytes;
 
             const peakIncrease = peakMemory - memBefore;
-            log(`  Iteration ${i + 1}: ${formatTime(elapsed)}, ${formatBytes(bytes)}, peak mem: +${formatBytes(peakIncrease)}`, 'info');
+            log(
+                `  Iteration ${i + 1}: ${formatTime(elapsed)}, ${formatBytes(bytes)}, peak mem: +${formatBytes(peakIncrease)}`,
+                'info',
+            );
         } else {
             downloadedBytes = await fn();
             const elapsed = performance.now() - start;
             times.push(elapsed);
-            log(`  Iteration ${i + 1}: ${formatTime(elapsed)}, ${formatBytes(downloadedBytes)}`, 'info');
+            log(
+                `  Iteration ${i + 1}: ${formatTime(elapsed)}, ${formatBytes(downloadedBytes)}`,
+                'info',
+            );
         }
     }
 
     const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
     const minTime = Math.min(...times);
     const maxTime = Math.max(...times);
-    const throughput = (downloadedBytes / 1024 / 1024) / (avgTime / 1000);
+    const throughput = downloadedBytes / 1024 / 1024 / (avgTime / 1000);
 
     const peakMemory = peakMemories.length > 0 ? Math.max(...peakMemories) : -1;
 
-    return { name, avgTime, minTime, maxTime, throughput, peakMemory, baselineMemory, downloadedBytes };
+    return {
+        name,
+        avgTime,
+        minTime,
+        maxTime,
+        throughput,
+        peakMemory,
+        baselineMemory,
+        downloadedBytes,
+    };
 }
 
 async function benchmarkStreamDownload(
@@ -228,7 +243,7 @@ async function benchmarkBatchDownload(
             // Simulate traditional batch approach
             const response = await fetch(url);
             const data = await response.arrayBuffer();
-            const res = await writeFile(filePath, new Uint8Array(data) as Uint8Array<ArrayBuffer>);
+            const res = await writeFile(filePath, new Uint8Array(data));
             if (res.isErr()) {
                 throw res.unwrapErr();
             }
@@ -248,11 +263,17 @@ function printResults(results: BenchmarkResult[]): void {
     for (const r of results) {
         log(`\n${r.name}:`, 'result');
         log(`  Downloaded: ${formatBytes(r.downloadedBytes)}`, 'result');
-        log(`  Time:       Avg ${formatTime(r.avgTime)}, Min ${formatTime(r.minTime)}, Max ${formatTime(r.maxTime)}`, 'result');
+        log(
+            `  Time:       Avg ${formatTime(r.avgTime)}, Min ${formatTime(r.minTime)}, Max ${formatTime(r.maxTime)}`,
+            'result',
+        );
         log(`  Throughput: ${r.throughput.toFixed(2)} MB/s`, 'result');
         if (trackMemory && r.peakMemory >= 0) {
             const peakIncrease = r.peakMemory - r.baselineMemory;
-            log(`  Peak Memory: ${formatBytes(r.peakMemory)} (+${formatBytes(peakIncrease)} from baseline)`, 'result');
+            log(
+                `  Peak Memory: ${formatBytes(r.peakMemory)} (+${formatBytes(peakIncrease)} from baseline)`,
+                'result',
+            );
         }
     }
 
@@ -262,14 +283,20 @@ function printResults(results: BenchmarkResult[]): void {
     if (streamResult && batchResult) {
         log(`\n${'─'.repeat(70)}`, 'info');
         const timeRatio = streamResult.avgTime / batchResult.avgTime;
-        log(`Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`, 'header');
+        log(
+            `Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`,
+            'header',
+        );
 
         if (trackMemory && batchResult.peakMemory >= 0 && streamResult.peakMemory >= 0) {
             const batchPeakIncrease = batchResult.peakMemory - batchResult.baselineMemory;
             const streamPeakIncrease = streamResult.peakMemory - streamResult.baselineMemory;
             if (streamPeakIncrease > 0) {
                 const memRatio = batchPeakIncrease / streamPeakIncrease;
-                log(`Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`, 'header');
+                log(
+                    `Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`,
+                    'header',
+                );
             }
         }
     }
@@ -290,7 +317,7 @@ function printResults(results: BenchmarkResult[]): void {
 // Main Entry Points
 // ============================================================================
 
-function getConfig(): { url: string; iterations: number; } {
+function getConfig(): { url: string; iterations: number } {
     const preset = (document.getElementById('urlPreset') as HTMLSelectElement).value;
     const customUrl = (document.getElementById('customUrl') as HTMLInputElement).value;
 
@@ -329,7 +356,9 @@ async function runAllBenchmarks(): Promise<void> {
         log(`Expected Size: ${formatBytes(expectedSize)}`);
     }
     log(`Iterations: ${iterations}`);
-    log(`Memory API: ${hasMemoryAPI() ? 'Available (sampling every 10ms)' : 'Not available (Chrome only)'}`);
+    log(
+        `Memory API: ${hasMemoryAPI() ? 'Available (sampling every 10ms)' : 'Not available (Chrome only)'}`,
+    );
 
     try {
         const results: BenchmarkResult[] = [];
@@ -416,7 +445,7 @@ document.getElementById('runBatch')!.addEventListener('click', runBatchOnly);
 document.getElementById('clear')!.addEventListener('click', clearOutput);
 
 // Show/hide custom URL input
-document.getElementById('urlPreset')!.addEventListener('change', (e) => {
+document.getElementById('urlPreset')!.addEventListener('change', e => {
     const preset = (e.target as HTMLSelectElement).value;
     const customContainer = document.getElementById('customUrlContainer')!;
     customContainer.style.display = preset === 'custom' ? 'block' : 'none';
@@ -449,4 +478,4 @@ async function initMSW(): Promise<void> {
 }
 
 // Initialize MSW on page load
-initMSW();
+void initMSW();

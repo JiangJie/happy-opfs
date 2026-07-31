@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // Mock fetchT to return response with null body
 let mockFetchTReturnNullBody = false;
 
-vi.mock('@happy-ts/fetch-t', async (importOriginal) => {
+vi.mock('@happy-ts/fetch-t', async importOriginal => {
     const original = await importOriginal<typeof import('@happy-ts/fetch-t')>();
     const { Ok } = await import('happy-rusty');
     return {

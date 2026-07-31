@@ -36,21 +36,22 @@ jsr add @happy-js/happy-opfs
 
 > [!NOTE]
 > 本项目依赖 JSR 的 `@std/path`，需要在 `.npmrc` 中添加：
+>
 > ```
 > @jsr:registry=https://npm.jsr.io
 > ```
 
 ## 功能
 
-| 分类 | API |
-|------|-----|
-| **核心** | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat`, `truncate` |
-| **扩展** | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile` |
-| **流式** | `readFile` 配合 `{ encoding: 'stream' }`, `openWritableFileStream` |
-| **临时文件** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp` |
-| **压缩** | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl`, `zipStream`, `unzipStream`, `zipStreamFromUrl`, `unzipStreamFromUrl` |
-| **网络** | `downloadFile`, `uploadFile` |
-| **同步** | 所有核心操作都有同步版本（如 `mkdirSync`, `readFileSync`），通过 Web Workers 实现。使用 `SyncChannel.connect`, `SyncChannel.listen`, `SyncChannel.attach`, `SyncChannel.isReady` 进行设置 |
+| 分类         | API                                                                                                                                                                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **核心**     | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat`, `truncate`                                                                                                   |
+| **扩展**     | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile`                                                                       |
+| **流式**     | `readFile` 配合 `{ encoding: 'stream' }`, `openWritableFileStream`                                                                                                                        |
+| **临时文件** | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp`                                                                                                                                   |
+| **压缩**     | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl`, `zipStream`, `unzipStream`, `zipStreamFromUrl`, `unzipStreamFromUrl`                                                                        |
+| **网络**     | `downloadFile`, `uploadFile`                                                                                                                                                              |
+| **同步**     | 所有核心操作都有同步版本（如 `mkdirSync`, `readFileSync`），通过 Web Workers 实现。使用 `SyncChannel.connect`, `SyncChannel.listen`, `SyncChannel.attach`, `SyncChannel.isReady` 进行设置 |
 
 ## 示例
 
@@ -88,12 +89,12 @@ await remove('/data');
 
 ## 浏览器兼容性
 
-| 浏览器 | 版本 |
-|--------|------|
-| Chrome | 86+  |
-| Edge   | 86+  |
-| Firefox| 111+ |
-| Safari | 15.2+|
+| 浏览器  | 版本  |
+| ------- | ----- |
+| Chrome  | 86+   |
+| Edge    | 86+   |
+| Firefox | 111+  |
+| Safari  | 15.2+ |
 
 详细兼容性信息请参阅 [MDN - OPFS](https://developer.mozilla.org/zh-CN/docs/Web/API/File_System_API/Origin_private_file_system#browser_compatibility)。
 

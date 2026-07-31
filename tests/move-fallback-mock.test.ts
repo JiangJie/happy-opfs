@@ -11,7 +11,7 @@ import * as fs from '../src/mod.ts';
 
 describe('moveFileHandle fallback (no native handle.move)', () => {
     // Save original move (undefined in browsers that don't support it)
-    const originalMove = (FileSystemFileHandle.prototype as { move?: unknown; }).move;
+    const originalMove = (FileSystemFileHandle.prototype as { move?: unknown }).move;
 
     beforeAll(() => {
         // Simulate browsers without native handle.move (Firefox/Safari)

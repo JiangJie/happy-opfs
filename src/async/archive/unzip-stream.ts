@@ -5,7 +5,12 @@ import { Err, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { validateUrl } from '../../shared/internal/mod.ts';
 import type { UnzipFromUrlRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
-import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty } from '../internal/mod.ts';
+import {
+    aggregateResults,
+    createEmptyBodyError,
+    createEmptyFileError,
+    markParentDirsNonEmpty,
+} from '../internal/mod.ts';
 import { EMPTY_BYTES, validateDestDir } from './helpers.ts';
 
 /**
@@ -66,18 +71,23 @@ export async function unzipStream(zipFilePath: string, destDir: string): AsyncVo
  *     .inspect(() => console.log('Remote zip file unzipped successfully'));
  * ```
  */
-export async function unzipStreamFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: UnzipFromUrlRequestInit): AsyncVoidIOResult {
+export async function unzipStreamFromUrl(
+    zipFileUrl: string | URL,
+    destDir: string,
+    requestInit?: UnzipFromUrlRequestInit,
+): AsyncVoidIOResult {
     const zipFileUrlRes = validateUrl(zipFileUrl);
     if (zipFileUrlRes.isErr()) return zipFileUrlRes.asErr();
     zipFileUrl = zipFileUrlRes.unwrap();
 
     return unzipStreamWith(
-        () => fetchT(zipFileUrl, {
-            redirect: 'follow',
-            ...requestInit,
-            responseType: 'stream',
-            abortable: false,
-        }),
+        () =>
+            fetchT(zipFileUrl, {
+                redirect: 'follow',
+                ...requestInit,
+                responseType: 'stream',
+                abortable: false,
+            }),
         destDir,
         createEmptyBodyError,
     );
@@ -192,7 +202,7 @@ function extractFile(file: UnzipFile, destPath: string): AsyncVoidIOResult {
                     return;
                 }
 
-                controller.enqueue(data as Uint8Array<ArrayBuffer>);
+                controller.enqueue(data);
 
                 if (final) {
                     controller.close();

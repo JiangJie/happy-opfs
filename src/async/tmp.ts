@@ -93,12 +93,14 @@ export async function pruneTemp(expired: Date): AsyncVoidIOResult {
                 continue;
             }
 
-            tasks.push((async () => {
-                const file = await handle.getFile();
-                if (file.lastModified <= expiredTime) {
-                    return removeHandle(handle, tmpDirHandle);
-                }
-            })());
+            tasks.push(
+                (async () => {
+                    const file = await handle.getFile();
+                    if (file.lastModified <= expiredTime) {
+                        return removeHandle(handle, tmpDirHandle);
+                    }
+                })(),
+            );
         }
 
         if (tasks.length > 0) {

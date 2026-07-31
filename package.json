@@ -31,7 +31,8 @@
   "sideEffects": false,
   "scripts": {
     "check": "pnpm exec tsc --noEmit",
-    "lint": "pnpm exec eslint .",
+    "lint": "pnpm exec vp lint",
+    "fmt": "pnpm exec vp fmt",
     "prebuild": "pnpm run check && pnpm run lint",
     "build": "node build.ts && pnpm exec rollup --config rollup.config.ts",
     "verify:package": "pnpm run build && node verify_package.ts",
@@ -41,7 +42,6 @@
     "pretest": "pnpm exec msw init tests/public --save=false",
     "test": "pnpm exec vitest run --coverage",
     "test:watch": "pnpm exec vitest watch",
-    "test:ui": "pnpm exec vitest --ui",
     "prebench": "pnpm exec msw init benchmarks/public --save=false",
     "bench": "pnpm exec vite --config benchmarks/vite.config.ts",
     "prebench:run": "pnpm run prebench",
@@ -74,12 +74,8 @@
   ],
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@eslint/js": "^10.0.1",
-    "@stylistic/eslint-plugin": "^5.10.0",
     "@vitest/browser-playwright": "^4.1.10",
     "@vitest/coverage-v8": "^4.1.10",
-    "@vitest/ui": "^4.1.10",
-    "eslint": "^10.8.0",
     "msw": "^2.15.0",
     "playwright": "^1.62.0",
     "publint": "^0.3.22",
@@ -87,9 +83,9 @@
     "rollup-plugin-dts": "^6.4.1",
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.65.0",
     "vite": "^8.1.5",
     "vite-plugin-mkcert": "^2.1.0",
+    "vite-plus": "^0.2.6",
     "vitest": "^4.1.10"
   },
   "dependencies": {

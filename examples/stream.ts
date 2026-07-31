@@ -129,7 +129,7 @@ async function runExample(): Promise<void> {
 
         // Read the updated file
         const updatedContent = await fs.readTextFile(filePath);
-        updatedContent.inspect((text) => {
+        updatedContent.inspect(text => {
             log(`\n=== Updated Content ===`, 'info');
             log(text, 'success');
         });
@@ -139,7 +139,7 @@ async function runExample(): Promise<void> {
 }
 
 document.getElementById('run')!.addEventListener('click', () => {
-    runExample().catch((err) => {
+    runExample().catch(err => {
         log(`Unexpected error: ${err.message}`, 'error');
     });
 });
@@ -149,5 +149,5 @@ document.getElementById('cleanup')!.addEventListener('click', async () => {
     log('=== Cleaning Up ===', 'info');
     const result = await fs.remove('/stream-example');
     result.inspect(() => log('✓ Removed /stream-example directory', 'success'));
-    result.inspectErr((err) => log(`✗ Failed to cleanup: ${err.message}`, 'error'));
+    result.inspectErr(err => log(`✗ Failed to cleanup: ${err.message}`, 'error'));
 });

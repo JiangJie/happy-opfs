@@ -1,7 +1,7 @@
 /**
  * Test for helpers.ts removeHandle fallback logic.
  * Covers Firefox/Safari fallback when handle.remove() is not available.
- * 
+ *
  * Uses direct import and mock handles to test the fallback paths.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

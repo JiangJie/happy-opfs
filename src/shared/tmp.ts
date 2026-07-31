@@ -20,13 +20,9 @@ import type { TempOptions } from './defines.ts';
  * ```
  */
 export function generateTempPath(options?: TempOptions): string {
-    const {
-        isDirectory = false,
-        basename = 'tmp',
-        extname = '',
-    } = options ?? {};
+    const { isDirectory = false, basename = 'tmp', extname = '' } = options ?? {};
 
-    const base = basename ? `${ basename }-` : '';
+    const base = basename ? `${basename}-` : '';
     const ext = isDirectory ? '' : extname;
 
     // use uuid to generate a unique name

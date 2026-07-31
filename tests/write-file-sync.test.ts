@@ -237,8 +237,8 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
                 // DataView is also an ArrayBufferView (TypedArray branch)
                 const buffer = new ArrayBuffer(8);
                 const view = new DataView(buffer);
-                view.setUint32(0, 0xDEADBEEF, true);
-                view.setUint32(4, 0xCAFEBABE, true);
+                view.setUint32(0, 0xdeadbeef, true);
+                view.setUint32(4, 0xcafebabe, true);
 
                 const result = fs.writeFileSync('/worker-write-test.bin', view);
                 expect(result.isOk()).toBe(true);
@@ -246,8 +246,8 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
                 const content = fs.readFileSync('/worker-write-test.bin');
                 const bytes = content.unwrap();
                 const readView = new DataView(bytes.buffer);
-                expect(readView.getUint32(0, true)).toBe(0xDEADBEEF);
-                expect(readView.getUint32(4, true)).toBe(0xCAFEBABE);
+                expect(readView.getUint32(0, true)).toBe(0xdeadbeef);
+                expect(readView.getUint32(4, true)).toBe(0xcafebabe);
             });
         });
 
@@ -306,12 +306,12 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
         });
 
         it('should append ArrayBuffer content', () => {
-            fs.writeFileSync('/worker-write-test.bin', new Uint8Array([0xAA]).buffer);
-            fs.appendFileSync('/worker-write-test.bin', new Uint8Array([0xBB]).buffer);
+            fs.writeFileSync('/worker-write-test.bin', new Uint8Array([0xaa]).buffer);
+            fs.appendFileSync('/worker-write-test.bin', new Uint8Array([0xbb]).buffer);
 
             const content = fs.readFileSync('/worker-write-test.bin');
             const data = new Uint8Array(content.unwrap());
-            expect(data).toEqual(new Uint8Array([0xAA, 0xBB]));
+            expect(data).toEqual(new Uint8Array([0xaa, 0xbb]));
         });
 
         it('should handle multiple appends', () => {
@@ -424,14 +424,17 @@ describe('writeFile - createSyncAccessHandle branch (via Worker)', () => {
             { name: 'array', value: [1, 2, 3] },
             { name: 'boolean', value: true },
             { name: 'symbol', value: Symbol('test') },
-            { name: 'function', value: () => { } },
+            { name: 'function', value: () => {} },
             { name: 'Blob', value: new Blob(['test']) },
             { name: 'ReadableStream', value: new ReadableStream() },
         ];
 
         for (const { name, value } of invalidContents) {
-            it(`should reject ${ name } at runtime`, () => {
-                const result = fs.writeFileSync('/test.txt', value as unknown as WriteSyncFileContent);
+            it(`should reject ${name} at runtime`, () => {
+                const result = fs.writeFileSync(
+                    '/test.txt',
+                    value as unknown as WriteSyncFileContent,
+                );
                 expect(result.isErr()).toBe(true);
                 const err = result.unwrapErr();
                 expect(err).toBeInstanceOf(TypeError);

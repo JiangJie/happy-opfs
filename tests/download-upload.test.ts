@@ -50,7 +50,7 @@ describe('OPFS Download/Upload Operations', () => {
 
             expect((await fs.exists('/downloaded.json')).unwrap()).toBe(true);
 
-            const content = await fs.readJsonFile<{ id: number; }>('/downloaded.json');
+            const content = await fs.readJsonFile<{ id: number }>('/downloaded.json');
             expect(content.unwrap().id).toBe(1);
         });
 
@@ -60,8 +60,8 @@ describe('OPFS Download/Upload Operations', () => {
 
             const task = fs.downloadFile(`${MOCK_SERVER}/api/large-file`, '/large-file.bin', {
                 timeout: 10000,
-                onProgress: (progressResult) => {
-                    progressResult.inspect((progress) => {
+                onProgress: progressResult => {
+                    progressResult.inspect(progress => {
                         progressCalled = true;
                         lastProgress = progress.completedByteLength;
                     });
@@ -229,9 +229,13 @@ describe('OPFS Download/Upload Operations', () => {
         });
 
         it('should handle network error', async () => {
-            const task = fs.downloadFile(`${MOCK_SERVER}/api/network-error`, '/network-error.json', {
-                timeout: 10000,
-            });
+            const task = fs.downloadFile(
+                `${MOCK_SERVER}/api/network-error`,
+                '/network-error.json',
+                {
+                    timeout: 10000,
+                },
+            );
 
             const result = await task.result;
             expect(result.isErr()).toBe(true);
@@ -294,7 +298,7 @@ describe('OPFS Download/Upload Operations', () => {
 
         it('should fail on empty body response by default', async () => {
             // Response with Content-Length: 0
-            const task = fs.downloadFile(`${ MOCK_SERVER }/api/204`, '/empty.bin');
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/204`, '/empty.bin');
 
             const result = await task.result;
             expect(result.isErr()).toBe(true);
@@ -303,7 +307,7 @@ describe('OPFS Download/Upload Operations', () => {
 
         it('should keep empty body response with keepEmptyBody option', async () => {
             // Response with Content-Length: 0, keepEmptyBody allows it
-            const task = fs.downloadFile(`${ MOCK_SERVER }/api/empty-body`, '/empty.bin', {
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/empty-body`, '/empty.bin', {
                 keepEmptyBody: true,
             });
 
@@ -318,9 +322,9 @@ describe('OPFS Download/Upload Operations', () => {
             await fs.remove('/empty.bin');
         });
 
-        it('should handle null body response ', async () => {
+        it('should handle null body response', async () => {
             // Test for null body - should fail with EmptyBodyError by default
-            const task = fs.downloadFile(`${ MOCK_SERVER }/api/null-body`, '/null-body.bin');
+            const task = fs.downloadFile(`${MOCK_SERVER}/api/null-body`, '/null-body.bin');
 
             const result = await task.result;
             // MSW may return empty stream instead of null body in browser
@@ -332,9 +336,13 @@ describe('OPFS Download/Upload Operations', () => {
 
         it('should handle null body response with keepEmptyBody option', async () => {
             // Test for null body with keepEmptyBody=true
-            const task = fs.downloadFile(`${ MOCK_SERVER }/api/null-body-keep`, '/null-body-keep.bin', {
-                keepEmptyBody: true,
-            });
+            const task = fs.downloadFile(
+                `${MOCK_SERVER}/api/null-body-keep`,
+                '/null-body-keep.bin',
+                {
+                    keepEmptyBody: true,
+                },
+            );
 
             const result = await task.result;
             expect(result.isOk()).toBe(true);

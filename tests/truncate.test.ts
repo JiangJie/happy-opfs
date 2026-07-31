@@ -37,8 +37,8 @@ describe('truncate (async)', () => {
         expect(bytes.byteLength).toBe(8);
         expect(bytes[0]).toBe(0x48); // 'H'
         expect(bytes[4]).toBe(0x6f); // 'o'
-        expect(bytes[5]).toBe(0);    // zero-padded
-        expect(bytes[7]).toBe(0);    // zero-padded
+        expect(bytes[5]).toBe(0); // zero-padded
+        expect(bytes[7]).toBe(0); // zero-padded
     });
 
     it('should fail when file does not exist', async () => {

@@ -135,7 +135,7 @@ describe('OPFS Core Operations', () => {
             const enc = new TextEncoder();
             const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
                 start(controller) {
-                    controller.enqueue(enc.encode('Short') as Uint8Array<ArrayBuffer>);
+                    controller.enqueue(enc.encode('Short'));
                     controller.close();
                 },
             });
@@ -153,7 +153,7 @@ describe('OPFS Core Operations', () => {
             const enc = new TextEncoder();
             const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
                 start(controller) {
-                    controller.enqueue(enc.encode(' World') as Uint8Array<ArrayBuffer>);
+                    controller.enqueue(enc.encode(' World'));
                     controller.close();
                 },
             });
@@ -202,12 +202,15 @@ describe('OPFS Core Operations', () => {
                 { name: 'array', value: [1, 2, 3] },
                 { name: 'boolean', value: true },
                 { name: 'symbol', value: Symbol('test') },
-                { name: 'function', value: () => { } },
+                { name: 'function', value: () => {} },
             ];
 
             for (const { name, value } of invalidContents) {
-                it(`should reject ${ name } at runtime`, async () => {
-                    const result = await fs.writeFile('/test.txt', value as unknown as WriteFileContent);
+                it(`should reject ${name} at runtime`, async () => {
+                    const result = await fs.writeFile(
+                        '/test.txt',
+                        value as unknown as WriteFileContent,
+                    );
                     expect(result.isErr()).toBe(true);
                     const err = result.unwrapErr();
                     expect(err).toBeInstanceOf(TypeError);
@@ -268,7 +271,9 @@ describe('OPFS Core Operations', () => {
             // Abort with a non-Error reason (string) to trigger createAbortError() branch
             controller.abort('custom string reason');
 
-            const result = await fs.readDir('/test-readdir-abort-non-error', { signal: controller.signal });
+            const result = await fs.readDir('/test-readdir-abort-non-error', {
+                signal: controller.signal,
+            });
             expect(result.isErr()).toBe(true);
             // Should still get AbortError since reason is not an Error instance
             expect(result.unwrapErr().name).toBe('AbortError');
@@ -281,7 +286,9 @@ describe('OPFS Core Operations', () => {
             await fs.writeFile('/test-readdir-abort-mid/file3.txt', 'c');
 
             const controller = new AbortController();
-            const result = await fs.readDir('/test-readdir-abort-mid', { signal: controller.signal });
+            const result = await fs.readDir('/test-readdir-abort-mid', {
+                signal: controller.signal,
+            });
 
             const entries: fs.DirEntry[] = [];
             for await (const entry of result.unwrap()) {
@@ -301,7 +308,9 @@ describe('OPFS Core Operations', () => {
 
             const controller = new AbortController();
             // readDir returns Ok with generator, signal not yet aborted
-            const result = await fs.readDir('/test-readdir-abort-before-next', { signal: controller.signal });
+            const result = await fs.readDir('/test-readdir-abort-before-next', {
+                signal: controller.signal,
+            });
             expect(result.isOk()).toBe(true);
 
             // Abort AFTER readDir() returns but BEFORE first .next() call

@@ -6,11 +6,44 @@
  */
 
 import { Err, Ok, tryResult, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { decodeUtf8, toBytesView, validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateWriteSyncFileContent } from '../shared/internal/mod.ts';
-import { TIMEOUT_ERROR, type AppendOptions, type CopyOptions, type DirEntryLike, type ExistsOptions, type FileSystemHandleLike, type MoveOptions, type ReadDirSyncOptions, type ReadSyncFileContent, type ReadSyncOptions, type TempOptions, type WriteOptions, type WriteSyncFileContent, type ZipOptions } from '../shared/mod.ts';
+import {
+    decodeUtf8,
+    toBytesView,
+    validateAbsolutePath,
+    validateExistsOptions,
+    validateExpiredDate,
+    validateWriteSyncFileContent,
+} from '../shared/internal/mod.ts';
+import {
+    TIMEOUT_ERROR,
+    type AppendOptions,
+    type CopyOptions,
+    type DirEntryLike,
+    type ExistsOptions,
+    type FileSystemHandleLike,
+    type MoveOptions,
+    type ReadDirSyncOptions,
+    type ReadSyncFileContent,
+    type ReadSyncOptions,
+    type TempOptions,
+    type WriteOptions,
+    type WriteSyncFileContent,
+    type ZipOptions,
+} from '../shared/mod.ts';
 import { getGlobalSyncOpTimeout, getMessenger, getSyncChannelState } from './channel/state.ts';
 import type { ErrorLike, FileMetadata } from './defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_LOCKED, MAIN_UNLOCKED, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp, type SyncMessenger } from './protocol.ts';
+import {
+    DATA_INDEX,
+    decodePayload,
+    encodePayload,
+    MAIN_LOCK_INDEX,
+    MAIN_LOCKED,
+    MAIN_UNLOCKED,
+    WORKER_LOCK_INDEX,
+    WORKER_UNLOCKED,
+    WorkerOp,
+    type SyncMessenger,
+} from './protocol.ts';
 
 /**
  * Synchronous version of `createFile`.
@@ -104,7 +137,10 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
  *     .inspect(entries => entries.forEach(e => console.log(e.path, e.handle.kind)));
  * ```
  */
-export function readDirSync(dirPath: string, options?: ReadDirSyncOptions): IOResult<DirEntryLike[]> {
+export function readDirSync(
+    dirPath: string,
+    options?: ReadDirSyncOptions,
+): IOResult<DirEntryLike[]> {
     const dirPathRes = validateAbsolutePath(dirPath);
     if (dirPathRes.isErr()) return dirPathRes.asErr();
     dirPath = dirPathRes.unwrap();
@@ -126,9 +162,12 @@ export function readDirSync(dirPath: string, options?: ReadDirSyncOptions): IORe
  *     .inspect(file => console.log(file.name, file.size));
  * ```
  */
-export function readFileSync(filePath: string, options: ReadSyncOptions & {
-    encoding: 'blob';
-}): IOResult<File>;
+export function readFileSync(
+    filePath: string,
+    options: ReadSyncOptions & {
+        encoding: 'blob';
+    },
+): IOResult<File>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file as a string (utf8 encoding).
@@ -143,9 +182,12 @@ export function readFileSync(filePath: string, options: ReadSyncOptions & {
  *     .inspect(content => console.log(content));
  * ```
  */
-export function readFileSync(filePath: string, options: ReadSyncOptions & {
-    encoding: 'utf8';
-}): IOResult<string>;
+export function readFileSync(
+    filePath: string,
+    options: ReadSyncOptions & {
+        encoding: 'utf8';
+    },
+): IOResult<string>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file as a Uint8Array (default).
@@ -160,9 +202,12 @@ export function readFileSync(filePath: string, options: ReadSyncOptions & {
  *     .inspect(bytes => console.log('First byte:', bytes[0]));
  * ```
  */
-export function readFileSync(filePath: string, options?: ReadSyncOptions & {
-    encoding?: 'bytes';
-}): IOResult<Uint8Array<ArrayBuffer>>;
+export function readFileSync(
+    filePath: string,
+    options?: ReadSyncOptions & {
+        encoding?: 'bytes';
+    },
+): IOResult<Uint8Array<ArrayBuffer>>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file with the specified options.
@@ -189,7 +234,10 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions & {
  *     });
  * ```
  */
-export function readFileSync(filePath: string, options?: ReadSyncOptions): IOResult<ReadSyncFileContent>;
+export function readFileSync(
+    filePath: string,
+    options?: ReadSyncOptions,
+): IOResult<ReadSyncFileContent>;
 /**
  * Synchronous version of `readFile`.
  * Reads the content of a file with the specified encoding.
@@ -199,7 +247,10 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions): IORes
  * @returns An `IOResult` containing the file content.
  * @see {@link readFile} for the async version.
  */
-export function readFileSync(filePath: string, options?: ReadSyncOptions): IOResult<ReadSyncFileContent> {
+export function readFileSync(
+    filePath: string,
+    options?: ReadSyncOptions,
+): IOResult<ReadSyncFileContent> {
     const filePathRes = validateAbsolutePath(filePath);
     if (filePathRes.isErr()) return filePathRes.asErr();
     filePath = filePathRes.unwrap();
@@ -209,7 +260,10 @@ export function readFileSync(filePath: string, options?: ReadSyncOptions): IORes
     // blob encoding: use readBlobFile for File object with metadata
     if (encoding === 'blob') {
         // Response is [metadata, Uint8Array] from binary protocol
-        const readRes = callWorkerOp<[FileMetadata, Uint8Array<ArrayBuffer>]>(WorkerOp.readBlobFile, filePath);
+        const readRes = callWorkerOp<[FileMetadata, Uint8Array<ArrayBuffer>]>(
+            WorkerOp.readBlobFile,
+            filePath,
+        );
         return readRes.map(([metadata, data]) => deserializeFile(metadata, data));
     }
 
@@ -300,7 +354,7 @@ export function truncateSync(filePath: string, len: number): VoidIOResult {
     filePath = filePathRes.unwrap();
 
     if (!Number.isInteger(len) || len < 0) {
-        return Err(new TypeError(`Size must be a non-negative integer, got ${ len }`));
+        return Err(new TypeError(`Size must be a non-negative integer, got ${len}`));
     }
 
     return callWorkerOp(WorkerOp.truncate, filePath, len);
@@ -325,7 +379,11 @@ export function truncateSync(filePath: string, len: number): VoidIOResult {
  * writeFileSync('/path/to/file.bin', new Uint8Array([1, 2, 3]));
  * ```
  */
-export function writeFileSync(filePath: string, contents: WriteSyncFileContent, options?: WriteOptions): VoidIOResult {
+export function writeFileSync(
+    filePath: string,
+    contents: WriteSyncFileContent,
+    options?: WriteOptions,
+): VoidIOResult {
     const filePathRes = validateAbsolutePath(filePath);
     if (filePathRes.isErr()) return filePathRes.asErr();
     filePath = filePathRes.unwrap();
@@ -358,7 +416,11 @@ export function writeFileSync(filePath: string, contents: WriteSyncFileContent, 
  * appendFileSync('/path/to/log.txt', 'New log entry\n', { create: false });
  * ```
  */
-export function appendFileSync(filePath: string, contents: WriteSyncFileContent, options?: AppendOptions): VoidIOResult {
+export function appendFileSync(
+    filePath: string,
+    contents: WriteSyncFileContent,
+    options?: AppendOptions,
+): VoidIOResult {
     return writeFileSync(filePath, contents, {
         append: true,
         create: options?.create,
@@ -578,8 +640,7 @@ export function readTextFileSync(filePath: string): IOResult<string> {
  * ```
  */
 export function writeJsonFileSync<T>(filePath: string, data: T): VoidIOResult {
-    return tryResult(JSON.stringify, data)
-        .andThen(text => writeFileSync(filePath, text));
+    return tryResult(JSON.stringify, data).andThen(text => writeFileSync(filePath, text));
 }
 
 /**
@@ -623,7 +684,11 @@ export function unzipSync(zipFilePath: string, destDir: string): VoidIOResult {
  * zipSync('/documents', '/backups/documents.zip');
  * ```
  */
-export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOptions): VoidIOResult;
+export function zipSync(
+    sourcePath: string,
+    zipFilePath: string,
+    options?: ZipOptions,
+): VoidIOResult;
 /**
  * Synchronous version of `zip`.
  * Zips a file or directory and returns the zip data.
@@ -639,7 +704,10 @@ export function zipSync(sourcePath: string, zipFilePath: string, options?: ZipOp
  *     .inspect(data => console.log('Zip size:', data.byteLength));
  * ```
  */
-export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer>>;
+export function zipSync(
+    sourcePath: string,
+    options?: ZipOptions,
+): IOResult<Uint8Array<ArrayBuffer>>;
 /**
  * Synchronous version of `zip`.
  * Zips a file or directory.
@@ -651,7 +719,11 @@ export function zipSync(sourcePath: string, options?: ZipOptions): IOResult<Uint
  * @see {@link zip} for the async version.
  * @since 1.6.0
  */
-export function zipSync(sourcePath: string, zipFilePath?: string | ZipOptions, options?: ZipOptions): IOResult<Uint8Array<ArrayBuffer> | void> {
+export function zipSync(
+    sourcePath: string,
+    zipFilePath?: string | ZipOptions,
+    options?: ZipOptions,
+): IOResult<Uint8Array<ArrayBuffer> | void> {
     const sourcePathRes = validateAbsolutePath(sourcePath);
     if (sourcePathRes.isErr()) return sourcePathRes.asErr();
     sourcePath = sourcePathRes.unwrap();
@@ -734,13 +806,20 @@ function sleepUntil(condition: () => boolean): VoidIOResult {
  * @param data - The request data as a `Uint8Array`.
  * @returns An `IOResult` containing the response data, or an error if the request is too large or times out.
  */
-function callWorkerFromMain(messenger: SyncMessenger, data: Uint8Array<ArrayBuffer>): IOResult<Uint8Array<SharedArrayBuffer>> {
+function callWorkerFromMain(
+    messenger: SyncMessenger,
+    data: Uint8Array<ArrayBuffer>,
+): IOResult<Uint8Array<SharedArrayBuffer>> {
     const { i32a, maxDataLength } = messenger;
     const requestLength = data.byteLength;
 
     // check whether request is too large
     if (requestLength > maxDataLength) {
-        return Err(new RangeError(`Request is too large: ${ requestLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`));
+        return Err(
+            new RangeError(
+                `Request is too large: ${requestLength} > ${maxDataLength}. Consider increasing the size of SharedArrayBuffer`,
+            ),
+        );
     }
 
     // Lock main thread - signal that we're waiting for a response
@@ -788,23 +867,22 @@ function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
     const request = [op, ...args];
     const requestData = encodePayload(request);
 
-    return callWorkerFromMain(messenger, requestData)
-        .andThen(response => {
-            // Deserialize response: [error, result] or [error] if failed
-            // For binary protocol, if result contains Uint8Array, it's the last element
-            const decodedResponse = decodePayload<[ErrorLike | null, ...unknown[]]>(response);
-            const err = decodedResponse[0];
-            if (err) {
-                return Err(deserializeError(err));
-            }
-            // For single result, return decodedResponse[1]
-            // For multi-value result (like readBlobFile), return all elements after error
-            if (decodedResponse.length === 2) {
-                return Ok(decodedResponse[1] as T);
-            }
-            // Multi-value result: return slice from index 1
-            return Ok(decodedResponse.slice(1) as T);
-        });
+    return callWorkerFromMain(messenger, requestData).andThen(response => {
+        // Deserialize response: [error, result] or [error] if failed
+        // For binary protocol, if result contains Uint8Array, it's the last element
+        const decodedResponse = decodePayload<[ErrorLike | null, ...unknown[]]>(response);
+        const err = decodedResponse[0];
+        if (err) {
+            return Err(deserializeError(err));
+        }
+        // For single result, return decodedResponse[1]
+        // For multi-value result (like readBlobFile), return all elements after error
+        if (decodedResponse.length === 2) {
+            return Ok(decodedResponse[1] as T);
+        }
+        // Multi-value result: return slice from index 1
+        return Ok(decodedResponse.slice(1) as T);
+    });
 }
 
 // #endregion

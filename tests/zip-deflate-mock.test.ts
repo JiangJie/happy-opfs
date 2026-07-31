@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as fs from '../src/mod.ts';
 
 // Mock fflate/browser - ZipDeflate throws error on push
-vi.mock('fflate/browser', async (importOriginal) => {
+vi.mock('fflate/browser', async importOriginal => {
     const original = await importOriginal<typeof import('fflate/browser')>();
     return {
         ...original,
@@ -44,7 +44,7 @@ describe('zip-stream ZipDeflate error handling', () => {
         await fs.remove('/mock-deflate.zip');
     });
 
-    it('should handle ZipDeflate push error ', async () => {
+    it('should handle ZipDeflate push error', async () => {
         // Create a source directory with a file
         await fs.mkdir('/mock-deflate-src');
         await fs.writeFile('/mock-deflate-src/test.txt', 'content');

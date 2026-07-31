@@ -8,13 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.2.0] - 2026-07-27
 
 ### Added
+
 - `truncate()` and `truncateSync()` APIs to resize files in place
 
 ### Fixed
+
 - Add fallback to inline copy for browsers without native `handle.move()`, fixing `move()` and stream writes on older browsers
 - Preserve `SyncChannel` tree-shaking in downstream bundles via per-entry external build, so sync-only consumers no longer retain the whole library
 
 ### Changed
+
 - Add strict prepublish package verification against the packed tarball (ESM/CJS smoke tests, publint, Are the Types Wrong)
 - Bump dev dependencies: eslint 10.8, playwright 1.62, vite 8.1.5, vitest 4.1.10, msw 2.15, typedoc 0.28.20, typescript-eslint 8.65
 - Upgrade GitHub Actions to latest majors with immutable SHA pinning
@@ -23,13 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.1.0] - 2026-07-01
 
 ### Added
+
 - `level` option for the zip/unzip family (`zip`, `unzip`, `zipFromUrl`, `unzipFromUrl`, `zipStream`, `unzipStream`, `zipStreamFromUrl`, `unzipStreamFromUrl`) to control compression level (0-9)
 
 ### Fixed
+
 - Prevent `connectSyncChannel` from hanging when the worker fails to load
 - Correct `callWorkerOp` response type annotation
 
 ### Changed
+
 - Extract `toBytesView` helper to dedupe content-to-bytes conversion
 - Move temp path utilities (`generateTempPath`, `isTempPath`) to `shared/` to break a circular import
 - Add `@since` tags to all public exported APIs in `shared/`
@@ -40,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.3] - 2026-04-13
 
 ### Changed
+
 - Add `/*#__PURE__*/` annotations to top-level function calls for better tree-shaking
 - Rename internal `textEncode`/`textDecode` to `encodeUtf8`/`decodeUtf8`
 - Upgrade dev dependencies: eslint 10, typescript 6, vite 8, vitest 4.1, playwright 1.59
@@ -51,10 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.2] - 2026-01-26
 
 ### Added
+
 - `create` option for `appendFile()` and `appendFileSync()` to control file creation behavior
 - Performance benchmarks for fflate unzip vs unzipSync comparison
 
 ### Changed
+
 - Upgrade vitest packages to v4.0.18
 - Upgrade playwright to v1.58.0
 - Upgrade rollup to v4.56.0
@@ -62,15 +71,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade @stylistic/eslint-plugin to v5.7.1
 
 ### Fixed
+
 - Improve test coverage for `readBlobBytes()` with native Blob.bytes() and arrayBuffer() fallback paths
 
 ## [2.0.1] - 2026-01-20
 
 ### Added
+
 - Runtime content type validation for `writeFile()` and `writeFileSync()` to prevent silent failures with invalid content types
 - Comprehensive test coverage for content type validation
 
 ### Changed
+
 - Refactored sync module to use `writeFile({ append: true })` instead of dedicated `appendFile` operation
 - Moved shared internal utilities (codec.ts, helpers.ts, validations.ts) to `src/shared/internal/` directory for better code organization
 

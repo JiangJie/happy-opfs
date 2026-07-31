@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 let mockGetFileShouldFail = false;
 
 // Mock stat to return a file handle that fails on getFile()
-vi.mock('../src/async/core/stat.ts', async (importOriginal) => {
+vi.mock('../src/async/core/stat.ts', async importOriginal => {
     const original = await importOriginal<typeof import('../src/async/core/stat.ts')>();
     return {
         ...original,
@@ -41,7 +41,7 @@ describe('zip.ts file handle error', () => {
         await fs.remove('/mock-zip.zip');
     });
 
-    it('should handle getFileDataByHandle error ', async () => {
+    it('should handle getFileDataByHandle error', async () => {
         // Create a file first
         await fs.writeFile('/mock-zip-file.txt', 'content');
 

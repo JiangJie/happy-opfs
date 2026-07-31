@@ -37,7 +37,10 @@ function createTestFiles(fileCount: number, fileSizeKB: number): Zippable {
 /**
  * Batch zip - compress all files at once
  */
-async function benchmarkBatch(files: Zippable, iterations: number): Promise<{ time: number; outputSize: number; }> {
+async function benchmarkBatch(
+    files: Zippable,
+    iterations: number,
+): Promise<{ time: number; outputSize: number }> {
     let outputSize = 0;
     const start = performance.now();
 
@@ -57,7 +60,10 @@ async function benchmarkBatch(files: Zippable, iterations: number): Promise<{ ti
 /**
  * Streaming zip - stream compressed data as it's generated
  */
-async function benchmarkStream(files: Zippable, iterations: number): Promise<{ time: number; outputSize: number; }> {
+async function benchmarkStream(
+    files: Zippable,
+    iterations: number,
+): Promise<{ time: number; outputSize: number }> {
     let outputSize = 0;
     const start = performance.now();
 
@@ -105,7 +111,10 @@ function streamZip(files: Zippable): Promise<number> {
 /**
  * Streaming zip with ZipPassThrough (no compression)
  */
-async function benchmarkStreamNoCompression(files: Zippable, iterations: number): Promise<{ time: number; outputSize: number; }> {
+async function benchmarkStreamNoCompression(
+    files: Zippable,
+    iterations: number,
+): Promise<{ time: number; outputSize: number }> {
     let outputSize = 0;
     const start = performance.now();
 
@@ -177,8 +186,12 @@ async function runBenchmark(config: BenchmarkConfig): Promise<void> {
 
     log(`Compressed size: ${(batchResult.outputSize / 1024).toFixed(2)} KB`);
     log(`Batch (zip):           ${batchAvg.toFixed(2)} ms/op`);
-    log(`Stream (Zip+Deflate):  ${streamAvg.toFixed(2)} ms/op (${(streamAvg / batchAvg).toFixed(2)}x)`);
-    log(`Stream (Zip+Pass):     ${streamNoCompAvg.toFixed(2)} ms/op (${(streamNoCompAvg / batchAvg).toFixed(2)}x)`);
+    log(
+        `Stream (Zip+Deflate):  ${streamAvg.toFixed(2)} ms/op (${(streamAvg / batchAvg).toFixed(2)}x)`,
+    );
+    log(
+        `Stream (Zip+Pass):     ${streamNoCompAvg.toFixed(2)} ms/op (${(streamNoCompAvg / batchAvg).toFixed(2)}x)`,
+    );
 }
 
 async function runAllBenchmarks(): Promise<void> {
@@ -190,7 +203,12 @@ async function runAllBenchmarks(): Promise<void> {
         { name: 'Small (10 files x 10KB = 100KB)', fileCount: 10, fileSizeKB: 10, iterations: 50 },
         { name: 'Medium (50 files x 100KB = 5MB)', fileCount: 50, fileSizeKB: 100, iterations: 10 },
         { name: 'Large (10 files x 1MB = 10MB)', fileCount: 10, fileSizeKB: 1024, iterations: 5 },
-        { name: 'XLarge (100 files x 1MB = 100MB)', fileCount: 100, fileSizeKB: 1024, iterations: 2 },
+        {
+            name: 'XLarge (100 files x 1MB = 100MB)',
+            fileCount: 100,
+            fileSizeKB: 1024,
+            iterations: 2,
+        },
     ];
 
     for (const config of benchmarks) {
@@ -203,7 +221,7 @@ async function runAllBenchmarks(): Promise<void> {
 }
 
 document.getElementById('run')!.addEventListener('click', () => {
-    runAllBenchmarks().catch((err) => {
+    runAllBenchmarks().catch(err => {
         log(`Error: ${err.message}`);
     });
 });

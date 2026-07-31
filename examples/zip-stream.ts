@@ -42,10 +42,26 @@ async function createTestFiles(): Promise<boolean> {
 
     // Create multiple files to demonstrate streaming
     const files = [
-        { path: '/stream-zip-example/source/readme.txt', content: 'Stream Zip Example\n'.repeat(100) },
-        { path: '/stream-zip-example/source/data.json', content: JSON.stringify({ items: Array.from({ length: 50 }, (_, i) => ({ id: i, name: `Item ${i}` })) }, null, 2) },
-        { path: '/stream-zip-example/source/subdir/nested.txt', content: 'Nested file content.\n'.repeat(50) },
-        { path: '/stream-zip-example/source/subdir/another.txt', content: 'Another nested file.\n'.repeat(30) },
+        {
+            path: '/stream-zip-example/source/readme.txt',
+            content: 'Stream Zip Example\n'.repeat(100),
+        },
+        {
+            path: '/stream-zip-example/source/data.json',
+            content: JSON.stringify(
+                { items: Array.from({ length: 50 }, (_, i) => ({ id: i, name: `Item ${i}` })) },
+                null,
+                2,
+            ),
+        },
+        {
+            path: '/stream-zip-example/source/subdir/nested.txt',
+            content: 'Nested file content.\n'.repeat(50),
+        },
+        {
+            path: '/stream-zip-example/source/subdir/another.txt',
+            content: 'Another nested file.\n'.repeat(30),
+        },
     ];
 
     for (const file of files) {
@@ -105,7 +121,7 @@ async function runStreamZip(): Promise<void> {
     // Clean up and create test files
     await fs.remove('/stream-zip-example');
 
-    if (!await createTestFiles()) {
+    if (!(await createTestFiles())) {
         return;
     }
 
@@ -117,7 +133,10 @@ async function runStreamZip(): Promise<void> {
     log('Using zipStream() - processes files chunk-by-chunk...', 'info');
 
     const startTime = performance.now();
-    const zipResult = await fs.zipStream('/stream-zip-example/source', '/stream-zip-example/archive.zip');
+    const zipResult = await fs.zipStream(
+        '/stream-zip-example/source',
+        '/stream-zip-example/archive.zip',
+    );
     const duration = (performance.now() - startTime).toFixed(2);
 
     if (zipResult.isErr()) {
@@ -166,7 +185,10 @@ async function runStreamUnzip(): Promise<void> {
     log('Using unzipStream() - processes archive chunk-by-chunk...', 'info');
 
     const startTime = performance.now();
-    const unzipResult = await fs.unzipStream('/stream-zip-example/archive.zip', '/stream-zip-example/extracted');
+    const unzipResult = await fs.unzipStream(
+        '/stream-zip-example/archive.zip',
+        '/stream-zip-example/extracted',
+    );
     const duration = (performance.now() - startTime).toFixed(2);
 
     if (unzipResult.isErr()) {
@@ -279,7 +301,10 @@ async function runStreamUnzipFromUrl(): Promise<void> {
     log('\n=== Unzipping demo.zip ===', 'info');
 
     const startTime = performance.now();
-    const unzipResult = await fs.unzipStream('/stream-unzip-url-example/demo.zip', '/stream-unzip-url-example/extracted');
+    const unzipResult = await fs.unzipStream(
+        '/stream-unzip-url-example/demo.zip',
+        '/stream-unzip-url-example/extracted',
+    );
     const duration = (performance.now() - startTime).toFixed(2);
 
     if (unzipResult.isErr()) {

@@ -1,9 +1,31 @@
 import { join, SEPARATOR } from '@std/path/posix';
-import { Err, RESULT_FALSE, RESULT_VOID, tryAsyncResult, tryResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
+import {
+    Err,
+    RESULT_FALSE,
+    RESULT_VOID,
+    tryAsyncResult,
+    tryResult,
+    type AsyncIOResult,
+    type AsyncVoidIOResult,
+} from 'happy-rusty';
 import { validateAbsolutePath, validateExistsOptions } from '../shared/internal/mod.ts';
-import { isDirectoryHandle, isFileHandle, type AppendOptions, type CopyOptions, type ExistsOptions, type MoveOptions, type WriteFileContent } from '../shared/mod.ts';
+import {
+    isDirectoryHandle,
+    isFileHandle,
+    type AppendOptions,
+    type CopyOptions,
+    type ExistsOptions,
+    type MoveOptions,
+    type WriteFileContent,
+} from '../shared/mod.ts';
 import { mkdir, readDir, readFile, remove, stat, writeFile } from './core/mod.ts';
-import { aggregateResults, isNotFoundError, isRootDir, markParentDirsNonEmpty, moveFileHandle } from './internal/mod.ts';
+import {
+    aggregateResults,
+    isNotFoundError,
+    isRootDir,
+    markParentDirsNonEmpty,
+    moveFileHandle,
+} from './internal/mod.ts';
 
 /**
  * Appends content to a file at the specified path.
@@ -25,7 +47,11 @@ import { aggregateResults, isNotFoundError, isRootDir, markParentDirsNonEmpty, m
  * await appendFile('/path/to/log.txt', 'New log entry\n', { create: false });
  * ```
  */
-export function appendFile(filePath: string, contents: WriteFileContent, options?: AppendOptions): AsyncVoidIOResult {
+export function appendFile(
+    filePath: string,
+    contents: WriteFileContent,
+    options?: AppendOptions,
+): AsyncVoidIOResult {
     return writeFile(filePath, contents, {
         append: true,
         create: options?.create,
@@ -83,13 +109,11 @@ export async function emptyDir(dirPath: string): AsyncVoidIOResult {
     const statRes = await stat(dirPath);
     if (statRes.isErr()) {
         // Create if not exist
-        return isNotFoundError(statRes.unwrapErr())
-            ? mkdir(dirPath)
-            : statRes.asErr();
+        return isNotFoundError(statRes.unwrapErr()) ? mkdir(dirPath) : statRes.asErr();
     }
 
     if (isFileHandle(statRes.unwrap())) {
-        return Err(new Error(`Path '${ dirPath }' is not a directory`));
+        return Err(new Error(`Path '${dirPath}' is not a directory`));
     }
 
     // Remove and recreate directory (OPFS has no metadata to preserve)
@@ -125,15 +149,16 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
 
     const statRes = await stat(path);
 
-    return statRes.map(handle => {
-        const { isDirectory = false, isFile = false } = options ?? {};
-        const notExist =
-            (isDirectory && isFileHandle(handle))
-            || (isFile && isDirectoryHandle(handle));
-        return !notExist;
-    }).orElse(err => {
-        return isNotFoundError(err) ? RESULT_FALSE : statRes.asErr();
-    });
+    return statRes
+        .map(handle => {
+            const { isDirectory = false, isFile = false } = options ?? {};
+            const notExist =
+                (isDirectory && isFileHandle(handle)) || (isFile && isDirectoryHandle(handle));
+            return !notExist;
+        })
+        .orElse(err => {
+            return isNotFoundError(err) ? RESULT_FALSE : statRes.asErr();
+        });
 }
 
 /**
@@ -156,8 +181,18 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
  * await move('/old/folder', '/new/folder');
  * ```
  */
-export async function move(srcPath: string, destPath: string, options?: MoveOptions): AsyncVoidIOResult {
-    const mkRes = await mkDestFromSrc(srcPath, destPath, moveFileHandle, 'move', options?.overwrite);
+export async function move(
+    srcPath: string,
+    destPath: string,
+    options?: MoveOptions,
+): AsyncVoidIOResult {
+    const mkRes = await mkDestFromSrc(
+        srcPath,
+        destPath,
+        moveFileHandle,
+        'move',
+        options?.overwrite,
+    );
     return mkRes.andThenAsync(() => remove(srcPath));
 }
 
@@ -255,7 +290,10 @@ export function writeJsonFile<T>(filePath: string, data: T): AsyncVoidIOResult {
  * @param srcFileHandle - The source file handle to process.
  * @param destFilePath - The destination file path.
  */
-type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: string) => AsyncVoidIOResult;
+type HandleSrcFileToDest = (
+    srcFileHandle: FileSystemFileHandle,
+    destFilePath: string,
+) => AsyncVoidIOResult;
 
 // #endregion
 
@@ -268,7 +306,10 @@ type HandleSrcFileToDest = (srcFileHandle: FileSystemFileHandle, destFilePath: s
  * @param destFilePath - The destination absolute path for the file.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
-async function copyFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
+async function copyFileHandle(
+    fileHandle: FileSystemFileHandle,
+    destFilePath: string,
+): AsyncVoidIOResult {
     const fileRes = await tryAsyncResult(fileHandle.getFile());
     return fileRes.andThenAsync(file => writeFile(destFilePath, file));
 }
@@ -308,7 +349,7 @@ async function mkDestFromSrc(
     // Prevent copying/moving a directory into itself
     // For root directory, any destPath is a subdirectory
     if (isRootDir(srcPath) || destPath.startsWith(srcPath + SEPARATOR) || destPath === srcPath) {
-        return Err(new Error(`Cannot ${ opName } '${ srcPath }' into itself '${ destPath }'`));
+        return Err(new Error(`Cannot ${opName} '${srcPath}' into itself '${destPath}'`));
     }
 
     const statRes = await stat(srcPath);
@@ -331,16 +372,20 @@ async function mkDestFromSrc(
         // Validate type compatibility: both must be files OR both must be directories
         const destHandle = destHandleRes.unwrap();
         if (
-            !(isFileHandle(srcHandle) && isFileHandle(destHandle))
-            && !(isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle))
+            !(isFileHandle(srcHandle) && isFileHandle(destHandle)) &&
+            !(isDirectoryHandle(srcHandle) && isDirectoryHandle(destHandle))
         ) {
-            return Err(new Error(`Source '${ srcPath }' and destination '${ destPath }' must both be files or both be directories`));
+            return Err(
+                new Error(
+                    `Source '${srcPath}' and destination '${destPath}' must both be files or both be directories`,
+                ),
+            );
         }
     }
 
     // Handle file source: apply handler directly
     if (isFileHandle(srcHandle)) {
-        return (overwrite || !destExists) ? await handler(srcHandle, destPath) : RESULT_VOID;
+        return overwrite || !destExists ? await handler(srcHandle, destPath) : RESULT_VOID;
     }
 
     // Handle directory source: recursively process all entries
@@ -362,21 +407,25 @@ async function mkDestFromSrc(
                 const newFilePath = join(destPath, path);
 
                 // Wrap file processing in an async IIFE for parallel execution
-                tasks.push((async () => {
-                    let newPathExists = false;
+                tasks.push(
+                    (async () => {
+                        let newPathExists = false;
 
-                    if (destExists) {
-                    // Destination dir exists, need to check each file individually
-                        const existsRes = await exists(newFilePath);
-                        if (existsRes.isErr()) {
-                            return existsRes.asErr();
+                        if (destExists) {
+                            // Destination dir exists, need to check each file individually
+                            const existsRes = await exists(newFilePath);
+                            if (existsRes.isErr()) {
+                                return existsRes.asErr();
+                            }
+
+                            newPathExists = existsRes.unwrap();
                         }
 
-                        newPathExists = existsRes.unwrap();
-                    }
-
-                    return overwrite || !newPathExists ? handler(handle, newFilePath) : RESULT_VOID;
-                })());
+                        return overwrite || !newPathExists
+                            ? handler(handle, newFilePath)
+                            : RESULT_VOID;
+                    })(),
+                );
 
                 // Mark all parent directories as non-empty
                 markParentDirsNonEmpty(path, nonEmptyDirs);

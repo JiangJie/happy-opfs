@@ -3,9 +3,7 @@ import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
     root: __dirname,
-    plugins: [
-        mkcert(),
-    ],
+    plugins: [mkcert()],
     server: {
         // @ts-expect-error: https is not defined in vite types
         https: true,

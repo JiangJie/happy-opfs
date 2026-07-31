@@ -8,8 +8,23 @@
 
 import type { FetchTask } from '@happy-ts/fetch-t';
 import { basename, dirname, SEPARATOR } from '@std/path/posix';
-import { LazyAsync, Ok, RESULT_VOID, tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult, type IOResult } from 'happy-rusty';
-import { ABORT_ERROR, EMPTY_BODY_ERROR, EMPTY_FILE_ERROR, NOT_FOUND_ERROR, NOTHING_TO_ZIP_ERROR, ROOT_DIR } from '../../shared/mod.ts';
+import {
+    LazyAsync,
+    Ok,
+    RESULT_VOID,
+    tryAsyncResult,
+    type AsyncIOResult,
+    type AsyncVoidIOResult,
+    type IOResult,
+} from 'happy-rusty';
+import {
+    ABORT_ERROR,
+    EMPTY_BODY_ERROR,
+    EMPTY_FILE_ERROR,
+    NOT_FOUND_ERROR,
+    NOTHING_TO_ZIP_ERROR,
+    ROOT_DIR,
+} from '../../shared/mod.ts';
 
 // #region Internal Variables
 
@@ -45,11 +60,12 @@ export function isRootDir(path: string): boolean {
  * @param options - Optional parameters (e.g., `{ create: true }` to create intermediate directories).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  */
-export async function getDirHandle(dirPath: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
+export async function getDirHandle(
+    dirPath: string,
+    options?: FileSystemGetDirectoryOptions,
+): AsyncIOResult<FileSystemDirectoryHandle> {
     // Start from root
-    let dirHandle = fsRoot.isInitialized()
-        ? fsRoot.get().unwrap()
-        : await fsRoot.force();
+    let dirHandle = fsRoot.isInitialized() ? fsRoot.get().unwrap() : await fsRoot.force();
 
     if (isRootDir(dirPath)) {
         // Root is already a handle, no traversal needed
@@ -84,7 +100,10 @@ export async function getDirHandle(dirPath: string, options?: FileSystemGetDirec
  * @param options - Optional parameters (e.g., `{ create: true }` to create intermediate directories).
  * @returns A promise that resolves to an `AsyncIOResult` containing the parent `FileSystemDirectoryHandle`.
  */
-export function getParentDirHandle(path: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
+export function getParentDirHandle(
+    path: string,
+    options?: FileSystemGetDirectoryOptions,
+): AsyncIOResult<FileSystemDirectoryHandle> {
     return getDirHandle(dirname(path), options);
 }
 
@@ -95,7 +114,10 @@ export function getParentDirHandle(path: string, options?: FileSystemGetDirector
  * @param options - Optional parameters (e.g., `{ create: true }` to create the file if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
-export async function getFileHandle(filePath: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
+export async function getFileHandle(
+    filePath: string,
+    options?: FileSystemGetFileOptions,
+): AsyncIOResult<FileSystemFileHandle> {
     const dirHandleRes = await getParentDirHandle(filePath, options);
 
     return dirHandleRes.andThenAsync(dirHandle => {
@@ -192,9 +214,15 @@ export function createNothingToZipError(): Error {
  */
 export function createFailedFetchTask<T>(errResult: IOResult<unknown>): FetchTask<T> {
     return {
-        abort(): void { /* noop */ },
-        get aborted(): boolean { return false; },
-        get result() { return Promise.resolve(errResult.asErr<T>()); },
+        abort(): void {
+            /* noop */
+        },
+        get aborted(): boolean {
+            return false;
+        },
+        get result() {
+            return Promise.resolve(errResult.asErr<T>());
+        },
     };
 }
 
@@ -206,10 +234,7 @@ export function createFailedFetchTask<T>(errResult: IOResult<unknown>): FetchTas
  * @param path - The relative file path.
  * @param nonEmptyDirs - Set to track non-empty directories.
  */
-export function markParentDirsNonEmpty(
-    path: string,
-    nonEmptyDirs: Set<string>,
-): void {
+export function markParentDirsNonEmpty(path: string, nonEmptyDirs: Set<string>): void {
     let slashIndex = path.lastIndexOf(SEPARATOR);
     while (slashIndex > 0) {
         const parent = path.slice(0, slashIndex);
@@ -359,7 +384,10 @@ export async function peekStream<T>(source: ReadableStream<T>): AsyncIOResult<Pe
  * @param destFilePath - The destination absolute file path.
  * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
  */
-export async function moveFileHandle(fileHandle: FileSystemFileHandle, destFilePath: string): AsyncVoidIOResult {
+export async function moveFileHandle(
+    fileHandle: FileSystemFileHandle,
+    destFilePath: string,
+): AsyncVoidIOResult {
     const dirRes = await getParentDirHandle(destFilePath, {
         create: true,
     });
@@ -378,7 +406,8 @@ export async function moveFileHandle(fileHandle: FileSystemFileHandle, destFileP
         // getFile() and dest writable acquisition are independent — run in parallel
         const [file, writable] = await Promise.all([
             fileHandle.getFile(),
-            destDirHandle.getFileHandle(destName, { create: true })
+            destDirHandle
+                .getFileHandle(destName, { create: true })
                 .then(handle => handle.createWritable()),
         ]);
         try {
@@ -420,10 +449,18 @@ interface MovableHandle extends FileSystemHandle {
  * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemDirectoryHandle`.
  */
-async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, childDirName: string, options?: FileSystemGetDirectoryOptions): AsyncIOResult<FileSystemDirectoryHandle> {
-    const handleRes = await tryAsyncResult<FileSystemDirectoryHandle, DOMException>(dirHandle.getDirectoryHandle(childDirName, options));
+async function getChildDirHandle(
+    dirHandle: FileSystemDirectoryHandle,
+    childDirName: string,
+    options?: FileSystemGetDirectoryOptions,
+): AsyncIOResult<FileSystemDirectoryHandle> {
+    const handleRes = await tryAsyncResult<FileSystemDirectoryHandle, DOMException>(
+        dirHandle.getDirectoryHandle(childDirName, options),
+    );
     return handleRes.mapErr(err => {
-        const error = new Error(`${ err.name }: ${ err.message } When get child directory '${ childDirName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+        const error = new Error(
+            `${err.name}: ${err.message} When get child directory '${childDirName}' from directory '${dirHandle.name || ROOT_DIR}'`,
+        );
         error.name = err.name;
         return error;
     });
@@ -437,10 +474,18 @@ async function getChildDirHandle(dirHandle: FileSystemDirectoryHandle, childDirN
  * @param options - Optional parameters (e.g., `{ create: true }` to create if not exists).
  * @returns A promise that resolves to an `AsyncIOResult` containing the `FileSystemFileHandle`.
  */
-async function getChildFileHandle(dirHandle: FileSystemDirectoryHandle, childFileName: string, options?: FileSystemGetFileOptions): AsyncIOResult<FileSystemFileHandle> {
-    const handleRes = await tryAsyncResult<FileSystemFileHandle, DOMException>(dirHandle.getFileHandle(childFileName, options));
+async function getChildFileHandle(
+    dirHandle: FileSystemDirectoryHandle,
+    childFileName: string,
+    options?: FileSystemGetFileOptions,
+): AsyncIOResult<FileSystemFileHandle> {
+    const handleRes = await tryAsyncResult<FileSystemFileHandle, DOMException>(
+        dirHandle.getFileHandle(childFileName, options),
+    );
     return handleRes.mapErr(err => {
-        const error = new Error(`${ err.name }: ${ err.message } When get child file '${ childFileName }' from directory '${ dirHandle.name || ROOT_DIR }'`);
+        const error = new Error(
+            `${err.name}: ${err.message} When get child file '${childFileName}' from directory '${dirHandle.name || ROOT_DIR}'`,
+        );
         error.name = err.name;
         return error;
     });

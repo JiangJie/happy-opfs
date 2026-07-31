@@ -9,6 +9,7 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 **License:** MIT
 
 **Key Dependencies:**
+
 - `@std/path` from JSR - **Important:** Requires `.npmrc` configuration with `@jsr:registry=https://npm.jsr.io`
 - `happy-rusty` - Provides Rust-style `Result<T, E>` types for error handling
 - `fflate` - For zip/unzip operations (uses `fflate/browser` for browser-optimized build)
@@ -17,11 +18,11 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 
 ### Top-Level Layout
 
-- `src/` - Library source (see detailed tree under *Code Architecture*)
+- `src/` - Library source (see detailed tree under _Code Architecture_)
 - `tests/` - Vitest + Playwright browser tests and MSW mocks
 - `examples/` - Runnable feature demos (served over HTTPS via `vite-plugin-mkcert`)
 - `benchmarks/` - Performance benchmarks (served over HTTP on the default Vite port)
-- `dist/` - Build output (per-entry CJS/ESM modules plus `types.d.ts`/`types.d.cts`; see *Build Configuration*)
+- `dist/` - Build output (per-entry CJS/ESM modules plus `types.d.ts`/`types.d.cts`; see _Build Configuration_)
 - `docs/` - Generated TypeDoc output (not committed to source; regenerate with `pnpm run docs`)
 - `README.md` / `README.cn.md` - English and Chinese READMEs; keep both in sync when editing user-facing docs
 
@@ -36,19 +37,23 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 ### Dual Publishing (npm + JSR)
 
 This package publishes to **both** registries:
+
 - **npm** — driven by `package.json` (build artifacts in `dist/`)
 - **JSR** — `@happy-js/happy-opfs`, driven by `jsr.json` (ships raw `src/`, entry `./src/mod.ts`)
 
 When bumping the version or changing dependencies, update **both** manifests:
+
 - `package.json` `version` and `jsr.json` `version` must stay in sync.
 - `package.json` `dependencies` and `jsr.json` `imports` must mirror each other (note JSR uses `jsr:`/`npm:` specifiers, e.g. `happy-rusty` → `jsr:@happy-js/happy-rusty`).
 
 ## Development Commands
 
 ### Package Manager
+
 This project uses **pnpm** as the package manager.
 
 ### Common Commands
+
 ```bash
 # Install dependencies
 pnpm install
@@ -73,6 +78,7 @@ pnpm run eg
 ```
 
 ### Testing
+
 Tests use **Vitest** with **Playwright** browser automation.
 
 ```bash
@@ -98,6 +104,7 @@ pnpm exec vitest run -t "readFile"
 **MSW service-worker freshness:** `pnpm test` runs a `pretest` hook (`msw init tests/public`) that regenerates the mock service worker. If you invoke `vitest` directly (bypassing the npm script), the MSW worker may be stale — run `pnpm exec msw init tests/public --save=false` manually, or prefer `pnpm test` / `pnpm run test:watch`. The same applies to benchmarks (`prebench` → `benchmarks/public`).
 
 Tests are located in `tests/` directory. The test environment:
+
 - Uses Playwright's Chromium browser in headless mode
 - Automatically configures HTTPS and required COOP/COEP headers
 - Runs tests sequentially to avoid OPFS conflicts
@@ -105,13 +112,16 @@ Tests are located in `tests/` directory. The test environment:
 - Uses MSW (Mock Service Worker) for download/upload API mocking
 
 **Worker helper files for tests:**
+
 - `tests/worker.ts` - Main worker for sync API tests
 - `tests/worker-check-connected.ts` - Worker for connection checking tests
 - `tests/worker-async-api.ts` - Worker for async API tests
 - `tests/worker-no-listen.ts` - Worker fixture that never calls `SyncChannel.listen()` (used by `00-connect-failure.test.ts` to verify connect timeout)
 
 ### Mock Server (MSW)
+
 Download and upload tests use MSW instead of external APIs:
+
 - Handlers defined in `tests/mocks/handlers.ts`
 - Browser setup in `tests/mocks/browser.ts`
 - Service worker is auto-generated via `pretest` script (runs `msw init`)
@@ -201,7 +211,9 @@ src/
 ### Key Architectural Patterns
 
 #### 1. Result Type Pattern
+
 All async operations return `AsyncIOResult<T>` or `AsyncVoidIOResult` (from `happy-rusty`):
+
 ```typescript
 const result = await readFile('/path/to/file');
 if (result.isOk()) {
@@ -212,6 +224,7 @@ if (result.isOk()) {
 ```
 
 #### 2. Dual API Pattern
+
 - **Async APIs** (`src/async/`): Direct OPFS operations, recommended for use
 - **Sync APIs** (`src/sync/`): Implemented via Worker communication using SharedArrayBuffer
   - Main thread calls sync function → blocks and waits
@@ -224,6 +237,7 @@ if (result.isOk()) {
     - `SyncChannel.isReady()` to check if channel is ready
 
 #### 3. Path Handling
+
 - All paths are normalized to POSIX format using `@std/path/posix`
 - Paths must be absolute (start with `/`)
 - Root directory: `/`
@@ -231,19 +245,24 @@ if (result.isOk()) {
 - Path validation via `validateAbsolutePath()` in `shared/internal/validations.ts`
 
 #### 4. URL Parameter Support
+
 Functions accepting URL parameters (`downloadFile`, `uploadFile`, `zipFromUrl`, `unzipFromUrl`) support both:
+
 - `string` - URL as string
 - `URL` - URL object
 
 URL validation uses `URL.canParse()` with fallback to `new URL()` for older browsers.
 
 #### 5. Handle-Based File System
+
 - Internal implementation uses FileSystemHandle hierarchy
 - Helper functions in `async/internal/helpers.ts` manage handle retrieval and traversal
 - Public API uses path strings, internal code uses handles
 
 #### 6. Worker Communication Protocol
+
 Located in `src/sync/protocol.ts`:
+
 - Uses SharedArrayBuffer with Int32Array for lock-based communication
 - Atomics.wait/notify for synchronization
 - JSON serialization for data transfer
@@ -254,12 +273,15 @@ Located in `src/sync/protocol.ts`:
   - `HEADER_LENGTH` (private static): Fixed header size (16 bytes)
 
 #### 7. Error Message Conventions
+
 - Error messages start with uppercase (consistent with browser DOMException)
 - Error messages do NOT end with periods
 - Custom error types use helper functions (e.g., `createNotFoundError()`)
 
 #### 8. Binary Protocol Format
+
 The protocol (`src/sync/protocol.ts`) supports two payload types:
+
 - **JSON** (`PayloadType.JSON`): `[type: 1B][json bytes]`
 - **BINARY_JSON** (`PayloadType.BINARY_JSON`): `[type: 1B][json length: 4B][json bytes][binary bytes]`
 
@@ -268,6 +290,7 @@ When the last element of the payload is `Uint8Array`, BINARY_JSON format is used
 ### Code Organization
 
 #### `#region` Conventions
+
 Internal code uses `#region` / `#endregion` to organize non-exported code:
 
 - **`#region Internal Variables`** - Placed BEFORE exports, for internal `const`/`let` variables
@@ -275,6 +298,7 @@ Internal code uses `#region` / `#endregion` to organize non-exported code:
 - **`#region Internal Functions`** - Placed AFTER exports, for internal helper functions
 
 Example:
+
 ```typescript
 // #region Internal Variables
 const SOME_CONSTANT = 'value';
@@ -295,17 +319,22 @@ function helperFunction() { ... }
 ### Important Implementation Details
 
 #### v2 API Changes (context for the codebase)
+
 - `readFile` returns `Uint8Array` by default (was `ArrayBuffer` in 1.x) — hence the `as Uint8Array<ArrayBuffer>` assertions when writing data back.
 - `readFileStream`/`writeFileStream` were removed; use `readFile(path, { encoding: 'stream' })` and `openWritableFileStream(path)` instead.
 
 #### Type Assertions for Uint8Array
+
 When passing Uint8Array data to writeFile operations, explicit type assertions may be needed:
+
 ```typescript
 await writeFile(path, data as Uint8Array<ArrayBuffer>);
 ```
 
 #### Error Constants
+
 Common error constants exported from `src/shared/constants.ts`:
+
 - `NOT_FOUND_ERROR` - File/directory not found (DOMException name)
 - `EMPTY_BODY_ERROR` - Response body is empty (null), from 204/304 responses or HEAD requests
 - `EMPTY_FILE_ERROR` - File content is empty (0 bytes)
@@ -315,7 +344,9 @@ Common error constants exported from `src/shared/constants.ts`:
 - `ABORT_ERROR`, `TIMEOUT_ERROR` - Re-exported from `@happy-ts/fetch-t`
 
 #### WorkerOp Reserved Ranges
+
 The `WorkerOp` constants in `src/sync/protocol.ts` use reserved numeric ranges that mirror the core/ext grouping:
+
 - Core operations (`src/async/core/`): `0-99`
 - Everything else (`ext.ts`, tmp, archive): `100+`
 
@@ -351,6 +382,7 @@ When adding a new operation, take the next free slot within its category's range
 ## Commit Conventions
 
 This project uses Conventional Commits:
+
 - `feat:` - New features
 - `fix:` - Bug fixes
 - `docs:` - Documentation changes
@@ -399,6 +431,7 @@ Run examples with `pnpm eg` (requires HTTPS, Vite dev server handles this automa
 The `benchmarks/` directory contains performance benchmarks:
 
 ### Running Benchmarks
+
 ```bash
 # Interactive mode (opens browser at http://localhost:5173)
 pnpm run bench
@@ -415,6 +448,7 @@ pnpm run bench:vitest
 ```
 
 ### Available Benchmarks
+
 - **Compression**: `zip.ts`, `unzip.ts`, `zip-stream.ts`, `unzip-stream.ts`
 - **File I/O**: `read-stream.ts`, `write-stream.ts`, `download-stream.ts`
 - **Worker**: `worker.ts` (async vs sync in Worker thread)

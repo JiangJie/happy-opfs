@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as fs from '../src/mod.ts';
 
 // Mock fflate/browser
-vi.mock('fflate/browser', async (importOriginal) => {
+vi.mock('fflate/browser', async importOriginal => {
     const original = await importOriginal<typeof import('fflate/browser')>();
     return {
         ...original,
@@ -26,7 +26,11 @@ vi.mock('fflate/browser', async (importOriginal) => {
                         start: () => {
                             // Simulate error during extraction (lines 188-189)
                             if (file.ondata) {
-                                file.ondata(new Error('Mocked fflate error') as FlateError, new Uint8Array(0), true);
+                                file.ondata(
+                                    new Error('Mocked fflate error') as FlateError,
+                                    new Uint8Array(0),
+                                    true,
+                                );
                             }
                         },
                         ondata: undefined as unknown as UnzipFile['ondata'],

@@ -102,7 +102,7 @@ function generateChunk(chunkIndex: number, chunkSize: number): Uint8Array<ArrayB
     for (let i = 0; i < chunkSize; i++) {
         chunk[i] = ((seed + i) * 17 + 13) % 256;
     }
-    return chunk as Uint8Array<ArrayBuffer>;
+    return chunk;
 }
 
 /**
@@ -113,14 +113,17 @@ function generateCompleteData(totalSize: number): Uint8Array<ArrayBuffer> {
     for (let i = 0; i < totalSize; i++) {
         data[i] = (i * 17 + 13) % 256;
     }
-    return data as Uint8Array<ArrayBuffer>;
+    return data;
 }
 
 /**
  * Create a ReadableStream that generates data on-the-fly (simulates network stream).
  * Data is NOT pre-loaded into memory - chunks are created as they are consumed.
  */
-function createOnTheFlyStream(totalSize: number, chunkSize: number): ReadableStream<Uint8Array<ArrayBuffer>> {
+function createOnTheFlyStream(
+    totalSize: number,
+    chunkSize: number,
+): ReadableStream<Uint8Array<ArrayBuffer>> {
     let bytesGenerated = 0;
     let chunkIndex = 0;
 
@@ -170,7 +173,7 @@ interface MemorySample {
 async function runWithMemorySampling<T>(
     fn: () => Promise<T>,
     intervalMs = 10,
-): Promise<{ result: T; samples: MemorySample[]; peakMemory: number; }> {
+): Promise<{ result: T; samples: MemorySample[]; peakMemory: number }> {
     const samples: MemorySample[] = [];
     let peakMemory = 0;
     let sampling = true;
@@ -226,7 +229,10 @@ async function runBenchmark(
             peakMemories.push(peakMemory);
 
             const peakIncrease = peakMemory - memBefore;
-            log(`  Iteration ${i + 1}: ${formatTime(elapsed)}, peak mem: +${formatBytes(peakIncrease)}`, 'info');
+            log(
+                `  Iteration ${i + 1}: ${formatTime(elapsed)}, peak mem: +${formatBytes(peakIncrease)}`,
+                'info',
+            );
         } else {
             await fn();
             const elapsed = performance.now() - start;
@@ -238,7 +244,7 @@ async function runBenchmark(
     const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
     const minTime = Math.min(...times);
     const maxTime = Math.max(...times);
-    const throughput = (dataSize / 1024 / 1024) / (avgTime / 1000);
+    const throughput = dataSize / 1024 / 1024 / (avgTime / 1000);
 
     const peakMemory = peakMemories.length > 0 ? Math.max(...peakMemories) : -1;
 
@@ -311,11 +317,17 @@ function printResults(results: BenchmarkResult[]): void {
 
     for (const r of results) {
         log(`\n${r.name}:`, 'result');
-        log(`  Time:       Avg ${formatTime(r.avgTime)}, Min ${formatTime(r.minTime)}, Max ${formatTime(r.maxTime)}`, 'result');
+        log(
+            `  Time:       Avg ${formatTime(r.avgTime)}, Min ${formatTime(r.minTime)}, Max ${formatTime(r.maxTime)}`,
+            'result',
+        );
         log(`  Throughput: ${r.throughput.toFixed(2)} MB/s`, 'result');
         if (trackMemory && r.peakMemory >= 0) {
             const peakIncrease = r.peakMemory - r.baselineMemory;
-            log(`  Peak Memory: ${formatBytes(r.peakMemory)} (+${formatBytes(peakIncrease)} from baseline)`, 'result');
+            log(
+                `  Peak Memory: ${formatBytes(r.peakMemory)} (+${formatBytes(peakIncrease)} from baseline)`,
+                'result',
+            );
         }
     }
 
@@ -326,39 +338,58 @@ function printResults(results: BenchmarkResult[]): void {
     if (batchNew && streamNew) {
         log(`\n${'─'.repeat(70)}`, 'info');
         const timeRatio = streamNew.avgTime / batchNew.avgTime;
-        log(`New File - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`, 'header');
+        log(
+            `New File - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`,
+            'header',
+        );
 
         if (trackMemory && batchNew.peakMemory >= 0 && streamNew.peakMemory >= 0) {
             const batchPeakIncrease = batchNew.peakMemory - batchNew.baselineMemory;
             const streamPeakIncrease = streamNew.peakMemory - streamNew.baselineMemory;
             if (streamPeakIncrease > 0) {
                 const memRatio = batchPeakIncrease / streamPeakIncrease;
-                log(`New File - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`, 'header');
+                log(
+                    `New File - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`,
+                    'header',
+                );
             }
         }
     }
 
     // Compare batch vs stream for overwrite
-    const batchOverwrite = results.find(r => r.name.includes('Batch') && r.name.includes('overwrite'));
-    const streamOverwrite = results.find(r => r.name.includes('Stream') && r.name.includes('overwrite'));
+    const batchOverwrite = results.find(
+        r => r.name.includes('Batch') && r.name.includes('overwrite'),
+    );
+    const streamOverwrite = results.find(
+        r => r.name.includes('Stream') && r.name.includes('overwrite'),
+    );
 
     if (batchOverwrite && streamOverwrite) {
         const timeRatio = streamOverwrite.avgTime / batchOverwrite.avgTime;
-        log(`Overwrite - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`, 'header');
+        log(
+            `Overwrite - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`,
+            'header',
+        );
 
         if (trackMemory && batchOverwrite.peakMemory >= 0 && streamOverwrite.peakMemory >= 0) {
             const batchPeakIncrease = batchOverwrite.peakMemory - batchOverwrite.baselineMemory;
             const streamPeakIncrease = streamOverwrite.peakMemory - streamOverwrite.baselineMemory;
             if (streamPeakIncrease > 0) {
                 const memRatio = batchPeakIncrease / streamPeakIncrease;
-                log(`Overwrite - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`, 'header');
+                log(
+                    `Overwrite - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`,
+                    'header',
+                );
             }
         }
     }
 
     if (!trackMemory) {
         log(`\n${'─'.repeat(70)}`, 'info');
-        log('Note: Memory tracking not available (Chrome only, requires performance.memory)', 'info');
+        log(
+            'Note: Memory tracking not available (Chrome only, requires performance.memory)',
+            'info',
+        );
     } else {
         log(`\n${'─'.repeat(70)}`, 'info');
         log('Note: Memory sampling every 10ms. Actual peak may be higher.', 'info');
@@ -371,7 +402,7 @@ function printResults(results: BenchmarkResult[]): void {
 // Main Entry Points
 // ============================================================================
 
-function getConfig(): { fileSize: number; chunkSize: number; iterations: number; } {
+function getConfig(): { fileSize: number; chunkSize: number; iterations: number } {
     return {
         fileSize: parseInt((document.getElementById('fileSize') as HTMLSelectElement).value, 10),
         chunkSize: parseInt((document.getElementById('chunkSize') as HTMLSelectElement).value, 10),
@@ -381,7 +412,7 @@ function getConfig(): { fileSize: number; chunkSize: number; iterations: number;
 
 function setButtonsDisabled(disabled: boolean): void {
     document.querySelectorAll('button').forEach(btn => {
-        (btn as HTMLButtonElement).disabled = disabled;
+        btn.disabled = disabled;
     });
 }
 
@@ -398,7 +429,9 @@ async function runAllBenchmarks(): Promise<void> {
     log(`File Size: ${formatBytes(fileSize)}`);
     log(`Chunk Size: ${formatBytes(chunkSize)}`);
     log(`Iterations: ${iterations}`);
-    log(`Memory API: ${hasMemoryAPI() ? 'Available (sampling every 10ms)' : 'Not available (Chrome only)'}`);
+    log(
+        `Memory API: ${hasMemoryAPI() ? 'Available (sampling every 10ms)' : 'Not available (Chrome only)'}`,
+    );
 
     try {
         const results: BenchmarkResult[] = [];
@@ -410,10 +443,14 @@ async function runAllBenchmarks(): Promise<void> {
         results.push(await benchmarkBatchWrite(testFilePath, fileSize, iterations, false));
 
         // Stream write - new file
-        results.push(await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, true));
+        results.push(
+            await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, true),
+        );
 
         // Stream write - overwrite
-        results.push(await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, false));
+        results.push(
+            await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, false),
+        );
 
         printResults(results);
 
@@ -461,14 +498,20 @@ async function runStreamOnly(): Promise<void> {
     const testFilePath = '/bench-write-test.bin';
 
     log('STREAM WRITE BENCHMARK', 'header');
-    log(`File Size: ${formatBytes(fileSize)}, Chunk Size: ${formatBytes(chunkSize)}, Iterations: ${iterations}`);
+    log(
+        `File Size: ${formatBytes(fileSize)}, Chunk Size: ${formatBytes(chunkSize)}, Iterations: ${iterations}`,
+    );
     log(`Memory API: ${hasMemoryAPI() ? 'Available' : 'Not available'}`);
 
     try {
         const results: BenchmarkResult[] = [];
 
-        results.push(await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, true));
-        results.push(await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, false));
+        results.push(
+            await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, true),
+        );
+        results.push(
+            await benchmarkStreamWrite(testFilePath, fileSize, chunkSize, iterations, false),
+        );
 
         printResults(results);
         await remove(testFilePath);

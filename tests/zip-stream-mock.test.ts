@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // Mock fetchT to return null stream
 let mockFetchTReturnNull = false;
 
-vi.mock('@happy-ts/fetch-t', async (importOriginal) => {
+vi.mock('@happy-ts/fetch-t', async importOriginal => {
     const original = await importOriginal<typeof import('@happy-ts/fetch-t')>();
     const { Ok } = await import('happy-rusty');
     return {
@@ -40,7 +40,10 @@ describe('zip-stream.ts null stream handling', () => {
         // Enable mock to return null stream
         mockFetchTReturnNull = true;
 
-        const result = await zipStreamFromUrl('https://mock.test/file.bin', '/zip-stream-mock-test/test.zip');
+        const result = await zipStreamFromUrl(
+            'https://mock.test/file.bin',
+            '/zip-stream-mock-test/test.zip',
+        );
         expect(result.isErr()).toBe(true);
         expect(result.unwrapErr().name).toBe(EMPTY_BODY_ERROR);
     });
@@ -51,9 +54,13 @@ describe('zip-stream.ts null stream handling', () => {
         // Enable mock to return null stream
         mockFetchTReturnNull = true;
 
-        const result = await zipStreamFromUrl('https://mock.test/file.bin', '/zip-stream-mock-test/test.zip', {
-            keepEmptyBody: true,
-        });
+        const result = await zipStreamFromUrl(
+            'https://mock.test/file.bin',
+            '/zip-stream-mock-test/test.zip',
+            {
+                keepEmptyBody: true,
+            },
+        );
         expect(result.isOk()).toBe(true);
     });
 });

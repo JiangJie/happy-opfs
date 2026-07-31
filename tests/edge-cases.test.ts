@@ -15,7 +15,6 @@ describe('OPFS Edge Cases', () => {
     });
 
     describe('Path Validation', () => {
-
         it('should handle paths with special characters', async () => {
             await fs.writeFile('/edge-test-special chars (1).txt', 'content');
             const exists = await fs.exists('/edge-test-special chars (1).txt');
@@ -26,7 +25,7 @@ describe('OPFS Edge Cases', () => {
         it('should normalize paths correctly', async () => {
             await fs.mkdir('/edge-dir');
             await fs.writeFile('/edge-dir/file.txt', 'content');
-            
+
             // These should all refer to the same file
             const content1 = await fs.readTextFile('/edge-dir/file.txt');
             expect(content1.unwrap()).toBe('content');
@@ -69,7 +68,7 @@ describe('OPFS Edge Cases', () => {
         });
 
         it('should handle very long file names', async () => {
-            const longName = `${ 'a'.repeat(200) }.txt`;
+            const longName = `${'a'.repeat(200)}.txt`;
             await fs.writeFile(`/edge-test/${longName}`, 'content');
             const exists = await fs.exists(`/edge-test/${longName}`);
             expect(exists.unwrap()).toBe(true);
@@ -79,7 +78,7 @@ describe('OPFS Edge Cases', () => {
     describe('File Content Edge Cases', () => {
         it('should handle empty file', async () => {
             await fs.writeFile('/edge-file.txt', '');
-            
+
             const content = await fs.readTextFile('/edge-file.txt');
             expect(content.unwrap()).toBe('');
         });
@@ -99,7 +98,7 @@ describe('OPFS Edge Cases', () => {
         it('should handle large text content', async () => {
             const largeContent = 'x'.repeat(100000);
             await fs.writeFile('/edge-file.txt', largeContent);
-            
+
             const content = await fs.readTextFile('/edge-file.txt');
             expect(content.unwrap().length).toBe(100000);
         });
@@ -107,7 +106,7 @@ describe('OPFS Edge Cases', () => {
         it('should handle unicode content', async () => {
             const unicodeContent = '你好世界 🌍 مرحبا العالم';
             await fs.writeFile('/edge-file.txt', unicodeContent);
-            
+
             const content = await fs.readTextFile('/edge-file.txt');
             expect(content.unwrap()).toBe(unicodeContent);
         });
@@ -118,11 +117,11 @@ describe('OPFS Edge Cases', () => {
                 data[i] = i;
             }
             await fs.writeFile('/edge-file.txt', data);
-            
+
             const result = await fs.readFile('/edge-file.txt');
             const buffer = result.unwrap();
             expect(buffer.byteLength).toBe(256);
-            
+
             const arr = new Uint8Array(buffer);
             expect(arr[0]).toBe(0);
             expect(arr[255]).toBe(255);
@@ -161,7 +160,7 @@ describe('OPFS Edge Cases', () => {
         it('should handle deeply nested directories', async () => {
             const deepPath = '/edge-dir/a/b/c/d/e/f/g/h/i/j';
             await fs.mkdir(deepPath);
-            
+
             expect((await fs.exists(deepPath, { isDirectory: true })).unwrap()).toBe(true);
         });
 
@@ -173,7 +172,7 @@ describe('OPFS Edge Cases', () => {
 
         it('should handle empty directory', async () => {
             await fs.mkdir('/edge-dir');
-            
+
             const entries = await Array.fromAsync((await fs.readDir('/edge-dir')).unwrap());
             expect(entries.length).toBe(0);
         });
@@ -187,12 +186,12 @@ describe('OPFS Edge Cases', () => {
 
         it('should handle directory with many files', async () => {
             await fs.mkdir('/edge-dir');
-            
+
             // Create 50 files
             for (let i = 0; i < 50; i++) {
                 await fs.writeFile(`/edge-dir/file${i}.txt`, `content${i}`);
             }
-            
+
             const entries = await Array.fromAsync((await fs.readDir('/edge-dir')).unwrap());
             expect(entries.length).toBe(50);
         });
@@ -201,10 +200,10 @@ describe('OPFS Edge Cases', () => {
     describe('Copy/Move Edge Cases', () => {
         it('should copy file to nested directory that does not exist', async () => {
             await fs.writeFile('/edge-copy-src', 'content');
-            
+
             const result = await fs.copy('/edge-copy-src', '/edge-copy-dest/nested/dir/file.txt');
             expect(result.isOk()).toBe(true);
-            
+
             expect((await fs.exists('/edge-copy-dest/nested/dir/file.txt')).unwrap()).toBe(true);
         });
 
@@ -220,19 +219,27 @@ describe('OPFS Edge Cases', () => {
             expect(result.isOk()).toBe(true);
 
             // Verify structure
-            expect((await fs.exists('/edge-copy-dest/a/b/c', { isDirectory: true })).unwrap()).toBe(true);
-            expect((await fs.readTextFile('/edge-copy-dest/a/file1.txt')).unwrap()).toBe('content1');
-            expect((await fs.readTextFile('/edge-copy-dest/a/b/file2.txt')).unwrap()).toBe('content2');
-            expect((await fs.readTextFile('/edge-copy-dest/a/b/c/file3.txt')).unwrap()).toBe('content3');
+            expect((await fs.exists('/edge-copy-dest/a/b/c', { isDirectory: true })).unwrap()).toBe(
+                true,
+            );
+            expect((await fs.readTextFile('/edge-copy-dest/a/file1.txt')).unwrap()).toBe(
+                'content1',
+            );
+            expect((await fs.readTextFile('/edge-copy-dest/a/b/file2.txt')).unwrap()).toBe(
+                'content2',
+            );
+            expect((await fs.readTextFile('/edge-copy-dest/a/b/c/file3.txt')).unwrap()).toBe(
+                'content3',
+            );
         });
 
         it('should handle move overwrite scenario', async () => {
             await fs.writeFile('/edge-copy-src', 'new content');
             await fs.writeFile('/edge-copy-dest', 'old content');
-            
+
             const result = await fs.move('/edge-copy-src', '/edge-copy-dest', { overwrite: true });
             expect(result.isOk()).toBe(true);
-            
+
             const content = await fs.readTextFile('/edge-copy-dest');
             expect(content.unwrap()).toBe('new content');
         });
@@ -240,10 +247,10 @@ describe('OPFS Edge Cases', () => {
         it('should handle move no overwrite scenario', async () => {
             await fs.writeFile('/edge-copy-src', 'new content');
             await fs.writeFile('/edge-copy-dest', 'old content');
-            
+
             const result = await fs.move('/edge-copy-src', '/edge-copy-dest', { overwrite: false });
             expect(result.isOk()).toBe(true);
-            
+
             // Destination content should remain unchanged
             const content = await fs.readTextFile('/edge-copy-dest');
             expect(content.unwrap()).toBe('old content');
@@ -256,7 +263,9 @@ describe('OPFS Edge Cases', () => {
             expect(result.isOk()).toBe(true);
 
             expect((await fs.exists('/edge-copy-src')).unwrap()).toBe(false);
-            expect((await fs.readTextFile('/edge-copy-dest/deep/nested/dest.txt')).unwrap()).toBe('content');
+            expect((await fs.readTextFile('/edge-copy-dest/deep/nested/dest.txt')).unwrap()).toBe(
+                'content',
+            );
         });
     });
 
@@ -352,7 +361,7 @@ describe('OPFS Edge Cases', () => {
         it('should handle JSON with numbers', async () => {
             const data = {
                 int: 42,
-                float: 3.14159,
+                float: 1.23456,
                 negative: -100,
                 zero: 0,
                 scientific: 1.23e10,

@@ -1,7 +1,13 @@
 import { join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
 import { decodeUtf8, readBlobBytes, validateAbsolutePath } from '../../shared/internal/mod.ts';
-import { isDirectoryHandle, type DirEntry, type ReadDirOptions, type ReadFileContent, type ReadOptions } from '../../shared/mod.ts';
+import {
+    isDirectoryHandle,
+    type DirEntry,
+    type ReadDirOptions,
+    type ReadFileContent,
+    type ReadOptions,
+} from '../../shared/mod.ts';
 import { createAbortError, getDirHandle, getFileHandle } from '../internal/mod.ts';
 /**
  * Reads the contents of a directory at the specified path.
@@ -25,7 +31,10 @@ import { createAbortError, getDirHandle, getFileHandle } from '../internal/mod.t
  * await readDir('/documents', { recursive: true });
  * ```
  */
-export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncIOResult<AsyncIterableIterator<DirEntry>> {
+export async function readDir(
+    dirPath: string,
+    options?: ReadDirOptions,
+): AsyncIOResult<AsyncIterableIterator<DirEntry>> {
     const dirPathRes = validateAbsolutePath(dirPath);
     if (dirPathRes.isErr()) return dirPathRes.asErr();
     dirPath = dirPathRes.unwrap();
@@ -41,7 +50,10 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
         return Err(reason instanceof Error ? reason : createAbortError());
     }
 
-    async function* read(dirHandle: FileSystemDirectoryHandle, relativePath?: string): AsyncIterableIterator<DirEntry> {
+    async function* read(
+        dirHandle: FileSystemDirectoryHandle,
+        relativePath?: string,
+    ): AsyncIterableIterator<DirEntry> {
         if (options?.signal?.aborted) {
             return;
         }
@@ -82,9 +94,12 @@ export async function readDir(dirPath: string, options?: ReadDirOptions): AsyncI
  *     .inspect(file => console.log(file.name, file.size, file.type));
  * ```
  */
-export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'blob';
-}): AsyncIOResult<File>;
+export function readFile(
+    filePath: string,
+    options: ReadOptions & {
+        encoding: 'blob';
+    },
+): AsyncIOResult<File>;
 
 /**
  * Reads the content of a file at the specified path as a string.
@@ -101,9 +116,12 @@ export function readFile(filePath: string, options: ReadOptions & {
  *     .inspect(content => console.log(content));
  * ```
  */
-export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'utf8';
-}): AsyncIOResult<string>;
+export function readFile(
+    filePath: string,
+    options: ReadOptions & {
+        encoding: 'utf8';
+    },
+): AsyncIOResult<string>;
 
 /**
  * Reads the content of a file at the specified path as a readable stream.
@@ -127,9 +145,12 @@ export function readFile(filePath: string, options: ReadOptions & {
  *     });
  * ```
  */
-export function readFile(filePath: string, options: ReadOptions & {
-    encoding: 'stream';
-}): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>>;
+export function readFile(
+    filePath: string,
+    options: ReadOptions & {
+        encoding: 'stream';
+    },
+): AsyncIOResult<ReadableStream<Uint8Array<ArrayBuffer>>>;
 
 /**
  * Reads the content of a file at the specified path as a Uint8Array (default).
@@ -145,9 +166,12 @@ export function readFile(filePath: string, options: ReadOptions & {
  *     .inspect(bytes => console.log('First byte:', bytes[0]));
  * ```
  */
-export function readFile(filePath: string, options?: ReadOptions & {
-    encoding?: 'bytes';
-}): AsyncIOResult<Uint8Array<ArrayBuffer>>;
+export function readFile(
+    filePath: string,
+    options?: ReadOptions & {
+        encoding?: 'bytes';
+    },
+): AsyncIOResult<Uint8Array<ArrayBuffer>>;
 
 /**
  * Reads the content of a file at the specified path with the specified options.
@@ -184,7 +208,10 @@ export function readFile(filePath: string, options?: ReadOptions): AsyncIOResult
  * @param options - Optional read options.
  * @returns A promise that resolves to an `AsyncIOResult` containing the file content.
  */
-export async function readFile(filePath: string, options?: ReadOptions): AsyncIOResult<ReadFileContent> {
+export async function readFile(
+    filePath: string,
+    options?: ReadOptions,
+): AsyncIOResult<ReadFileContent> {
     const filePathRes = validateAbsolutePath(filePath);
     if (filePathRes.isErr()) return filePathRes.asErr();
     filePath = filePathRes.unwrap();
@@ -196,10 +223,12 @@ export async function readFile(filePath: string, options?: ReadOptions): AsyncIO
 
         // Prefer sync access in Worker for better performance
         // Only for encodings that don't require File object or streaming
-        return encoding !== 'blob' && encoding !== 'stream' && typeof fileHandle.createSyncAccessHandle === 'function'
+        return encoding !== 'blob' &&
+            encoding !== 'stream' &&
+            typeof fileHandle.createSyncAccessHandle === 'function'
             ? readViaSyncAccess(fileHandle, encoding)
-            // Main thread fallback or blob/stream encoding
-            : readViaFile(fileHandle, encoding);
+            : // Main thread fallback or blob/stream encoding
+              readViaFile(fileHandle, encoding);
     });
 }
 

@@ -84,7 +84,9 @@ describe('OPFS Extended Operations', () => {
 
         it('should append to existing file with create: false', async () => {
             await fs.writeFile('/test-append-create-false.txt', 'Hello');
-            const result = await fs.appendFile('/test-append-create-false.txt', ' World', { create: false });
+            const result = await fs.appendFile('/test-append-create-false.txt', ' World', {
+                create: false,
+            });
             expect(result.isOk()).toBe(true);
 
             const content = await fs.readTextFile('/test-append-create-false.txt');
@@ -94,7 +96,9 @@ describe('OPFS Extended Operations', () => {
         });
 
         it('should fail to append with create: false when file not exists', async () => {
-            const result = await fs.appendFile('/test-append-no-create.txt', 'content', { create: false });
+            const result = await fs.appendFile('/test-append-no-create.txt', 'content', {
+                create: false,
+            });
             expect(result.isErr()).toBe(true);
         });
     });
@@ -141,7 +145,9 @@ describe('OPFS Extended Operations', () => {
             await fs.writeFile('/copy-no-overwrite-src.txt', 'New content');
             await fs.writeFile('/copy-no-overwrite-dest.txt', 'Old content');
 
-            await fs.copy('/copy-no-overwrite-src.txt', '/copy-no-overwrite-dest.txt', { overwrite: false });
+            await fs.copy('/copy-no-overwrite-src.txt', '/copy-no-overwrite-dest.txt', {
+                overwrite: false,
+            });
 
             const content = await fs.readTextFile('/copy-no-overwrite-dest.txt');
             expect(content.unwrap()).toBe('Old content');
@@ -335,7 +341,9 @@ describe('OPFS Extended Operations', () => {
             await fs.writeFile('/copy-dir-exists-dest/file.txt', 'old content');
 
             // Copy with overwrite=false - exercises the overwrite check in lines 102-103
-            const result = await fs.copy('/copy-dir-exists-src', '/copy-dir-exists-dest', { overwrite: false });
+            const result = await fs.copy('/copy-dir-exists-src', '/copy-dir-exists-dest', {
+                overwrite: false,
+            });
             expect(result.isOk()).toBe(true);
 
             // Content should not be overwritten
@@ -343,7 +351,7 @@ describe('OPFS Extended Operations', () => {
             expect(content.unwrap()).toBe('old content');
         });
 
-        it('should fail copy directory when exists check fails ', async () => {
+        it('should fail copy directory when exists check fails', async () => {
             // Create source directory with nested structure
             await fs.mkdir('/copy-exists-error-src/sub');
             await fs.writeFile('/copy-exists-error-src/sub/file.txt', 'content');
@@ -391,7 +399,9 @@ describe('OPFS Extended Operations', () => {
             const result = await fs.copy('/copy-empty-src', '/copy-empty-dest');
             expect(result.isOk()).toBe(true);
 
-            expect((await fs.exists('/copy-empty-dest', { isDirectory: true })).unwrap()).toBe(true);
+            expect((await fs.exists('/copy-empty-dest', { isDirectory: true })).unwrap()).toBe(
+                true,
+            );
         });
 
         it('should copy directory with only empty subdirectories', async () => {
@@ -401,8 +411,12 @@ describe('OPFS Extended Operations', () => {
             const result = await fs.copy('/copy-empty-subs-src', '/copy-empty-subs-dest');
             expect(result.isOk()).toBe(true);
 
-            expect((await fs.exists('/copy-empty-subs-dest/empty1', { isDirectory: true })).unwrap()).toBe(true);
-            expect((await fs.exists('/copy-empty-subs-dest/empty2', { isDirectory: true })).unwrap()).toBe(true);
+            expect(
+                (await fs.exists('/copy-empty-subs-dest/empty1', { isDirectory: true })).unwrap(),
+            ).toBe(true);
+            expect(
+                (await fs.exists('/copy-empty-subs-dest/empty2', { isDirectory: true })).unwrap(),
+            ).toBe(true);
         });
 
         it('should fail when source does not exist', async () => {
@@ -435,7 +449,9 @@ describe('OPFS Extended Operations', () => {
             expect((await fs.exists('/copy-issue7-dest/file.txt')).unwrap()).toBe(true);
             expect((await fs.exists('/copy-issue7-dest/anotherFile.txt')).unwrap()).toBe(true);
             expect((await fs.exists('/copy-issue7-dest/innerFolder')).unwrap()).toBe(true);
-            expect((await fs.exists('/copy-issue7-dest/innerFolder/innerFile.txt')).unwrap()).toBe(true);
+            expect((await fs.exists('/copy-issue7-dest/innerFolder/innerFile.txt')).unwrap()).toBe(
+                true,
+            );
 
             // BUG CHECK: /copy-issue7-dest/copy-issue7-src should NOT exist
             // Issue #7 reported that an empty folder with source name was created in destination

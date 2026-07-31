@@ -31,8 +31,6 @@ export async function validateDestDir(destDir: string): AsyncIOResult<string> {
     const existsRes = await exists(destDir, { isFile: true });
 
     return existsRes.andThen(isFile => {
-        return isFile
-            ? Err(new Error(`Path '${ destDir }' is not a directory`))
-            : pathRes;
+        return isFile ? Err(new Error(`Path '${destDir}' is not a directory`)) : pathRes;
     });
 }

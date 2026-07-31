@@ -67,7 +67,7 @@ addEventListener('message', async (event: MessageEvent<TestRequest>) => {
 });
 
 // Setup: create test file
-(async () => {
+void (async () => {
     await writeFile('/worker-async-test.txt', 'Hello from Worker async API test');
     postMessage({ type: 'ready' });
 })();

@@ -11,11 +11,11 @@ let mockIteratorShouldFail = false;
 let mockFileReadShouldFail = false;
 
 // Mock the read module to make readDir fail
-vi.mock('../src/async/core/read.ts', async (importOriginal) => {
+vi.mock('../src/async/core/read.ts', async importOriginal => {
     const original = await importOriginal<typeof import('../src/async/core/read.ts')>();
     return {
         ...original,
-        readDir: (path: string, options?: { recursive?: boolean; }) => {
+        readDir: (path: string, options?: { recursive?: boolean }) => {
             if (mockReadDirShouldFail) {
                 return Promise.resolve(Err(new Error('Mocked readDir error')));
             }

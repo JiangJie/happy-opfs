@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as fs from '../src/mod.ts';
 
 // Mock fflate/browser - Zip throws error
-vi.mock('fflate/browser', async (importOriginal) => {
+vi.mock('fflate/browser', async importOriginal => {
     const original = await importOriginal<typeof import('fflate/browser')>();
     return {
         ...original,

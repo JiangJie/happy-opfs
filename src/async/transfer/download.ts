@@ -30,7 +30,10 @@ import { createEmptyBodyError, createFailedFetchTask, peekStream } from '../inte
  *     .inspect(({ tempFilePath }) => console.log(`File downloaded to: ${ tempFilePath }`));
  * ```
  */
-export function downloadFile(fileUrl: string | URL, requestInit?: DownloadRequestInit): FetchTask<DownloadFileTempResponse>;
+export function downloadFile(
+    fileUrl: string | URL,
+    requestInit?: DownloadRequestInit,
+): FetchTask<DownloadFileTempResponse>;
 
 /**
  * Downloads a file from a URL and saves it to the specified path.
@@ -53,8 +56,16 @@ export function downloadFile(fileUrl: string | URL, requestInit?: DownloadReques
  * task.abort();
  * ```
  */
-export function downloadFile(fileUrl: string | URL, filePath: string, requestInit?: DownloadRequestInit): FetchTask<Response>;
-export function downloadFile(fileUrl: string | URL, filePath?: string | DownloadRequestInit, requestInit?: DownloadRequestInit): FetchTask<Response | DownloadFileTempResponse> {
+export function downloadFile(
+    fileUrl: string | URL,
+    filePath: string,
+    requestInit?: DownloadRequestInit,
+): FetchTask<Response>;
+export function downloadFile(
+    fileUrl: string | URL,
+    filePath?: string | DownloadRequestInit,
+    requestInit?: DownloadRequestInit,
+): FetchTask<Response | DownloadFileTempResponse> {
     type T = FetchResult<Response | DownloadFileTempResponse>;
 
     const fileUrlRes = validateUrl(fileUrl);
@@ -89,10 +100,10 @@ export function downloadFile(fileUrl: string | URL, filePath?: string | Download
             function okResult() {
                 return Ok(
                     saveToTemp
-                        ? {
-                            tempFilePath: filePath as string,
-                            rawResponse,
-                        } satisfies DownloadFileTempResponse
+                        ? ({
+                              tempFilePath: filePath as string,
+                              rawResponse,
+                          } satisfies DownloadFileTempResponse)
                         : rawResponse,
                 );
             }

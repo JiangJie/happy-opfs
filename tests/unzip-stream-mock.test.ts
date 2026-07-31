@@ -8,12 +8,12 @@ import type { FileEncoding } from '../src/mod.ts';
 // Mock readFile to return null stream
 let mockReadFileReturnNull = false;
 
-vi.mock('../src/async/core/read.ts', async (importOriginal) => {
+vi.mock('../src/async/core/read.ts', async importOriginal => {
     const original = await importOriginal<typeof import('../src/async/core/read.ts')>();
     const { Ok } = await import('happy-rusty');
     return {
         ...original,
-        readFile: async (path: string, options?: { encoding?: FileEncoding; }) => {
+        readFile: async (path: string, options?: { encoding?: FileEncoding }) => {
             if (mockReadFileReturnNull && options?.encoding === 'stream') {
                 // Return Ok(null) to simulate 204/304 response body
                 return Ok(null);
@@ -42,7 +42,10 @@ describe('unzip-stream.ts null stream handling', () => {
         // Enable mock to return null stream
         mockReadFileReturnNull = true;
 
-        const result = await unzipStream('/unzip-stream-mock-test/test.zip', '/unzip-stream-mock-test/dest');
+        const result = await unzipStream(
+            '/unzip-stream-mock-test/test.zip',
+            '/unzip-stream-mock-test/dest',
+        );
         expect(result.isErr()).toBe(true);
         expect(result.unwrapErr().name).toBe(EMPTY_FILE_ERROR);
     });

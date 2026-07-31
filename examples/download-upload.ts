@@ -57,12 +57,18 @@ async function runDownloadExample(): Promise<void> {
 
     currentTask = fs.downloadFile(url, destPath, {
         onProgress(progressResult) {
-            progressResult.inspect((progress) => {
-                const percent = progress.totalByteLength > 0
-                    ? Math.round((progress.completedByteLength / progress.totalByteLength) * 100)
-                    : 0;
+            progressResult.inspect(progress => {
+                const percent =
+                    progress.totalByteLength > 0
+                        ? Math.round(
+                              (progress.completedByteLength / progress.totalByteLength) * 100,
+                          )
+                        : 0;
                 updateProgress(percent);
-                log(`Progress: ${progress.completedByteLength}/${progress.totalByteLength} bytes (${percent}%)`, 'info');
+                log(
+                    `Progress: ${progress.completedByteLength}/${progress.totalByteLength} bytes (${percent}%)`,
+                    'info',
+                );
             });
         },
     });
@@ -89,11 +95,11 @@ async function runDownloadExample(): Promise<void> {
 
         // Read and show a preview
         const content = await fs.readTextFile(destPath);
-        content.inspect((text) => {
-            const preview = text.length > 200 ? `${ text.substring(0, 200) }...` : text;
+        content.inspect(text => {
+            const preview = text.length > 200 ? `${text.substring(0, 200)}...` : text;
             log(`✓ File preview:\n${preview}`, 'success');
         });
-        content.inspectErr((err) => log(`✗ Failed to read file: ${err.message}`, 'error'));
+        content.inspectErr(err => log(`✗ Failed to read file: ${err.message}`, 'error'));
 
         // List downloaded files
         const files = await fs.readDir('/downloads');
@@ -121,7 +127,7 @@ function cancelDownload(): void {
 }
 
 downloadBtn.addEventListener('click', () => {
-    runDownloadExample().catch((err) => {
+    runDownloadExample().catch(err => {
         log(`Unexpected error: ${err.message}`, 'error');
     });
 });
@@ -134,5 +140,5 @@ cleanupBtn.addEventListener('click', async () => {
     log('=== Cleaning Up ===', 'info');
     const result = await fs.remove('/downloads');
     result.inspect(() => log('✓ Removed /downloads directory', 'success'));
-    result.inspectErr((err) => log(`✗ Failed to cleanup: ${err.message}`, 'error'));
+    result.inspectErr(err => log(`✗ Failed to cleanup: ${err.message}`, 'error'));
 });

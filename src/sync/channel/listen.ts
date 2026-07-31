@@ -1,11 +1,18 @@
 import { Err, RESULT_VOID, type AsyncIOResult, type VoidIOResult } from 'happy-rusty';
 import {
-    copy, createFile,
+    copy,
+    createFile,
     deleteTemp,
-    emptyDir, exists,
-    mkdir, mkTemp, move,
+    emptyDir,
+    exists,
+    mkdir,
+    mkTemp,
+    move,
     pruneTemp,
-    readBlobFile, readDir, readFile, remove,
+    readBlobFile,
+    readDir,
+    readFile,
+    remove,
     stat,
     truncate,
     unzip,
@@ -13,9 +20,26 @@ import {
     zip,
 } from '../../async/mod.ts';
 import { readBlobBytesSync } from '../../shared/internal/mod.ts';
-import { isFileHandle, type DirEntry, type DirEntryLike, type FileSystemDirectoryHandleLike, type FileSystemFileHandleLike, type FileSystemHandleLike } from '../../shared/mod.ts';
+import {
+    isFileHandle,
+    type DirEntry,
+    type DirEntryLike,
+    type FileSystemDirectoryHandleLike,
+    type FileSystemFileHandleLike,
+    type FileSystemHandleLike,
+} from '../../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from '../defines.ts';
-import { DATA_INDEX, decodePayload, encodePayload, MAIN_LOCK_INDEX, MAIN_UNLOCKED, SyncMessenger, WORKER_LOCK_INDEX, WORKER_UNLOCKED, WorkerOp } from '../protocol.ts';
+import {
+    DATA_INDEX,
+    decodePayload,
+    encodePayload,
+    MAIN_LOCK_INDEX,
+    MAIN_UNLOCKED,
+    SyncMessenger,
+    WORKER_LOCK_INDEX,
+    WORKER_UNLOCKED,
+    WorkerOp,
+} from '../protocol.ts';
 
 // #region Internal Variables
 
@@ -114,7 +138,7 @@ export function listenSyncChannel(): VoidIOResult {
         port.postMessage(null);
 
         // Start waiting for requests
-        runWorkerLoop();
+        void runWorkerLoop();
     };
 
     addEventListener('message', messageHandler);
@@ -203,10 +227,12 @@ async function serializeFileSystemHandle(handle: FileSystemHandle): Promise<File
  * @returns A serializable `ErrorLike` object, or `null` if input is `null`.
  */
 function serializeError(error: Error | null): ErrorLike | null {
-    return error ? {
-        name: error.name,
-        message: error.message,
-    } : error;
+    return error
+        ? {
+              name: error.name,
+              message: error.message,
+          }
+        : error;
 }
 
 /**
@@ -216,7 +242,10 @@ function serializeError(error: Error | null): ErrorLike | null {
  * @param messenger - The `SyncMessenger` instance for communication.
  * @param transfer - Async function that processes request data and returns response data.
  */
-async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data: Uint8Array<SharedArrayBuffer>) => Promise<Uint8Array<ArrayBuffer>>): Promise<void> {
+async function respondToMainFromWorker(
+    messenger: SyncMessenger,
+    transfer: (data: Uint8Array<SharedArrayBuffer>) => Promise<Uint8Array<ArrayBuffer>>,
+): Promise<void> {
     const { i32a, maxDataLength } = messenger;
 
     // Busy-wait until main thread signals a request is ready
@@ -236,14 +265,16 @@ async function respondToMainFromWorker(messenger: SyncMessenger, transfer: (data
 
     // check whether response is too large
     if (response.byteLength > maxDataLength) {
-        const message = `Response is too large: ${ response.byteLength } > ${ maxDataLength }. Consider increasing the size of SharedArrayBuffer`;
+        const message = `Response is too large: ${response.byteLength} > ${maxDataLength}. Consider increasing the size of SharedArrayBuffer`;
 
         // Error response is guaranteed to fit since bufferLength >= 256 bytes
         // and error response is ~147 bytes (16 header + 131 payload)
-        response = encodePayload([{
-            name: 'RangeError',
-            message,
-        }]);
+        response = encodePayload([
+            {
+                name: 'RangeError',
+                message,
+            },
+        ]);
     }
 
     // write response data
@@ -298,15 +329,19 @@ function deserializeArgs(op: WorkerOp, args: unknown[]): void {
  * @param iterator - The async iterator from readDir.
  * @returns Promise resolving to array of serializable directory entries.
  */
-async function serializeReadDirResult(iterator: AsyncIterableIterator<DirEntry>): Promise<DirEntryLike[]> {
+async function serializeReadDirResult(
+    iterator: AsyncIterableIterator<DirEntry>,
+): Promise<DirEntryLike[]> {
     // Collect and serialize handles in parallel - getFile() involves disk I/O
     const tasks: Promise<DirEntryLike>[] = [];
 
     for await (const { path, handle } of iterator) {
-        tasks.push((async () => ({
-            path,
-            handle: await serializeFileSystemHandle(handle),
-        }))());
+        tasks.push(
+            (async () => ({
+                path,
+                handle: await serializeFileSystemHandle(handle),
+            }))(),
+        );
     }
 
     return Promise.all(tasks);
@@ -333,10 +368,13 @@ function serializeReadBlobFileResult(file: File): [FileMetadata, Uint8Array<Arra
  * @param data - The encoded request data.
  * @returns The encoded response data.
  */
-async function processRequest(data: Uint8Array<SharedArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
+async function processRequest(
+    data: Uint8Array<SharedArrayBuffer>,
+): Promise<Uint8Array<ArrayBuffer>> {
     try {
         // Decode the request: [operation, ...arguments]
-        const [op, ...args] = decodePayload<[WorkerOp, ...Parameters<typeof opHandlers[WorkerOp]>]>(data);
+        const [op, ...args] =
+            decodePayload<[WorkerOp, ...Parameters<(typeof opHandlers)[WorkerOp]>]>(data);
 
         deserializeArgs(op, args);
 
@@ -359,7 +397,9 @@ async function processRequest(data: Uint8Array<SharedArrayBuffer>): Promise<Uint
                 break;
             }
             case WorkerOp.readDir: {
-                response.push(await serializeReadDirResult(result as AsyncIterableIterator<DirEntry>));
+                response.push(
+                    await serializeReadDirResult(result as AsyncIterableIterator<DirEntry>),
+                );
                 break;
             }
             case WorkerOp.readBlobFile: {

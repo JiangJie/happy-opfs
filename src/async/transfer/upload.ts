@@ -30,7 +30,11 @@ import { createAbortError, createFailedFetchTask } from '../internal/mod.ts';
  * task.abort();
  * ```
  */
-export function uploadFile(filePath: string, uploadUrl: string | URL, requestInit?: UploadRequestInit): FetchTask<Response> {
+export function uploadFile(
+    filePath: string,
+    uploadUrl: string | URL,
+    requestInit?: UploadRequestInit,
+): FetchTask<Response> {
     const filePathRes = validateAbsolutePath(filePath);
     if (filePathRes.isErr()) return createFailedFetchTask(filePathRes);
     filePath = filePathRes.unwrap();

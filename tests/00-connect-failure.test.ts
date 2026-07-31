@@ -32,10 +32,9 @@ describe('SyncChannel.connect failure paths', () => {
         }
 
         // First connect fails (timeout)
-        const first = await SyncChannel.connect(
-            new URL('./worker-no-listen.ts', import.meta.url),
-            { connectTimeout: 100 },
-        );
+        const first = await SyncChannel.connect(new URL('./worker-no-listen.ts', import.meta.url), {
+            connectTimeout: 100,
+        });
         expect(first.isErr(), 'first connect should fail').toBe(true);
         expect(first.unwrapErr().name).toBe(TIMEOUT_ERROR);
 
@@ -47,7 +46,10 @@ describe('SyncChannel.connect failure paths', () => {
             { connectTimeout: 100 },
         );
         expect(second.isErr(), 'second connect should also fail').toBe(true);
-        expect(second.unwrapErr().name, 'state should return to idle and take timeout path, not stuck in connecting').toBe(TIMEOUT_ERROR);
+        expect(
+            second.unwrapErr().name,
+            'state should return to idle and take timeout path, not stuck in connecting',
+        ).toBe(TIMEOUT_ERROR);
     });
 
     it('should return TypeError when connectTimeout is not a positive integer', async () => {
@@ -75,14 +77,19 @@ describe('SyncChannel.connect failure paths', () => {
         // Create a worker that throws on load via a blob URL to trigger the
         // worker error event. connectTimeout is set long so the error event
         // fires before the timeout (proving the onError path is taken).
-        const blob = new Blob([`throw new Error('worker load boom')`], { type: 'application/javascript' });
+        const blob = new Blob([`throw new Error('worker load boom')`], {
+            type: 'application/javascript',
+        });
         const url = URL.createObjectURL(blob);
 
         const result = await SyncChannel.connect(url, { connectTimeout: 10000 });
 
         expect(result.isErr(), 'should fail instead of hanging').toBe(true);
         // Error event fires before timeout → error type is not TimeoutError
-        expect(result.unwrapErr().name, 'should be triggered by worker error event, not timeout').not.toBe(TIMEOUT_ERROR);
+        expect(
+            result.unwrapErr().name,
+            'should be triggered by worker error event, not timeout',
+        ).not.toBe(TIMEOUT_ERROR);
 
         URL.revokeObjectURL(url);
     }, 15000);
@@ -96,7 +103,9 @@ describe('SyncChannel.connect failure paths', () => {
         // Create a worker that throws on load, but the caller is responsible
         // for instantiation. ownsWorker is false → cleanup path should not
         // call worker.terminate().
-        const blob = new Blob([`throw new Error('worker load boom')`], { type: 'application/javascript' });
+        const blob = new Blob([`throw new Error('worker load boom')`], {
+            type: 'application/javascript',
+        });
         const url = URL.createObjectURL(blob);
         const worker = new Worker(url, { type: 'module' });
         const terminateSpy = vi.spyOn(worker, 'terminate');
@@ -104,8 +113,13 @@ describe('SyncChannel.connect failure paths', () => {
         const result = await SyncChannel.connect(worker, { connectTimeout: 10000 });
 
         expect(result.isErr(), 'should fail').toBe(true);
-        expect(result.unwrapErr().name, 'should be triggered by worker error event').not.toBe(TIMEOUT_ERROR);
-        expect(terminateSpy, 'should not terminate caller worker when ownsWorker is false').not.toHaveBeenCalled();
+        expect(result.unwrapErr().name, 'should be triggered by worker error event').not.toBe(
+            TIMEOUT_ERROR,
+        );
+        expect(
+            terminateSpy,
+            'should not terminate caller worker when ownsWorker is false',
+        ).not.toHaveBeenCalled();
 
         worker.terminate();
         URL.revokeObjectURL(url);
@@ -126,6 +140,9 @@ describe('SyncChannel.connect failure paths', () => {
         );
 
         expect(result.isErr(), 'should fail instead of hanging').toBe(true);
-        expect(result.unwrapErr().name, 'should be triggered by worker error event, not timeout').not.toBe(TIMEOUT_ERROR);
+        expect(
+            result.unwrapErr().name,
+            'should be triggered by worker error event, not timeout',
+        ).not.toBe(TIMEOUT_ERROR);
     }, 15000);
 });

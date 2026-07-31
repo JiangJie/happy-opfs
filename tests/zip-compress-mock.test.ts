@@ -4,11 +4,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Mock fflate/browser to make compress fail
-vi.mock('fflate/browser', async (importOriginal) => {
+vi.mock('fflate/browser', async importOriginal => {
     const original = await importOriginal<typeof import('fflate/browser')>();
     return {
         ...original,
-        zip: (_data: unknown, _opts: unknown, cb: (err: Error | null, data: Uint8Array) => void) => {
+        zip: (
+            _data: unknown,
+            _opts: unknown,
+            cb: (err: Error | null, data: Uint8Array) => void,
+        ) => {
             // Call callback with error to trigger lines 250-251
             cb(new Error('Mocked compress error'), new Uint8Array(0));
         },

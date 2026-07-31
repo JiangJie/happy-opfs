@@ -40,7 +40,10 @@ async function runExample(): Promise<void> {
 
     await fs.mkdir('/zip-example/source/subdir');
 
-    await fs.writeFile('/zip-example/source/readme.txt', 'This is a readme file.\nIt contains multiple lines.');
+    await fs.writeFile(
+        '/zip-example/source/readme.txt',
+        'This is a readme file.\nIt contains multiple lines.',
+    );
     log('✓ Created readme.txt', 'success');
 
     await fs.writeJsonFile('/zip-example/source/data.json', {
@@ -61,7 +64,7 @@ async function runExample(): Promise<void> {
     log('\n=== Compressing ===', 'info');
     const zipResult = await fs.zip('/zip-example/source', '/zip-example/archive.zip');
     zipResult.inspect(() => log('✓ Created archive.zip', 'success'));
-    zipResult.inspectErr((err) => log(`✗ Failed to create zip: ${err.message}`, 'error'));
+    zipResult.inspectErr(err => log(`✗ Failed to create zip: ${err.message}`, 'error'));
 
     // Check zip file size
     const zipStat = await fs.stat('/zip-example/archive.zip');
@@ -77,7 +80,7 @@ async function runExample(): Promise<void> {
     log('\n=== Extracting ===', 'info');
     const unzipResult = await fs.unzip('/zip-example/archive.zip', '/zip-example/extracted');
     unzipResult.inspect(() => log('✓ Extracted to /zip-example/extracted', 'success'));
-    unzipResult.inspectErr((err) => log(`✗ Failed to extract: ${err.message}`, 'error'));
+    unzipResult.inspectErr(err => log(`✗ Failed to extract: ${err.message}`, 'error'));
 
     // 4. List extracted files
     log('\n=== Extracted Directory Contents ===', 'info');
@@ -97,8 +100,10 @@ async function runExample(): Promise<void> {
         }
     }
 
-    const originalJson = await fs.readJsonFile<{ name: string; }>('/zip-example/source/data.json');
-    const extractedJson = await fs.readJsonFile<{ name: string; }>('/zip-example/extracted/source/data.json');
+    const originalJson = await fs.readJsonFile<{ name: string }>('/zip-example/source/data.json');
+    const extractedJson = await fs.readJsonFile<{ name: string }>(
+        '/zip-example/extracted/source/data.json',
+    );
 
     if (originalJson.isOk() && extractedJson.isOk()) {
         if (originalJson.unwrap().name === extractedJson.unwrap().name) {
@@ -137,7 +142,7 @@ async function listDirectory(path: string, indent: string): Promise<void> {
 }
 
 document.getElementById('run')!.addEventListener('click', () => {
-    runExample().catch((err) => {
+    runExample().catch(err => {
         log(`Unexpected error: ${err.message}`, 'error');
     });
 });
@@ -147,5 +152,5 @@ document.getElementById('cleanup')!.addEventListener('click', async () => {
     log('=== Cleaning Up ===', 'info');
     const result = await fs.remove('/zip-example');
     result.inspect(() => log('✓ Removed /zip-example directory', 'success'));
-    result.inspectErr((err) => log(`✗ Failed to cleanup: ${err.message}`, 'error'));
+    result.inspectErr(err => log(`✗ Failed to cleanup: ${err.message}`, 'error'));
 });

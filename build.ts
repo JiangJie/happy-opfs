@@ -291,8 +291,8 @@ for (const { name, file } of entries) {
 // additions automatically remain valid when both formats agree.
 const cjsSyncModule = createRequire(import.meta.url)(resolve(rootDir, 'dist/sync.cjs')) as CjsSyncModule;
 const esmSyncChannelModule = await import(pathToFileURL(resolve(rootDir, 'dist/SyncChannel.mjs')).href);
-const cjsSyncChannelKeys = Object.keys(cjsSyncModule.SyncChannel).sort();
-const esmSyncChannelKeys = Object.keys(esmSyncChannelModule).sort();
+const cjsSyncChannelKeys = Object.keys(cjsSyncModule.SyncChannel).toSorted();
+const esmSyncChannelKeys = Object.keys(esmSyncChannelModule).toSorted();
 if (cjsSyncChannelKeys.join() !== esmSyncChannelKeys.join()) {
     throw new Error(`CJS SyncChannel exports differ from ESM: ${ cjsSyncChannelKeys.join(', ') }`);
 }

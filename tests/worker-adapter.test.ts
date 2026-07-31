@@ -38,8 +38,8 @@ describe('Worker Adapter Edge Cases', () => {
                 type: 'module',
             });
 
-            const result = await new Promise<{ initialState: boolean; }>((resolve) => {
-                worker.addEventListener('message', (event) => {
+            const result = await new Promise<{ initialState: boolean }>(resolve => {
+                worker.addEventListener('message', event => {
                     resolve(event.data);
                     worker.terminate();
                 });
@@ -159,7 +159,9 @@ describe('Worker Adapter Edge Cases', () => {
         });
 
         it('should zip to file path with options', () => {
-            const result = fs.zipSync('/adapter-test', '/adapter-test.zip', { preserveRoot: false });
+            const result = fs.zipSync('/adapter-test', '/adapter-test.zip', {
+                preserveRoot: false,
+            });
             expect(result.isOk()).toBe(true);
             expect(fs.existsSync('/adapter-test.zip').unwrap()).toBe(true);
         });

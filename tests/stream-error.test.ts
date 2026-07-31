@@ -6,7 +6,7 @@ describe('Stream Error Handling', () => {
     it('should handle stream that throws error in start()', async () => {
         const errorStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
             start(controller) {
-                controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                controller.enqueue(new Uint8Array([1, 2, 3]));
                 controller.error(new Error('Stream error in start'));
             },
         });
@@ -22,7 +22,7 @@ describe('Stream Error Handling', () => {
             pull(controller) {
                 pullCount++;
                 if (pullCount === 1) {
-                    controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                    controller.enqueue(new Uint8Array([1, 2, 3]));
                 } else {
                     controller.error(new Error('Stream error in pull'));
                 }
@@ -52,7 +52,7 @@ describe('Stream Error Handling', () => {
             async pull(controller) {
                 pullCount++;
                 if (pullCount === 1) {
-                    controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                    controller.enqueue(new Uint8Array([1, 2, 3]));
                 } else {
                     throw new Error('Async pull rejection');
                 }
@@ -67,7 +67,7 @@ describe('Stream Error Handling', () => {
     it('should handle async start() with controller.error()', async () => {
         const errorStream = new ReadableStream<Uint8Array<ArrayBuffer>>({
             async start(controller) {
-                controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                controller.enqueue(new Uint8Array([1, 2, 3]));
                 controller.error(new Error('Async start controller error'));
             },
         });
@@ -83,7 +83,7 @@ describe('Stream Error Handling', () => {
             async pull(controller) {
                 pullCount++;
                 if (pullCount === 1) {
-                    controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                    controller.enqueue(new Uint8Array([1, 2, 3]));
                 } else {
                     controller.error(new Error('Async pull controller error'));
                 }
@@ -201,7 +201,7 @@ describe('peekStream', () => {
             pull(controller) {
                 pullCount++;
                 if (pullCount === 1) {
-                    controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                    controller.enqueue(new Uint8Array([1, 2, 3]));
                 } else {
                     throw new Error('Error during pull');
                 }

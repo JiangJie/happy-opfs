@@ -22,6 +22,19 @@ function log(message: string, isError = false): void {
     console.log(message);
 }
 
+// Helper function to list directory structure
+async function listStructure(dirPath: string): Promise<string[]> {
+    const entries: string[] = [];
+    const result = await fs.readDir(dirPath, { recursive: true });
+    if (result.isOk()) {
+        for await (const entry of result.unwrap()) {
+            const icon = fs.isFileHandle(entry.handle) ? '📄' : '📁';
+            entries.push(`${icon} ${entry.path}`);
+        }
+    }
+    return entries.toSorted();
+}
+
 async function runExample(): Promise<void> {
     output.textContent = '';
 
@@ -42,13 +55,13 @@ async function runExample(): Promise<void> {
     log('\n=== Creating Directories ===');
     const mkdirResult = await fs.mkdir('/example/data');
     mkdirResult.inspect(() => log('✓ Created /example/data'));
-    mkdirResult.inspectErr((err) => log(`✗ Failed to create directory: ${err.message}`, true));
+    mkdirResult.inspectErr(err => log(`✗ Failed to create directory: ${err.message}`, true));
 
     // 4. Write files
     log('\n=== Writing Files ===');
     const writeResult = await fs.writeFile('/example/data/hello.txt', 'Hello, OPFS!');
     writeResult.inspect(() => log('✓ Wrote /example/data/hello.txt'));
-    writeResult.inspectErr((err) => log(`✗ Failed to write file: ${err.message}`, true));
+    writeResult.inspectErr(err => log(`✗ Failed to write file: ${err.message}`, true));
 
     // Write JSON file
     const jsonResult = await fs.writeJsonFile('/example/data/config.json', {
@@ -57,23 +70,27 @@ async function runExample(): Promise<void> {
         features: ['read', 'write', 'zip'],
     });
     jsonResult.inspect(() => log('✓ Wrote /example/data/config.json'));
-    jsonResult.inspectErr((err) => log(`✗ Failed to write JSON: ${err.message}`, true));
+    jsonResult.inspectErr(err => log(`✗ Failed to write JSON: ${err.message}`, true));
 
     // 5. Read files
     log('\n=== Reading Files ===');
     const readResult = await fs.readTextFile('/example/data/hello.txt');
-    readResult.inspect((content) => log(`✓ Read hello.txt: "${content}"`));
-    readResult.inspectErr((err) => log(`✗ Failed to read file: ${err.message}`, true));
+    readResult.inspect(content => log(`✓ Read hello.txt: "${content}"`));
+    readResult.inspectErr(err => log(`✗ Failed to read file: ${err.message}`, true));
 
-    const jsonReadResult = await fs.readJsonFile<{ name: string; version: string; }>('/example/data/config.json');
-    jsonReadResult.inspect((data) => log(`✓ Read config.json: name=${data.name}, version=${data.version}`));
-    jsonReadResult.inspectErr((err) => log(`✗ Failed to read JSON: ${err.message}`, true));
+    const jsonReadResult = await fs.readJsonFile<{ name: string; version: string }>(
+        '/example/data/config.json',
+    );
+    jsonReadResult.inspect(data =>
+        log(`✓ Read config.json: name=${data.name}, version=${data.version}`),
+    );
+    jsonReadResult.inspectErr(err => log(`✗ Failed to read JSON: ${err.message}`, true));
 
     // 6. Copy file
     log('\n=== Copying Files ===');
     const copyResult = await fs.copy('/example/data/hello.txt', '/example/data/backup.txt');
     copyResult.inspect(() => log('✓ Copied hello.txt to backup.txt'));
-    copyResult.inspectErr((err) => log(`✗ Failed to copy file: ${err.message}`, true));
+    copyResult.inspectErr(err => log(`✗ Failed to copy file: ${err.message}`, true));
 
     // 6.1 Copy directory with structure comparison
     log('\n=== Copying Directory (Structure Comparison) ===');
@@ -82,19 +99,6 @@ async function runExample(): Promise<void> {
     await fs.mkdir('/example/copyTest/subFolder');
     await fs.writeFile('/example/copyTest/rootFile.txt', 'root content');
     await fs.writeFile('/example/copyTest/subFolder/nestedFile.txt', 'nested content');
-
-    // Helper function to list directory structure
-    async function listStructure(dirPath: string): Promise<string[]> {
-        const entries: string[] = [];
-        const result = await fs.readDir(dirPath, { recursive: true });
-        if (result.isOk()) {
-            for await (const entry of result.unwrap()) {
-                const icon = fs.isFileHandle(entry.handle) ? '📄' : '📁';
-                entries.push(`${icon} ${entry.path}`);
-            }
-        }
-        return entries.sort();
-    }
 
     // Show BEFORE structure
     log('Before copy - /example/copyTest structure:');
@@ -106,7 +110,7 @@ async function runExample(): Promise<void> {
     // Execute copy
     const dirCopyResult = await fs.copy('/example/copyTest', '/example/copyTestDest');
     dirCopyResult.inspect(() => log('✓ Copied /example/copyTest to /example/copyTestDest'));
-    dirCopyResult.inspectErr((err) => log(`✗ Failed to copy directory: ${err.message}`, true));
+    dirCopyResult.inspectErr(err => log(`✗ Failed to copy directory: ${err.message}`, true));
 
     // Show AFTER structure
     log('After copy - /example/copyTestDest structure:');
@@ -129,15 +133,15 @@ async function runExample(): Promise<void> {
     log('\n=== Moving Files ===');
     const moveResult = await fs.move('/example/data/hello.txt', '/example/data/renamed.txt');
     moveResult.inspect(() => log('✓ Moved hello.txt to renamed.txt'));
-    moveResult.inspectErr((err) => log(`✗ Failed to move file: ${err.message}`, true));
+    moveResult.inspectErr(err => log(`✗ Failed to move file: ${err.message}`, true));
 
     // 8. Check if file exists
     log('\n=== Checking Existence ===');
     const existsOldResult = await fs.exists('/example/data/hello.txt');
-    existsOldResult.inspect((exists) => log(`✓ hello.txt exists: ${exists}`));
+    existsOldResult.inspect(exists => log(`✓ hello.txt exists: ${exists}`));
 
     const existsNewResult = await fs.exists('/example/data/renamed.txt');
-    existsNewResult.inspect((exists) => log(`✓ renamed.txt exists: ${exists}`));
+    existsNewResult.inspect(exists => log(`✓ renamed.txt exists: ${exists}`));
 
     // 9. Get file stats
     log('\n=== File Stats ===');
@@ -173,23 +177,23 @@ async function runExample(): Promise<void> {
     log('\n=== Appending to File ===');
     const appendResult = await fs.appendFile('/example/data/renamed.txt', '\nAppended text!');
     appendResult.inspect(() => log('✓ Appended to renamed.txt'));
-    appendResult.inspectErr((err) => log(`✗ Failed to append: ${err.message}`, true));
+    appendResult.inspectErr(err => log(`✗ Failed to append: ${err.message}`, true));
 
     const appendedContent = await fs.readTextFile('/example/data/renamed.txt');
-    appendedContent.inspect((content) => log(`✓ New content: "${content}"`));
-    appendedContent.inspectErr((err) => log(`✗ Failed to read: ${err.message}`, true));
+    appendedContent.inspect(content => log(`✓ New content: "${content}"`));
+    appendedContent.inspectErr(err => log(`✗ Failed to read: ${err.message}`, true));
 
     // 12. Clean up
     log('\n=== Final Cleanup ===');
     const removeResult = await fs.remove('/example');
     removeResult.inspect(() => log('✓ Removed /example directory'));
-    removeResult.inspectErr((err) => log(`✗ Failed to remove: ${err.message}`, true));
+    removeResult.inspectErr(err => log(`✗ Failed to remove: ${err.message}`, true));
 
     log('\n=== Example Complete ===');
 }
 
 document.getElementById('run')!.addEventListener('click', () => {
-    runExample().catch((err) => {
+    runExample().catch(err => {
         log(`Unexpected error: ${err.message}`, true);
     });
 });

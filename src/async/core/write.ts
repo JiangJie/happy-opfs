@@ -1,5 +1,10 @@
 import { tryAsyncResult, type AsyncIOResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { readBlobBytesSync, toBytesView, validateAbsolutePath, validateWriteFileContent } from '../../shared/internal/mod.ts';
+import {
+    readBlobBytesSync,
+    toBytesView,
+    validateAbsolutePath,
+    validateWriteFileContent,
+} from '../../shared/internal/mod.ts';
 import type { WriteFileContent, WriteOptions } from '../../shared/mod.ts';
 import { generateTempPath } from '../../shared/mod.ts';
 import { getFileHandle, isNotFoundError, moveFileHandle } from '../internal/mod.ts';
@@ -36,7 +41,11 @@ import { remove } from './remove.ts';
  * await writeFile('/path/to/file.txt', '\nMore content', { append: true });
  * ```
  */
-export async function writeFile(filePath: string, contents: WriteFileContent, options?: WriteOptions): AsyncVoidIOResult {
+export async function writeFile(
+    filePath: string,
+    contents: WriteFileContent,
+    options?: WriteOptions,
+): AsyncVoidIOResult {
     const filePathRes = validateAbsolutePath(filePath);
     if (filePathRes.isErr()) return filePathRes.asErr();
     filePath = filePathRes.unwrap();
@@ -88,7 +97,10 @@ export async function writeFile(filePath: string, contents: WriteFileContent, op
  *     });
  * ```
  */
-export async function openWritableFileStream(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemWritableFileStream> {
+export async function openWritableFileStream(
+    filePath: string,
+    options?: WriteOptions,
+): AsyncIOResult<FileSystemWritableFileStream> {
     const filePathRes = validateAbsolutePath(filePath);
     if (filePathRes.isErr()) return filePathRes.asErr();
     filePath = filePathRes.unwrap();
@@ -120,7 +132,10 @@ export async function openWritableFileStream(filePath: string, options?: WriteOp
 /**
  * Gets a file handle for writing, with optional creation.
  */
-function getWriteFileHandle(filePath: string, options?: WriteOptions): AsyncIOResult<FileSystemFileHandle> {
+function getWriteFileHandle(
+    filePath: string,
+    options?: WriteOptions,
+): AsyncIOResult<FileSystemFileHandle> {
     const { create = true } = options ?? {};
     return getFileHandle(filePath, { create });
 }
@@ -295,9 +310,8 @@ async function writeDataViaSyncAccess(
         // Always write as Uint8Array to avoid copying buffer.
         // Blob must be handled separately (readBlobBytesSync) before toBytesView,
         // since toBytesView does not accept Blob.
-        const bytes = contents instanceof Blob
-            ? readBlobBytesSync(contents)
-            : toBytesView(contents);
+        const bytes =
+            contents instanceof Blob ? readBlobBytesSync(contents) : toBytesView(contents);
 
         if (!append) {
             accessHandle.truncate(0);

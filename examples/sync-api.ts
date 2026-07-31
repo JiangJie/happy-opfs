@@ -84,37 +84,37 @@ async function runExample(): Promise<void> {
     log('Creating directory...', 'info');
     const mkdirResult = mkdirSync('/sync-example/data');
     mkdirResult.inspect(() => log('✓ mkdirSync: Created /sync-example/data', 'success'));
-    mkdirResult.inspectErr((err) => log(`✗ mkdirSync failed: ${err.message}`, 'error'));
+    mkdirResult.inspectErr(err => log(`✗ mkdirSync failed: ${err.message}`, 'error'));
 
     // Write file (sync)
     log('Writing file...', 'info');
     const writeResult = writeFileSync('/sync-example/data/test.txt', 'Hello from sync API!');
     writeResult.inspect(() => log('✓ writeFileSync: Wrote test.txt', 'success'));
-    writeResult.inspectErr((err) => log(`✗ writeFileSync failed: ${err.message}`, 'error'));
+    writeResult.inspectErr(err => log(`✗ writeFileSync failed: ${err.message}`, 'error'));
 
     // Check existence (sync)
     log('Checking existence...', 'info');
     const existsResult = existsSync('/sync-example/data/test.txt');
-    existsResult.inspect((exists) => log(`✓ existsSync: File exists = ${exists}`, 'success'));
-    existsResult.inspectErr((err) => log(`✗ existsSync failed: ${err.message}`, 'error'));
+    existsResult.inspect(exists => log(`✓ existsSync: File exists = ${exists}`, 'success'));
+    existsResult.inspectErr(err => log(`✗ existsSync failed: ${err.message}`, 'error'));
 
     // Read file (sync)
     log('Reading file...', 'info');
     const readResult = readTextFileSync('/sync-example/data/test.txt');
-    readResult.inspect((content) => log(`✓ readTextFileSync: Content = "${content}"`, 'success'));
-    readResult.inspectErr((err) => log(`✗ readTextFileSync failed: ${err.message}`, 'error'));
+    readResult.inspect(content => log(`✓ readTextFileSync: Content = "${content}"`, 'success'));
+    readResult.inspectErr(err => log(`✗ readTextFileSync failed: ${err.message}`, 'error'));
 
     // Get stats (sync) - returns FileSystemHandleLike
     log('Getting file stats...', 'info');
     const statResult = statSync('/sync-example/data/test.txt');
-    statResult.inspect((handleLike) => {
+    statResult.inspect(handleLike => {
         if (isFileHandleLike(handleLike)) {
             log(`✓ statSync: size=${handleLike.size}, kind=${handleLike.kind}`, 'success');
         } else {
             log(`✓ statSync: kind=${handleLike.kind}`, 'success');
         }
     });
-    statResult.inspectErr((err) => log(`✗ statSync failed: ${err.message}`, 'error'));
+    statResult.inspectErr(err => log(`✗ statSync failed: ${err.message}`, 'error'));
 
     // Performance comparison
     log('\n=== Performance Note ===', 'info');
@@ -125,13 +125,13 @@ async function runExample(): Promise<void> {
     log('\n=== Final Cleanup ===', 'info');
     const removeResult = removeSync('/sync-example');
     removeResult.inspect(() => log('✓ removeSync: Removed /sync-example', 'success'));
-    removeResult.inspectErr((err) => log(`✗ removeSync failed: ${err.message}`, 'error'));
+    removeResult.inspectErr(err => log(`✗ removeSync failed: ${err.message}`, 'error'));
 
     log('\n=== Example Complete ===', 'info');
 }
 
 document.getElementById('run')!.addEventListener('click', () => {
-    runExample().catch((err) => {
+    runExample().catch(err => {
         log(`Unexpected error: ${err.message}`, 'error');
     });
 });

@@ -52,7 +52,10 @@ describe('zip.ts with mocked FileReaderSync', () => {
         await writeFile('/zip-filereader-mock-test/test.txt', 'Hello World');
 
         // This should trigger the FileReaderSync code path
-        const result = await zip('/zip-filereader-mock-test/test.txt', '/zip-filereader-mock-test/test.zip');
+        const result = await zip(
+            '/zip-filereader-mock-test/test.txt',
+            '/zip-filereader-mock-test/test.zip',
+        );
 
         expect(result.isOk()).toBe(true);
     });

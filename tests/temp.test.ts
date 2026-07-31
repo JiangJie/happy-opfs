@@ -134,7 +134,9 @@ describe('OPFS Temporary File Operations', () => {
             // Create temp files
             const filePath = (await fs.mkTemp({ basename: 'prune-file' })).unwrap();
             // Create temp directory - this should be skipped by pruneTemp
-            const dirPath = (await fs.mkTemp({ basename: 'prune-dir', isDirectory: true })).unwrap();
+            const dirPath = (
+                await fs.mkTemp({ basename: 'prune-dir', isDirectory: true })
+            ).unwrap();
             // Create a file inside the temp directory
             await fs.writeFile(`${dirPath}/nested.txt`, 'nested content');
 

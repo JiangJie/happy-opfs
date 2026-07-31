@@ -9,11 +9,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 let mockGetFileShouldFail = false;
 
 // Mock getFileHandle to return a handle where getFile() fails
-vi.mock('../src/async/internal/helpers.ts', async (importOriginal) => {
+vi.mock('../src/async/internal/helpers.ts', async importOriginal => {
     const original = await importOriginal<typeof import('../src/async/internal/helpers.ts')>();
     return {
         ...original,
-        getFileHandle: async (path: string, options?: { create?: boolean; }) => {
+        getFileHandle: async (path: string, options?: { create?: boolean }) => {
             const result = await original.getFileHandle(path, options);
             if (result.isOk() && mockGetFileShouldFail) {
                 const realHandle = result.unwrap();
@@ -21,7 +21,8 @@ vi.mock('../src/async/internal/helpers.ts', async (importOriginal) => {
                 return Ok({
                     kind: 'file',
                     name: realHandle.name,
-                    createWritable: (opts?: FileSystemCreateWritableOptions) => realHandle.createWritable(opts),
+                    createWritable: (opts?: FileSystemCreateWritableOptions) =>
+                        realHandle.createWritable(opts),
                     getFile: () => Promise.reject(new Error('Mocked getFile error')),
                 } as FileSystemFileHandle);
             }

@@ -181,7 +181,9 @@ describe('Worker Operations Coverage', () => {
             fs.mkdirSync('/worker-op-dest');
             fs.writeFileSync('/worker-op-dest/target.txt', 'old');
 
-            const result = fs.moveSync('/worker-op-file.txt', '/worker-op-dest/target.txt', { overwrite: true });
+            const result = fs.moveSync('/worker-op-file.txt', '/worker-op-dest/target.txt', {
+                overwrite: true,
+            });
             expect(result.isOk()).toBe(true);
 
             expect(fs.readTextFileSync('/worker-op-dest/target.txt').unwrap()).toBe('new');
@@ -203,7 +205,9 @@ describe('Worker Operations Coverage', () => {
             fs.mkdirSync('/worker-op-dest');
             fs.writeFileSync('/worker-op-dest/target.txt', 'old');
 
-            const result = fs.copySync('/worker-op-file.txt', '/worker-op-dest/target.txt', { overwrite: true });
+            const result = fs.copySync('/worker-op-file.txt', '/worker-op-dest/target.txt', {
+                overwrite: true,
+            });
             expect(result.isOk()).toBe(true);
 
             expect(fs.readTextFileSync('/worker-op-dest/target.txt').unwrap()).toBe('new');
@@ -250,7 +254,9 @@ describe('Worker Operations Coverage', () => {
             fs.writeFileSync('/worker-op-file.txt', 'content');
             fs.mkdirSync('/worker-op-test');
 
-            expect(fs.existsSync('/worker-op-file.txt', { isDirectory: true }).unwrap()).toBe(false);
+            expect(fs.existsSync('/worker-op-file.txt', { isDirectory: true }).unwrap()).toBe(
+                false,
+            );
             expect(fs.existsSync('/worker-op-test', { isDirectory: true }).unwrap()).toBe(true);
         });
     });
@@ -398,7 +404,9 @@ describe('Worker Operations Coverage', () => {
             expect(result.isOk()).toBe(true);
 
             // Verify extraction
-            expect(fs.existsSync('/worker-op-dest/extracted/worker-op-test/file.txt').unwrap()).toBe(true);
+            expect(
+                fs.existsSync('/worker-op-dest/extracted/worker-op-test/file.txt').unwrap(),
+            ).toBe(true);
         });
     });
 

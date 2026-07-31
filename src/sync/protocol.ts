@@ -59,7 +59,7 @@ export const WorkerOp = {
 /**
  * Worker operation type.
  */
-export type WorkerOp = typeof WorkerOp[keyof typeof WorkerOp];
+export type WorkerOp = (typeof WorkerOp)[keyof typeof WorkerOp];
 
 /**
  * Main thread lock index in the Int32Array view of SharedArrayBuffer.

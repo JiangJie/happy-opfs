@@ -83,7 +83,7 @@ async function createTestFile(filePath: string, size: number): Promise<void> {
     for (let i = 0; i < size; i++) {
         data[i] = (i * 17 + 13) % 256;
     }
-    const res = await writeFile(filePath, data as Uint8Array<ArrayBuffer>);
+    const res = await writeFile(filePath, data);
     if (res.isErr()) {
         throw res.unwrapErr();
     }
@@ -112,7 +112,7 @@ interface MemorySample {
 async function runWithMemorySampling<T>(
     fn: () => Promise<T>,
     intervalMs = 10,
-): Promise<{ result: T; samples: MemorySample[]; peakMemory: number; }> {
+): Promise<{ result: T; samples: MemorySample[]; peakMemory: number }> {
     const samples: MemorySample[] = [];
     let peakMemory = 0;
     let sampling = true;
@@ -167,7 +167,10 @@ async function runBenchmark(
             peakMemories.push(peakMemory);
 
             const peakIncrease = peakMemory - memBefore;
-            log(`  Iteration ${i + 1}: ${formatTime(elapsed)}, peak mem: +${formatBytes(peakIncrease)}`, 'info');
+            log(
+                `  Iteration ${i + 1}: ${formatTime(elapsed)}, peak mem: +${formatBytes(peakIncrease)}`,
+                'info',
+            );
         } else {
             await fn();
             const elapsed = performance.now() - start;
@@ -179,7 +182,7 @@ async function runBenchmark(
     const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
     const minTime = Math.min(...times);
     const maxTime = Math.max(...times);
-    const throughput = (dataSize / 1024 / 1024) / (avgTime / 1000);
+    const throughput = dataSize / 1024 / 1024 / (avgTime / 1000);
 
     const peakMemory = peakMemories.length > 0 ? Math.max(...peakMemories) : -1;
 
@@ -206,7 +209,7 @@ async function benchmarkBatchRead(
             // Simulate processing: compute checksum
             let checksum = 0;
             for (let i = 0; i < data.length; i += 1024) {
-                checksum += data[i]!;
+                checksum += data[i];
             }
             // Prevent optimization from removing the read
             if (checksum < 0) console.log(checksum);
@@ -242,7 +245,7 @@ async function benchmarkStreamRead(
                 if (done) break;
                 // Process chunk without keeping reference
                 for (let i = 0; i < value.length; i += 1024) {
-                    checksum += value[i]!;
+                    checksum += value[i];
                 }
             }
             // Prevent optimization from removing the read
@@ -273,7 +276,7 @@ async function benchmarkBatchReadWithCopy(
             // Simulate transform: create a modified copy (doubles memory)
             const transformed = new Uint8Array(data.length);
             for (let i = 0; i < data.length; i++) {
-                transformed[i] = (data[i]! + 1) % 256;
+                transformed[i] = (data[i] + 1) % 256;
             }
             // Prevent optimization
             if (transformed[0] === 255) console.log('unlikely');
@@ -310,7 +313,7 @@ async function benchmarkStreamReadWithTransform(
 
                 // Transform chunk (modify in place, no additional memory)
                 for (let i = 0; i < value.length; i++) {
-                    value[i] = (value[i]! + 1) % 256;
+                    value[i] = (value[i] + 1) % 256;
                 }
                 totalProcessed += value.length;
                 // Chunk can now be GC'd
@@ -332,11 +335,17 @@ function printResults(results: BenchmarkResult[]): void {
 
     for (const r of results) {
         log(`\n${r.name}:`, 'result');
-        log(`  Time:       Avg ${formatTime(r.avgTime)}, Min ${formatTime(r.minTime)}, Max ${formatTime(r.maxTime)}`, 'result');
+        log(
+            `  Time:       Avg ${formatTime(r.avgTime)}, Min ${formatTime(r.minTime)}, Max ${formatTime(r.maxTime)}`,
+            'result',
+        );
         log(`  Throughput: ${r.throughput.toFixed(2)} MB/s`, 'result');
         if (trackMemory && r.peakMemory >= 0) {
             const peakIncrease = r.peakMemory - r.baselineMemory;
-            log(`  Peak Memory: ${formatBytes(r.peakMemory)} (+${formatBytes(peakIncrease)} from baseline)`, 'result');
+            log(
+                `  Peak Memory: ${formatBytes(r.peakMemory)} (+${formatBytes(peakIncrease)} from baseline)`,
+                'result',
+            );
         }
     }
 
@@ -347,14 +356,20 @@ function printResults(results: BenchmarkResult[]): void {
     if (batchSimple && streamSimple) {
         log(`\n${'─'.repeat(70)}`, 'info');
         const timeRatio = streamSimple.avgTime / batchSimple.avgTime;
-        log(`Simple Read - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`, 'header');
+        log(
+            `Simple Read - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`,
+            'header',
+        );
 
         if (trackMemory && batchSimple.peakMemory >= 0 && streamSimple.peakMemory >= 0) {
             const batchPeakIncrease = batchSimple.peakMemory - batchSimple.baselineMemory;
             const streamPeakIncrease = streamSimple.peakMemory - streamSimple.baselineMemory;
             if (streamPeakIncrease > 0) {
                 const memRatio = batchPeakIncrease / streamPeakIncrease;
-                log(`Simple Read - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`, 'header');
+                log(
+                    `Simple Read - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`,
+                    'header',
+                );
             }
         }
     }
@@ -365,14 +380,20 @@ function printResults(results: BenchmarkResult[]): void {
 
     if (batchTransform && streamTransform) {
         const timeRatio = streamTransform.avgTime / batchTransform.avgTime;
-        log(`With Transform - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`, 'header');
+        log(
+            `With Transform - Time: Stream is ${timeRatio.toFixed(2)}x ${timeRatio > 1 ? 'slower' : 'faster'} than Batch`,
+            'header',
+        );
 
         if (trackMemory && batchTransform.peakMemory >= 0 && streamTransform.peakMemory >= 0) {
             const batchPeakIncrease = batchTransform.peakMemory - batchTransform.baselineMemory;
             const streamPeakIncrease = streamTransform.peakMemory - streamTransform.baselineMemory;
             if (streamPeakIncrease > 0) {
                 const memRatio = batchPeakIncrease / streamPeakIncrease;
-                log(`With Transform - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`, 'header');
+                log(
+                    `With Transform - Memory: Batch peak is ${memRatio.toFixed(2)}x ${memRatio > 1 ? 'higher' : 'lower'} than Stream`,
+                    'header',
+                );
             }
         }
     }
@@ -391,7 +412,7 @@ function printResults(results: BenchmarkResult[]): void {
 // Main Entry Points
 // ============================================================================
 
-function getConfig(): { fileSize: number; iterations: number; } {
+function getConfig(): { fileSize: number; iterations: number } {
     return {
         fileSize: parseInt((document.getElementById('fileSize') as HTMLSelectElement).value, 10),
         iterations: parseInt((document.getElementById('iterations') as HTMLInputElement).value, 10),
@@ -400,7 +421,7 @@ function getConfig(): { fileSize: number; iterations: number; } {
 
 function setButtonsDisabled(disabled: boolean): void {
     document.querySelectorAll('button').forEach(btn => {
-        (btn as HTMLButtonElement).disabled = disabled;
+        btn.disabled = disabled;
     });
 }
 
@@ -416,7 +437,9 @@ async function runAllBenchmarks(): Promise<void> {
     log('='.repeat(70), 'header');
     log(`File Size: ${formatBytes(fileSize)}`);
     log(`Iterations: ${iterations}`);
-    log(`Memory API: ${hasMemoryAPI() ? 'Available (sampling every 10ms)' : 'Not available (Chrome only)'}`);
+    log(
+        `Memory API: ${hasMemoryAPI() ? 'Available (sampling every 10ms)' : 'Not available (Chrome only)'}`,
+    );
 
     try {
         await createTestFile(testFilePath, fileSize);

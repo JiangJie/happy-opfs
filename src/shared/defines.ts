@@ -8,7 +8,11 @@ import type { FetchInit } from '@happy-ts/fetch-t';
  *
  * @since 1.0.0
  */
-export type WriteFileContent = BufferSource | Blob | string | ReadableStream<Uint8Array<ArrayBuffer>>;
+export type WriteFileContent =
+    | BufferSource
+    | Blob
+    | string
+    | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Represents the possible content types that can be written to a file synchronously.
@@ -16,7 +20,10 @@ export type WriteFileContent = BufferSource | Blob | string | ReadableStream<Uin
  *
  * @since 1.7.0
  */
-export type WriteSyncFileContent = Exclude<WriteFileContent, Blob | ReadableStream<Uint8Array<ArrayBuffer>>>;
+export type WriteSyncFileContent = Exclude<
+    WriteFileContent,
+    Blob | ReadableStream<Uint8Array<ArrayBuffer>>
+>;
 
 /**
  * Represents the possible content types that can be read from a file.
@@ -28,7 +35,11 @@ export type WriteSyncFileContent = Exclude<WriteFileContent, Blob | ReadableStre
  *
  * @since 1.0.0
  */
-export type ReadFileContent = Uint8Array<ArrayBuffer> | File | string | ReadableStream<Uint8Array<ArrayBuffer>>;
+export type ReadFileContent =
+    | Uint8Array<ArrayBuffer>
+    | File
+    | string
+    | ReadableStream<Uint8Array<ArrayBuffer>>;
 
 /**
  * Represents the possible content types for synchronous file reads.
@@ -165,29 +176,29 @@ export interface ReadDirOptions extends ReadDirSyncOptions {
  */
 export type ExistsOptions =
     | {
-        /**
-         * Whether to check for the existence of a directory.
-         * @defaultValue `false`
-         */
-        isDirectory?: boolean;
-        /**
-         * Must be `false` or omitted when `isDirectory` is `true`.
-         * @defaultValue `false`
-         */
-        isFile?: false;
-    }
+          /**
+           * Whether to check for the existence of a directory.
+           * @defaultValue `false`
+           */
+          isDirectory?: boolean;
+          /**
+           * Must be `false` or omitted when `isDirectory` is `true`.
+           * @defaultValue `false`
+           */
+          isFile?: false;
+      }
     | {
-        /**
-         * Must be `false` or omitted when `isFile` is `true`.
-         * @defaultValue `false`
-         */
-        isDirectory?: false;
-        /**
-         * Whether to check for the existence of a file.
-         * @defaultValue `false`
-         */
-        isFile?: boolean;
-    };
+          /**
+           * Must be `false` or omitted when `isFile` is `true`.
+           * @defaultValue `false`
+           */
+          isDirectory?: false;
+          /**
+           * Whether to check for the existence of a file.
+           * @defaultValue `false`
+           */
+          isFile?: boolean;
+      };
 
 /**
  * Options for `copy`.
@@ -384,45 +395,45 @@ export interface FileSystemDirectoryHandleLike extends FileSystemHandleLike {
  */
 export type TempOptions =
     | {
-        /**
-         * Whether to create a directory.
-         * eg: `mktemp -d`
-         * @defaultValue `false`
-         */
-        isDirectory?: boolean;
+          /**
+           * Whether to create a directory.
+           * eg: `mktemp -d`
+           * @defaultValue `false`
+           */
+          isDirectory?: boolean;
 
-        /**
-         * The basename of the file or directory.
-         * eg: `mktemp -t basename.XXX`
-         * @defaultValue `tmp`
-         */
-        basename?: string;
+          /**
+           * The basename of the file or directory.
+           * eg: `mktemp -t basename.XXX`
+           * @defaultValue `tmp`
+           */
+          basename?: string;
 
-        /**
-         * Must be omitted when `isDirectory` is `true`.
-         */
-        extname?: never;
-    }
+          /**
+           * Must be omitted when `isDirectory` is `true`.
+           */
+          extname?: never;
+      }
     | {
-        /**
-         * Must be `false` or omitted when `extname` is provided.
-         * @defaultValue `false`
-         */
-        isDirectory?: false;
+          /**
+           * Must be `false` or omitted when `extname` is provided.
+           * @defaultValue `false`
+           */
+          isDirectory?: false;
 
-        /**
-         * The basename of the file or directory.
-         * eg: `mktemp -t basename.XXX`
-         * @defaultValue `tmp`
-         */
-        basename?: string;
+          /**
+           * The basename of the file or directory.
+           * eg: `mktemp -t basename.XXX`
+           * @defaultValue `tmp`
+           */
+          basename?: string;
 
-        /**
-         * The extension of the file.
-         * eg: `mktemp --suffix .txt`
-         */
-        extname?: string;
-    };
+          /**
+           * The extension of the file.
+           * eg: `mktemp --suffix .txt`
+           */
+          extname?: string;
+      };
 
 // ==================== Archive Options ====================
 

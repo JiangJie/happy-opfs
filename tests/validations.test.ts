@@ -3,7 +3,12 @@
  * Tests: validateAbsolutePath, validateUrl, validateExistsOptions, validateExpiredDate
  */
 import { describe, expect, it } from 'vitest';
-import { validateAbsolutePath, validateExistsOptions, validateExpiredDate, validateUrl } from '../src/shared/internal/mod.ts';
+import {
+    validateAbsolutePath,
+    validateExistsOptions,
+    validateExpiredDate,
+    validateUrl,
+} from '../src/shared/internal/mod.ts';
 
 describe('Validations', () => {
     describe('validateAbsolutePath', () => {
@@ -241,7 +246,7 @@ describe('Validations', () => {
             expect(err.message).toContain('Date');
         });
 
-        it('should return Err for invalid Date (NaN time) ', () => {
+        it('should return Err for invalid Date (NaN time)', () => {
             // new Date('invalid') creates a Date instance but getTime() returns NaN
             const invalidDate = new Date('invalid');
             expect(invalidDate instanceof Date).toBe(true);

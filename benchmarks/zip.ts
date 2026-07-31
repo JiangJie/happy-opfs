@@ -78,7 +78,9 @@ async function runBenchmark(config: BenchmarkConfig): Promise<void> {
 
     log(`Async: ${(asyncTime / iterations).toFixed(2)} ms/op`);
     log(`Sync:  ${(syncTime / iterations).toFixed(2)} ms/op`);
-    log(`Ratio: ${(asyncTime / syncTime).toFixed(2)}x (${asyncTime < syncTime ? 'async faster' : 'sync faster'})`);
+    log(
+        `Ratio: ${(asyncTime / syncTime).toFixed(2)}x (${asyncTime < syncTime ? 'async faster' : 'sync faster'})`,
+    );
 }
 
 async function runAllBenchmarks(): Promise<void> {
@@ -99,7 +101,7 @@ async function runAllBenchmarks(): Promise<void> {
 }
 
 document.getElementById('run')!.addEventListener('click', () => {
-    runAllBenchmarks().catch((err) => {
+    runAllBenchmarks().catch(err => {
         log(`Error: ${err.message}`);
     });
 });

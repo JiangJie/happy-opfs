@@ -24,6 +24,10 @@
  */
 
 // Main thread APIs
-export { attachSyncChannel as attach, connectSyncChannel as connect, isSyncChannelReady as isReady } from './connect.ts';
+export {
+    attachSyncChannel as attach,
+    connectSyncChannel as connect,
+    isSyncChannelReady as isReady,
+} from './connect.ts';
 // Worker thread API
 export { listenSyncChannel as listen } from './listen.ts';

@@ -1,5 +1,13 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+    existsSync,
+    mkdirSync,
+    mkdtempSync,
+    readFileSync,
+    readdirSync,
+    rmSync,
+    writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -12,7 +20,7 @@ interface PackageJson {
 const PACKAGE_DIR = import.meta.dirname;
 
 // Keep child-process output unchanged; only this script's status lines are colored.
-const useColor = process.stdout.isTTY === true && process.env['NO_COLOR'] === undefined;
+const useColor = process.stdout.isTTY && process.env['NO_COLOR'] === undefined;
 
 function colorize(code: number, value: string): string {
     return useColor ? `\u001b[${code}m${value}\u001b[0m` : value;
@@ -74,7 +82,10 @@ const packageJson = readPackageJson(join(PACKAGE_DIR, 'package.json'));
 const packageName = packageJson.name;
 const typescriptVersion = packageJson.devDependencies?.['typescript'];
 ensure(typeof packageName === 'string', 'package.json must define a package name');
-ensure(typeof typescriptVersion === 'string', 'package.json must define TypeScript in devDependencies');
+ensure(
+    typeof typescriptVersion === 'string',
+    'package.json must define TypeScript in devDependencies',
+);
 
 const tempDir = mkdtempSync(join(tmpdir(), 'happy-opfs-verify-'));
 
@@ -92,30 +103,29 @@ try {
     run('pnpm', ['exec', 'publint', tarballPath, '--strict']);
 
     step('Running Are the Types Wrong');
-    run('pnpm', [
-        'exec',
-        'attw',
-        tarballPath,
-        '--profile',
-        'strict',
-        '--no-color',
-        '--no-emoji',
-    ]);
+    run('pnpm', ['exec', 'attw', tarballPath, '--profile', 'strict', '--no-color', '--no-emoji']);
 
     step('Installing tarball into a temporary consumer');
     const consumerDir = join(tempDir, 'consumer');
     mkdirSync(consumerDir, { recursive: true });
-    writeFileSync(join(consumerDir, 'package.json'), `${JSON.stringify({
-        name: 'happy-opfs-package-consumer',
-        private: true,
-        type: 'module',
-        dependencies: {
-            [packageName]: `file:${tarballPath}`,
-        },
-        devDependencies: {
-            typescript: typescriptVersion,
-        },
-    }, null, 2)}\n`);
+    writeFileSync(
+        join(consumerDir, 'package.json'),
+        `${JSON.stringify(
+            {
+                name: 'happy-opfs-package-consumer',
+                private: true,
+                type: 'module',
+                dependencies: {
+                    [packageName]: `file:${tarballPath}`,
+                },
+                devDependencies: {
+                    typescript: typescriptVersion,
+                },
+            },
+            null,
+            2,
+        )}\n`,
+    );
     run('pnpm', ['install', '--ignore-scripts', '--prefer-offline'], consumerDir);
 
     const installedPackageDir = join(consumerDir, 'node_modules', packageName);
@@ -135,53 +145,73 @@ try {
             `Packed export target does not exist: ${target}`,
         );
     }
-    ensure(!existsSync(join(installedPackageDir, 'src')), 'src/ must not be included in the npm package');
+    ensure(
+        !existsSync(join(installedPackageDir, 'src')),
+        'src/ must not be included in the npm package',
+    );
 
     step('Comparing CJS and ESM runtime exports');
-    writeFileSync(join(consumerDir, 'cjs-smoke.cjs'), [
-        `const packageNamespace = require(${JSON.stringify(packageName)});`,
-        'process.stdout.write(JSON.stringify(Object.keys(packageNamespace).sort()));',
-        '',
-    ].join('\n'));
-    writeFileSync(join(consumerDir, 'esm-smoke.mjs'), [
-        `const packageNamespace = await import(${JSON.stringify(packageName)});`,
-        'process.stdout.write(JSON.stringify(Object.keys(packageNamespace).sort()));',
-        '',
-    ].join('\n'));
+    writeFileSync(
+        join(consumerDir, 'cjs-smoke.cjs'),
+        [
+            `const packageNamespace = require(${JSON.stringify(packageName)});`,
+            'process.stdout.write(JSON.stringify(Object.keys(packageNamespace).sort()));',
+            '',
+        ].join('\n'),
+    );
+    writeFileSync(
+        join(consumerDir, 'esm-smoke.mjs'),
+        [
+            `const packageNamespace = await import(${JSON.stringify(packageName)});`,
+            'process.stdout.write(JSON.stringify(Object.keys(packageNamespace).sort()));',
+            '',
+        ].join('\n'),
+    );
 
     const cjsExports = runCapture('node', ['cjs-smoke.cjs'], consumerDir);
     const esmExports = runCapture('node', ['esm-smoke.mjs'], consumerDir);
-    ensure(cjsExports === esmExports, `CJS and ESM exports differ:\nCJS: ${cjsExports}\nESM: ${esmExports}`);
+    ensure(
+        cjsExports === esmExports,
+        `CJS and ESM exports differ:\nCJS: ${cjsExports}\nESM: ${esmExports}`,
+    );
 
     step('Type-checking the package from a bundler consumer');
-    writeFileSync(join(consumerDir, 'type-check.ts'), [
-        `import * as packageNamespace from ${JSON.stringify(packageName)};`,
-        '',
-        'void packageNamespace;',
-        '',
-    ].join('\n'));
-    writeFileSync(join(consumerDir, 'tsconfig.json'), `${JSON.stringify({
-        compilerOptions: {
-            target: 'ESNext',
-            module: 'ESNext',
-            moduleDetection: 'force',
-            moduleResolution: 'bundler',
-            lib: ['ESNext', 'DOM', 'DOM.Iterable'],
-            strict: true,
-            noEmit: true,
-            skipLibCheck: false,
-        },
-        include: ['type-check.ts'],
-    }, null, 2)}\n`);
+    writeFileSync(
+        join(consumerDir, 'type-check.ts'),
+        [
+            `import * as packageNamespace from ${JSON.stringify(packageName)};`,
+            '',
+            'void packageNamespace;',
+            '',
+        ].join('\n'),
+    );
+    writeFileSync(
+        join(consumerDir, 'tsconfig.json'),
+        `${JSON.stringify(
+            {
+                compilerOptions: {
+                    target: 'ESNext',
+                    module: 'ESNext',
+                    moduleDetection: 'force',
+                    moduleResolution: 'bundler',
+                    lib: ['ESNext', 'DOM', 'DOM.Iterable'],
+                    strict: true,
+                    noEmit: true,
+                    skipLibCheck: false,
+                },
+                include: ['type-check.ts'],
+            },
+            null,
+            2,
+        )}\n`,
+    );
     run('pnpm', ['exec', 'tsc', '--project', 'tsconfig.json'], consumerDir);
 
     console.log(green(bold('\n✓ All package checks passed')));
-}
-catch (error) {
+} catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`\n${red(`✗ Package verification failed: ${message}`)}`);
     process.exitCode = 1;
-}
-finally {
+} finally {
     rmSync(tempDir, { recursive: true, force: true });
 }

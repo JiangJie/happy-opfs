@@ -8,7 +8,12 @@
 
 import { normalize } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type IOResult, type VoidIOResult } from 'happy-rusty';
-import { ROOT_DIR, type ExistsOptions, type WriteFileContent, type WriteSyncFileContent } from '../mod.ts';
+import {
+    ROOT_DIR,
+    type ExistsOptions,
+    type WriteFileContent,
+    type WriteSyncFileContent,
+} from '../mod.ts';
 
 /**
  * Validates that the provided path is an absolute path and normalizes it.
@@ -19,18 +24,19 @@ import { ROOT_DIR, type ExistsOptions, type WriteFileContent, type WriteSyncFile
  */
 export function validateAbsolutePath(path: string): IOResult<string> {
     if (typeof path !== 'string') {
-        return Err(new TypeError(`Path must be a string but received ${ typeof path }`));
+        return Err(new TypeError(`Path must be a string but received ${typeof path}`));
     }
 
     if (path[0] !== ROOT_DIR) {
-        return Err(new Error(`Path must be absolute (start with '/'): '${ path }'`));
+        return Err(new Error(`Path must be absolute (start with '/'): '${path}'`));
     }
 
     // Normalize and remove trailing slash except for root
     const normalized = normalize(path);
-    const result = normalized.length > 1 && normalized[normalized.length - 1] === ROOT_DIR
-        ? normalized.slice(0, -1)
-        : normalized;
+    const result =
+        normalized.length > 1 && normalized[normalized.length - 1] === ROOT_DIR
+            ? normalized.slice(0, -1)
+            : normalized;
 
     return Ok(result);
 }
@@ -51,7 +57,7 @@ export function validateUrl(url: string | URL): IOResult<URL> {
     try {
         return Ok(new URL(url, location.href));
     } catch {
-        return Err(new TypeError(`Invalid URL: '${ url }'`));
+        return Err(new TypeError(`Invalid URL: '${url}'`));
     }
 }
 
@@ -79,7 +85,7 @@ export function validateExistsOptions(options?: ExistsOptions): VoidIOResult {
  */
 export function validateExpiredDate(expired: Date): VoidIOResult {
     if (!(expired instanceof Date)) {
-        return Err(new TypeError(`Expired must be a Date but received ${ typeof expired }`));
+        return Err(new TypeError(`Expired must be a Date but received ${typeof expired}`));
     }
 
     return Number.isNaN(expired.getTime())
@@ -110,7 +116,11 @@ export function validateWriteFileContent(contents: WriteFileContent): VoidIOResu
         return RESULT_VOID;
     }
 
-    return Err(new TypeError('Invalid content type for writeFile. Expected string, Blob, ArrayBuffer, TypedArray, or ReadableStream'));
+    return Err(
+        new TypeError(
+            'Invalid content type for writeFile. Expected string, Blob, ArrayBuffer, TypedArray, or ReadableStream',
+        ),
+    );
 }
 
 /**
@@ -123,7 +133,11 @@ export function validateWriteFileContent(contents: WriteFileContent): VoidIOResu
  */
 export function validateWriteSyncFileContent(contents: WriteSyncFileContent): VoidIOResult {
     if (!isWriteSyncFileContent(contents)) {
-        return Err(new TypeError('Invalid content type for writeFileSync. Expected string, ArrayBuffer, or TypedArray'));
+        return Err(
+            new TypeError(
+                'Invalid content type for writeFileSync. Expected string, ArrayBuffer, or TypedArray',
+            ),
+        );
     }
 
     return RESULT_VOID;
@@ -149,9 +163,11 @@ function isBinaryReadableStream(x: unknown): x is ReadableStream<Uint8Array<Arra
  * @returns `true` if the value is a valid sync file content type.
  */
 function isWriteSyncFileContent(contents: unknown): contents is WriteSyncFileContent {
-    return typeof contents === 'string' ||
+    return (
+        typeof contents === 'string' ||
         contents instanceof ArrayBuffer ||
-        ArrayBuffer.isView(contents);
+        ArrayBuffer.isView(contents)
+    );
 }
 
 // #endregion

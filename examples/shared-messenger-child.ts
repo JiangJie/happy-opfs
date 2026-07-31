@@ -6,11 +6,7 @@
  * - Use sync APIs without calling SyncChannel.connect()
  */
 
-import {
-    SyncChannel,
-    writeFileSync,
-    readTextFileSync,
-} from '../src/mod.ts';
+import { SyncChannel, writeFileSync, readTextFileSync } from '../src/mod.ts';
 
 const output = document.getElementById('output')!;
 const status = document.getElementById('status')!;
@@ -24,11 +20,14 @@ function log(message: string, type: 'success' | 'error' | 'info' = 'success'): v
     output.appendChild(line);
 
     // Also send to parent for unified logging
-    window.parent.postMessage({
-        type: 'iframe-log',
-        message,
-        logType: type,
-    }, '*');
+    window.parent.postMessage(
+        {
+            type: 'iframe-log',
+            message,
+            logType: type,
+        },
+        '*',
+    );
 }
 
 function updateStatus(connected: boolean): void {
@@ -46,7 +45,7 @@ function updateStatus(connected: boolean): void {
 }
 
 // Listen for SharedArrayBuffer from parent
-window.addEventListener('message', (event) => {
+window.addEventListener('message', event => {
     if (event.data.type === 'init-sync-channel' && event.data.sharedBuffer) {
         output.textContent = '';
         log('Received SharedArrayBuffer from parent', 'info');
@@ -73,13 +72,16 @@ writeBtn.addEventListener('click', () => {
     }
 
     const timestamp = new Date().toISOString();
-    const result = writeFileSync('/shared-example/from-iframe.txt', `Written by iframe at ${timestamp}`);
+    const result = writeFileSync(
+        '/shared-example/from-iframe.txt',
+        `Written by iframe at ${timestamp}`,
+    );
 
     result.inspect(() => {
         log('Wrote /shared-example/from-iframe.txt', 'success');
     });
 
-    result.inspectErr((err) => {
+    result.inspectErr(err => {
         log(`Failed to write: ${err.message}`, 'error');
     });
 });
@@ -93,11 +95,11 @@ readBtn.addEventListener('click', () => {
 
     const result = readTextFileSync('/shared-example/from-main.txt');
 
-    result.inspect((content) => {
+    result.inspect(content => {
         log(`Read main's file: "${content}"`, 'success');
     });
 
-    result.inspectErr((err) => {
+    result.inspectErr(err => {
         log(`Failed to read: ${err.message}`, 'error');
     });
 });

@@ -79,10 +79,13 @@ document.getElementById('share')!.addEventListener('click', () => {
     }
 
     // Send SharedArrayBuffer to iframe
-    iframe.contentWindow?.postMessage({
-        type: 'init-sync-channel',
-        sharedBuffer,
-    }, '*');
+    iframe.contentWindow?.postMessage(
+        {
+            type: 'init-sync-channel',
+            sharedBuffer,
+        },
+        '*',
+    );
 
     log('Shared SharedArrayBuffer to iframe', 'success');
     log('Iframe can now use sync APIs!', 'info');
@@ -96,14 +99,17 @@ document.getElementById('main-write')!.addEventListener('click', () => {
     }
 
     const timestamp = new Date().toISOString();
-    const result = writeFileSync('/shared-example/from-main.txt', `Written by main page at ${timestamp}`);
+    const result = writeFileSync(
+        '/shared-example/from-main.txt',
+        `Written by main page at ${timestamp}`,
+    );
 
     result.inspect(() => {
         log('Wrote /shared-example/from-main.txt', 'success');
 
         // Try to read file written by iframe
         const iframeFile = readTextFileSync('/shared-example/from-iframe.txt');
-        iframeFile.inspect((content) => {
+        iframeFile.inspect(content => {
             log(`Read iframe's file: "${content}"`, 'info');
         });
         iframeFile.inspectErr(() => {
@@ -111,7 +117,7 @@ document.getElementById('main-write')!.addEventListener('click', () => {
         });
     });
 
-    result.inspectErr((err) => {
+    result.inspectErr(err => {
         log(`Failed to write: ${err.message}`, 'error');
     });
 });
@@ -122,14 +128,14 @@ document.getElementById('cleanup')!.addEventListener('click', () => {
     if (SyncChannel.isReady()) {
         const result = removeSync('/shared-example');
         result.inspect(() => log('Cleaned up /shared-example', 'success'));
-        result.inspectErr((err) => log(`Failed to cleanup: ${err.message}`, 'error'));
+        result.inspectErr(err => log(`Failed to cleanup: ${err.message}`, 'error'));
     } else {
         log('Not connected', 'info');
     }
 });
 
 // Listen for messages from iframe
-window.addEventListener('message', (event) => {
+window.addEventListener('message', event => {
     if (event.data.type === 'iframe-log') {
         const line = document.createElement('div');
         line.className = event.data.logType || 'info';

@@ -7,7 +7,15 @@
  *
  * Run: pnpm run bench, then open unzip-stream.html
  */
-import { unzip as decompress, zipSync, Unzip, AsyncUnzipInflate, UnzipPassThrough, type UnzipFile, type Zippable } from 'fflate/browser';
+import {
+    unzip as decompress,
+    zipSync,
+    Unzip,
+    AsyncUnzipInflate,
+    UnzipPassThrough,
+    type UnzipFile,
+    type Zippable,
+} from 'fflate/browser';
 import { Future } from 'tiny-future';
 
 const output = document.getElementById('output')!;
@@ -42,7 +50,7 @@ async function benchmarkBatch(zipData: Uint8Array, iterations: number): Promise<
 
     for (let i = 0; i < iterations; i++) {
         const future = new Future<void>();
-        decompress(zipData, (err) => {
+        decompress(zipData, err => {
             if (err) throw err;
             future.resolve();
         });
@@ -55,7 +63,11 @@ async function benchmarkBatch(zipData: Uint8Array, iterations: number): Promise<
 /**
  * Streaming unzip - simulates streaming by chunking the zip data
  */
-async function benchmarkStream(zipData: Uint8Array, chunkSize: number, iterations: number): Promise<number> {
+async function benchmarkStream(
+    zipData: Uint8Array,
+    chunkSize: number,
+    iterations: number,
+): Promise<number> {
     const start = performance.now();
 
     for (let i = 0; i < iterations; i++) {
@@ -119,7 +131,9 @@ function streamUnzip(zipData: Uint8Array, chunkSize: number): Promise<void> {
                 offset = end;
             }
 
-            Promise.all(filePromises).then(() => resolve()).catch(reject);
+            Promise.all(filePromises)
+                .then(() => resolve())
+                .catch(reject);
         } catch (err) {
             reject(err);
         }
@@ -140,7 +154,9 @@ async function runBenchmark(config: BenchmarkConfig): Promise<void> {
     const uncompressedSize = fileCount * fileSizeKB;
 
     log(`\n${name}`);
-    log(`Zip size: ${(zipData.byteLength / 1024).toFixed(2)} KB, Uncompressed: ${uncompressedSize} KB`);
+    log(
+        `Zip size: ${(zipData.byteLength / 1024).toFixed(2)} KB, Uncompressed: ${uncompressedSize} KB`,
+    );
     log(`Chunk size: ${(chunkSize / 1024).toFixed(0)} KB`);
 
     // Warm up
@@ -167,10 +183,34 @@ async function runAllBenchmarks(): Promise<void> {
     const chunkSize = 64 * 1024; // 64KB chunks (typical streaming chunk)
 
     const benchmarks: BenchmarkConfig[] = [
-        { name: 'Small (10 files x 10KB = 100KB)', fileCount: 10, fileSizeKB: 10, iterations: 50, chunkSize },
-        { name: 'Medium (50 files x 100KB = 5MB)', fileCount: 50, fileSizeKB: 100, iterations: 10, chunkSize },
-        { name: 'Large (10 files x 1MB = 10MB)', fileCount: 10, fileSizeKB: 1024, iterations: 5, chunkSize },
-        { name: 'XLarge (100 files x 1MB = 100MB)', fileCount: 100, fileSizeKB: 1024, iterations: 2, chunkSize },
+        {
+            name: 'Small (10 files x 10KB = 100KB)',
+            fileCount: 10,
+            fileSizeKB: 10,
+            iterations: 50,
+            chunkSize,
+        },
+        {
+            name: 'Medium (50 files x 100KB = 5MB)',
+            fileCount: 50,
+            fileSizeKB: 100,
+            iterations: 10,
+            chunkSize,
+        },
+        {
+            name: 'Large (10 files x 1MB = 10MB)',
+            fileCount: 10,
+            fileSizeKB: 1024,
+            iterations: 5,
+            chunkSize,
+        },
+        {
+            name: 'XLarge (100 files x 1MB = 100MB)',
+            fileCount: 100,
+            fileSizeKB: 1024,
+            iterations: 2,
+            chunkSize,
+        },
     ];
 
     for (const config of benchmarks) {
@@ -183,7 +223,7 @@ async function runAllBenchmarks(): Promise<void> {
 }
 
 document.getElementById('run')!.addEventListener('click', () => {
-    runAllBenchmarks().catch((err) => {
+    runAllBenchmarks().catch(err => {
         log(`Error: ${err.message}`);
     });
 });

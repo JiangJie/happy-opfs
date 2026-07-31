@@ -23,19 +23,63 @@ interface BenchmarkResult {
 
 // All available benchmarks
 const BENCHMARKS = [
-    { name: 'zip', html: 'zip.html', description: 'zip vs zipSync (main thread)', runButton: '#run' },
-    { name: 'unzip', html: 'unzip.html', description: 'unzip vs unzipSync (main thread)', runButton: '#run' },
-    { name: 'zip-stream', html: 'zip-stream.html', description: 'Batch vs Streaming zip', runButton: '#run' },
-    { name: 'unzip-stream', html: 'unzip-stream.html', description: 'Batch vs Streaming unzip', runButton: '#run' },
-    { name: 'read-stream', html: 'read-stream.html', description: 'Stream vs Batch Read', runButton: '#runAll' },
-    { name: 'write-stream', html: 'write-stream.html', description: 'Stream vs Batch Write', runButton: '#runAll' },
-    { name: 'download-stream', html: 'download-stream.html', description: 'Stream vs Batch Download', runButton: '#runAll' },
-    { name: 'worker', html: 'worker.html', description: 'async vs sync inside Worker', runButton: '#run' },
+    {
+        name: 'zip',
+        html: 'zip.html',
+        description: 'zip vs zipSync (main thread)',
+        runButton: '#run',
+    },
+    {
+        name: 'unzip',
+        html: 'unzip.html',
+        description: 'unzip vs unzipSync (main thread)',
+        runButton: '#run',
+    },
+    {
+        name: 'zip-stream',
+        html: 'zip-stream.html',
+        description: 'Batch vs Streaming zip',
+        runButton: '#run',
+    },
+    {
+        name: 'unzip-stream',
+        html: 'unzip-stream.html',
+        description: 'Batch vs Streaming unzip',
+        runButton: '#run',
+    },
+    {
+        name: 'read-stream',
+        html: 'read-stream.html',
+        description: 'Stream vs Batch Read',
+        runButton: '#runAll',
+    },
+    {
+        name: 'write-stream',
+        html: 'write-stream.html',
+        description: 'Stream vs Batch Write',
+        runButton: '#runAll',
+    },
+    {
+        name: 'download-stream',
+        html: 'download-stream.html',
+        description: 'Stream vs Batch Download',
+        runButton: '#runAll',
+    },
+    {
+        name: 'worker',
+        html: 'worker.html',
+        description: 'async vs sync inside Worker',
+        runButton: '#run',
+    },
 ];
 
 const TIMEOUT = 120000; // 2 minutes per benchmark
 
-async function runBenchmark(page: Page, baseUrl: string, benchmark: typeof BENCHMARKS[0]): Promise<BenchmarkResult> {
+async function runBenchmark(
+    page: Page,
+    baseUrl: string,
+    benchmark: (typeof BENCHMARKS)[0],
+): Promise<BenchmarkResult> {
     const url = `${baseUrl}/${benchmark.html}`;
     const startTime = Date.now();
 
@@ -53,8 +97,10 @@ async function runBenchmark(page: Page, baseUrl: string, benchmark: typeof BENCH
             () => {
                 const output = document.getElementById('output');
                 const text = output?.textContent?.toLowerCase() ?? '';
-                return text.includes('benchmark complete') ||
-                       text.includes('complete') && text.includes('benchmark');
+                return (
+                    text.includes('benchmark complete') ||
+                    (text.includes('complete') && text.includes('benchmark'))
+                );
             },
             { timeout: TIMEOUT },
         );
@@ -88,8 +134,10 @@ async function main(): Promise<void> {
     // Filter benchmarks if name provided
     let benchmarksToRun = BENCHMARKS;
     if (filterName) {
-        benchmarksToRun = BENCHMARKS.filter(b =>
-            b.name.includes(filterName) || b.description.toLowerCase().includes(filterName.toLowerCase()),
+        benchmarksToRun = BENCHMARKS.filter(
+            b =>
+                b.name.includes(filterName) ||
+                b.description.toLowerCase().includes(filterName.toLowerCase()),
         );
         if (benchmarksToRun.length === 0) {
             console.error(`No benchmarks matching "${filterName}"`);
@@ -152,7 +200,7 @@ async function main(): Promise<void> {
         await browser.close();
 
         // Print results
-        console.log(`\n${  '='.repeat(60)}`);
+        console.log(`\n${'='.repeat(60)}`);
         console.log('RESULTS');
         console.log('='.repeat(60));
 
@@ -169,7 +217,7 @@ async function main(): Promise<void> {
         const successCount = results.filter(r => r.success).length;
         const failCount = results.filter(r => !r.success).length;
 
-        console.log(`\n${  '='.repeat(60)}`);
+        console.log(`\n${'='.repeat(60)}`);
         console.log(`Summary: ${successCount} passed, ${failCount} failed`);
         console.log('='.repeat(60));
 

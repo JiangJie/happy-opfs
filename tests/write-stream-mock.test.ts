@@ -10,11 +10,11 @@ let mockTempFileCreationShouldFail = false;
 let mockMoveFileShouldFail = false;
 
 // Mock helpers to control temp file creation and move
-vi.mock('../src/async/internal/helpers.ts', async (importOriginal) => {
+vi.mock('../src/async/internal/helpers.ts', async importOriginal => {
     const original = await importOriginal<typeof import('../src/async/internal/helpers.ts')>();
     return {
         ...original,
-        getFileHandle: async (path: string, options?: { create?: boolean; }) => {
+        getFileHandle: async (path: string, options?: { create?: boolean }) => {
             // Fail temp file creation (paths starting with /tmp/)
             if (mockTempFileCreationShouldFail && path.startsWith('/tmp/') && options?.create) {
                 return Err(new Error('Mocked temp file creation error'));
@@ -41,14 +41,14 @@ describe('write.ts stream error handling', () => {
         await fs.remove('/tmp');
     });
 
-    it('should return error when temp file creation fails ', async () => {
+    it('should return error when temp file creation fails', async () => {
         // Enable mock failure for temp file creation
         mockTempFileCreationShouldFail = true;
 
         // Create a stream to write
         const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
             start(controller) {
-                controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                controller.enqueue(new Uint8Array([1, 2, 3]));
                 controller.close();
             },
         });
@@ -60,14 +60,14 @@ describe('write.ts stream error handling', () => {
         expect(result.unwrapErr().message).toBe('Mocked temp file creation error');
     });
 
-    it('should clean up temp file when move fails ', async () => {
+    it('should clean up temp file when move fails', async () => {
         // Enable mock failure for move
         mockMoveFileShouldFail = true;
 
         // Create a stream to write
         const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
             start(controller) {
-                controller.enqueue(new Uint8Array([1, 2, 3]) as Uint8Array<ArrayBuffer>);
+                controller.enqueue(new Uint8Array([1, 2, 3]));
                 controller.close();
             },
         });

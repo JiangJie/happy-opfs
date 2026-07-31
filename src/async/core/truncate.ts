@@ -30,7 +30,7 @@ export async function truncate(filePath: string, len: number): AsyncVoidIOResult
     filePath = filePathRes.unwrap();
 
     if (!Number.isInteger(len) || len < 0) {
-        return Err(new TypeError(`Size must be a non-negative integer, got ${ len }`));
+        return Err(new TypeError(`Size must be a non-negative integer, got ${len}`));
     }
 
     const fileHandleRes = await getFileHandle(filePath, { create: false });

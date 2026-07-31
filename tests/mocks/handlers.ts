@@ -26,7 +26,8 @@ function generateLargeData(sizeInKB: number): string {
 
 // Mock zip file data (base64 encoded)
 // Contains: zip/dir/child-file.txt, zip/file.txt (empty files)
-const MOCK_ZIP_BASE64 = 'UEsDBBQAAAAAACeoB1kAAAAAAAAAAAAAAAAEACAAemlwL1VUDQAHG3CzZnpws2YGcLNmdXgLAAEE' +
+const MOCK_ZIP_BASE64 =
+    'UEsDBBQAAAAAACeoB1kAAAAAAAAAAAAAAAAEACAAemlwL1VUDQAHG3CzZnpws2YGcLNmdXgLAAEE' +
     'AAAAAAQAAAAAUEsDBBQAAAAAAC+oB1kAAAAAAAAAAAAAAAAIACAAemlwL2Rpci9VVA0ABytws2Z6' +
     'cLNmEXCzZnV4CwABBAAAAAAEAAAAAFBLAwQUAAgACAAqqAdZAAAAAAAAAAAAAAAAFgAgAHppcC9k' +
     'aXIvY2hpbGQtZmlsZS50eHRVVA0AByFws2YhcLNmIXCzZnV4CwABBAAAAAAEAAAAAAMAUEsHCAAA' +
@@ -101,7 +102,7 @@ export const handlers = [
 
     // GET slow response - for abort testing
     http.get(`${MOCK_SERVER}/api/slow`, async () => {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
         return HttpResponse.json({ slow: true });
     }),
 

@@ -10,7 +10,12 @@ import { Future } from 'tiny-future';
 import { TIMEOUT_ERROR } from '../../shared/mod.ts';
 import type { AttachSyncChannelOptions, ConnectSyncChannelOptions } from '../../shared/mod.ts';
 import { SyncMessenger } from '../protocol.ts';
-import { getSyncChannelState, setGlobalSyncOpTimeout, setMessenger, setSyncChannelState } from './state.ts';
+import {
+    getSyncChannelState,
+    setGlobalSyncOpTimeout,
+    setMessenger,
+    setSyncChannelState,
+} from './state.ts';
 
 // #region Internal Variables
 
@@ -61,7 +66,10 @@ const DEFAULT_CONNECT_TIMEOUT = 10000;
  * });
  * ```
  */
-export async function connectSyncChannel(worker: Worker | URL | string, options?: ConnectSyncChannelOptions): AsyncIOResult<SharedArrayBuffer> {
+export async function connectSyncChannel(
+    worker: Worker | URL | string,
+    options?: ConnectSyncChannelOptions,
+): AsyncIOResult<SharedArrayBuffer> {
     const state = getSyncChannelState();
     if (state === 'ready') {
         return Err(new Error('Sync channel already connected'));
@@ -77,7 +85,13 @@ export async function connectSyncChannel(worker: Worker | URL | string, options?
     } = options ?? {};
 
     // check parameters
-    if (!(worker instanceof Worker || worker instanceof URL || (typeof worker === 'string' && worker))) {
+    if (
+        !(
+            worker instanceof Worker ||
+            worker instanceof URL ||
+            (typeof worker === 'string' && worker)
+        )
+    ) {
         return Err(new TypeError('worker must be a Worker, URL, or non-empty string'));
     }
     if (!(sharedBufferLength >= MIN_BUFFER_LENGTH && sharedBufferLength % 4 === 0)) {
@@ -93,9 +107,7 @@ export async function connectSyncChannel(worker: Worker | URL | string, options?
     // May throw if worker url is invalid
     let workerAdapter: Worker;
     try {
-        workerAdapter = worker instanceof Worker
-            ? worker
-            : new Worker(worker);
+        workerAdapter = worker instanceof Worker ? worker : new Worker(worker);
     } catch (e) {
         return Err(e as Error);
     }
@@ -210,7 +222,10 @@ export function isSyncChannelReady(): boolean {
  * });
  * ```
  */
-export function attachSyncChannel(sharedBuffer: SharedArrayBuffer, options?: AttachSyncChannelOptions): VoidIOResult {
+export function attachSyncChannel(
+    sharedBuffer: SharedArrayBuffer,
+    options?: AttachSyncChannelOptions,
+): VoidIOResult {
     const state = getSyncChannelState();
     if (state === 'connecting') {
         return Err(new Error('Cannot attach: sync channel is connecting'));

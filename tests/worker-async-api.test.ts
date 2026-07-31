@@ -8,13 +8,13 @@ import * as fs from '../src/mod.ts';
 describe('Worker Async API (readViaSyncAccess)', () => {
     let worker: Worker;
 
-    function callWorker(request: { type: string; filePath: string; encoding?: string; }): Promise<{
+    function callWorker(request: { type: string; filePath: string; encoding?: string }): Promise<{
         success: boolean;
         resultType?: string;
         value?: unknown;
         error?: string;
     }> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             const handler = (event: MessageEvent): void => {
                 // Ignore 'ready' messages
                 if (event.data.type === 'ready') {
@@ -37,7 +37,7 @@ describe('Worker Async API (readViaSyncAccess)', () => {
         });
 
         // Wait for worker to be ready
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
             const handler = (event: MessageEvent): void => {
                 if (event.data.type === 'ready') {
                     worker.removeEventListener('message', handler);
@@ -90,7 +90,9 @@ describe('Worker Async API (readViaSyncAccess)', () => {
 
             expect(response.success).toBe(true);
             expect(response.resultType).toBe('Uint8Array');
-            expect((response.value as number[]).length).toBe('Hello from Worker async API test'.length);
+            expect((response.value as number[]).length).toBe(
+                'Hello from Worker async API test'.length,
+            );
         });
     });
 });

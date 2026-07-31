@@ -12,11 +12,6 @@
     "tiny-future": "jsr:@happy-js/tiny-future@^1.2.0"
   },
   "publish": {
-    "include": [
-      "LICENSE",
-      "README.md",
-      "CHANGELOG.md",
-      "src"
-    ]
+    "include": ["LICENSE", "README.md", "CHANGELOG.md", "src"]
   }
 }

@@ -6,7 +6,12 @@ import { Future } from 'tiny-future';
 import { validateUrl } from '../../shared/internal/mod.ts';
 import type { UnzipFromUrlRequestInit } from '../../shared/mod.ts';
 import { mkdir, readFile, writeFile } from '../core/mod.ts';
-import { aggregateResults, createEmptyBodyError, createEmptyFileError, markParentDirsNonEmpty } from '../internal/mod.ts';
+import {
+    aggregateResults,
+    createEmptyBodyError,
+    createEmptyFileError,
+    markParentDirsNonEmpty,
+} from '../internal/mod.ts';
 import { validateDestDir } from './helpers.ts';
 
 /**
@@ -32,11 +37,7 @@ import { validateDestDir } from './helpers.ts';
  * ```
  */
 export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIOResult {
-    return unzipWith(
-        () => readFile(zipFilePath),
-        destDir,
-        createEmptyFileError,
-    );
+    return unzipWith(() => readFile(zipFilePath), destDir, createEmptyFileError);
 }
 
 /**
@@ -68,18 +69,23 @@ export async function unzip(zipFilePath: string, destDir: string): AsyncVoidIORe
  *     .inspect(() => console.log('Remote zip file unzipped successfully'));
  * ```
  */
-export async function unzipFromUrl(zipFileUrl: string | URL, destDir: string, requestInit?: UnzipFromUrlRequestInit): AsyncVoidIOResult {
+export async function unzipFromUrl(
+    zipFileUrl: string | URL,
+    destDir: string,
+    requestInit?: UnzipFromUrlRequestInit,
+): AsyncVoidIOResult {
     const zipFileUrlRes = validateUrl(zipFileUrl);
     if (zipFileUrlRes.isErr()) return zipFileUrlRes.asErr();
     zipFileUrl = zipFileUrlRes.unwrap();
 
     return unzipWith(
-        () => fetchT(zipFileUrl, {
-            redirect: 'follow',
-            ...requestInit,
-            responseType: 'bytes',
-            abortable: false,
-        }),
+        () =>
+            fetchT(zipFileUrl, {
+                redirect: 'follow',
+                ...requestInit,
+                responseType: 'bytes',
+                abortable: false,
+            }),
         destDir,
         createEmptyBodyError,
     );
@@ -105,9 +111,7 @@ async function unzipWith(
     const bytesRes = await getBytes();
 
     return bytesRes.andThenAsync(bytes => {
-        return bytes.byteLength === 0
-            ? Err(createEmptyError())
-            : batchUnzipTo(bytes, destDir);
+        return bytes.byteLength === 0 ? Err(createEmptyError()) : batchUnzipTo(bytes, destDir);
     });
 }
 
@@ -136,7 +140,7 @@ function batchUnzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoi
                 dirs.push(path.slice(0, -1));
             } else {
                 // File entry - writeFile will create parent directories automatically
-                tasks.push(writeFile(join(destDir, path), unzipped[path] as Uint8Array<ArrayBuffer>));
+                tasks.push(writeFile(join(destDir, path), unzipped[path]));
                 // Mark all parent directories as non-empty
                 markParentDirsNonEmpty(path, nonEmptyDirs);
             }

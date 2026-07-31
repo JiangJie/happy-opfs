@@ -144,7 +144,9 @@ describe('OPFS Stream Operations', () => {
         });
 
         it('should fail when create is false and file does not exist', async () => {
-            const result = await fs.openWritableFileStream('/non-existent-stream-write.txt', { create: false });
+            const result = await fs.openWritableFileStream('/non-existent-stream-write.txt', {
+                create: false,
+            });
             expect(result.isErr()).toBe(true);
         });
     });

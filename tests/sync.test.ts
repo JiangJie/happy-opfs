@@ -104,7 +104,9 @@ describe('OPFS Sync Operations', () => {
 
         it('should append to existing file with create: false', () => {
             fs.writeFileSync('/sync-append-create-false.txt', 'Hello');
-            const result = fs.appendFileSync('/sync-append-create-false.txt', ' World', { create: false });
+            const result = fs.appendFileSync('/sync-append-create-false.txt', ' World', {
+                create: false,
+            });
             expect(result.isOk()).toBe(true);
 
             const content = fs.readTextFileSync('/sync-append-create-false.txt');
@@ -114,7 +116,9 @@ describe('OPFS Sync Operations', () => {
         });
 
         it('should fail to append with create: false when file not exists', () => {
-            const result = fs.appendFileSync('/sync-append-no-create.txt', 'content', { create: false });
+            const result = fs.appendFileSync('/sync-append-no-create.txt', 'content', {
+                create: false,
+            });
             expect(result.isErr()).toBe(true);
         });
 
@@ -381,8 +385,12 @@ describe('OPFS Sync Operations', () => {
             fs.writeFileSync('/sync-exists-isdir.txt', 'content');
             fs.mkdirSync('/sync-exists-isdir-dir');
 
-            expect(fs.existsSync('/sync-exists-isdir.txt', { isDirectory: true }).unwrap()).toBe(false);
-            expect(fs.existsSync('/sync-exists-isdir-dir', { isDirectory: true }).unwrap()).toBe(true);
+            expect(fs.existsSync('/sync-exists-isdir.txt', { isDirectory: true }).unwrap()).toBe(
+                false,
+            );
+            expect(fs.existsSync('/sync-exists-isdir-dir', { isDirectory: true }).unwrap()).toBe(
+                true,
+            );
         });
     });
 
@@ -452,7 +460,9 @@ describe('OPFS Sync Operations', () => {
             const zipWithRoot = fs.zipSync('/sync-zip-root', '/sync-with-root.zip');
             expect(zipWithRoot.isOk()).toBe(true);
 
-            const zipWithoutRoot = fs.zipSync('/sync-zip-root', '/sync-without-root.zip', { preserveRoot: false });
+            const zipWithoutRoot = fs.zipSync('/sync-zip-root', '/sync-without-root.zip', {
+                preserveRoot: false,
+            });
             expect(zipWithoutRoot.isOk()).toBe(true);
 
             // Sizes should be different

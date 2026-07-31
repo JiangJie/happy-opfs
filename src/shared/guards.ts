@@ -1,4 +1,8 @@
-import type { FileSystemDirectoryHandleLike, FileSystemFileHandleLike, FileSystemHandleLike } from './defines.ts';
+import type {
+    FileSystemDirectoryHandleLike,
+    FileSystemFileHandleLike,
+    FileSystemHandleLike,
+} from './defines.ts';
 
 /**
  * Checks whether the given handle is a file handle.
@@ -77,6 +81,8 @@ export function isFileHandleLike(handle: FileSystemHandleLike): handle is FileSy
  *     });
  * ```
  */
-export function isDirectoryHandleLike(handle: FileSystemHandleLike): handle is FileSystemDirectoryHandleLike {
+export function isDirectoryHandleLike(
+    handle: FileSystemHandleLike,
+): handle is FileSystemDirectoryHandleLike {
     return handle.kind === 'directory';
 }

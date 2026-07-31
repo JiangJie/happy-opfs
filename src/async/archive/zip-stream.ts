@@ -3,7 +3,13 @@ import { basename, join, SEPARATOR } from '@std/path/posix';
 import { Zip, ZipDeflate, ZipPassThrough, zipSync } from 'fflate/browser';
 import { Err, tryAsyncResult, type AsyncVoidIOResult } from 'happy-rusty';
 import { validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
-import { isFileHandle, type DirEntry, type ZipFromUrlRequestInit, type ZipLevel, type ZipOptions } from '../../shared/mod.ts';
+import {
+    isFileHandle,
+    type DirEntry,
+    type ZipFromUrlRequestInit,
+    type ZipLevel,
+    type ZipOptions,
+} from '../../shared/mod.ts';
 import { readDir, stat, writeFile } from '../core/mod.ts';
 import { createEmptyBodyError, createNothingToZipError, peekStream } from '../internal/mod.ts';
 import { EMPTY_BYTES } from './helpers.ts';
@@ -32,7 +38,11 @@ import { EMPTY_BYTES } from './helpers.ts';
  *     .inspect(() => console.log('Directory zipped successfully'));
  * ```
  */
-export async function zipStream(sourcePath: string, zipFilePath: string, options?: ZipOptions): AsyncVoidIOResult {
+export async function zipStream(
+    sourcePath: string,
+    zipFilePath: string,
+    options?: ZipOptions,
+): AsyncVoidIOResult {
     const zipFilePathRes = validateAbsolutePath(zipFilePath);
     if (zipFilePathRes.isErr()) return zipFilePathRes.asErr();
     zipFilePath = zipFilePathRes.unwrap();
@@ -67,14 +77,7 @@ export async function zipStream(sourcePath: string, zipFilePath: string, options
         return Err(createNothingToZipError());
     }
 
-    return streamZipEntries(
-        first,
-        entries,
-        sourceName,
-        zipFilePath,
-        preserveRoot,
-        level,
-    );
+    return streamZipEntries(first, entries, sourceName, zipFilePath, preserveRoot, level);
 }
 
 /**
@@ -103,7 +106,11 @@ export async function zipStream(sourcePath: string, zipFilePath: string, options
  *     .inspect(() => console.log('Remote file zipped successfully'));
  * ```
  */
-export async function zipStreamFromUrl(sourceUrl: string | URL, zipFilePath: string, requestInit?: ZipFromUrlRequestInit): AsyncVoidIOResult {
+export async function zipStreamFromUrl(
+    sourceUrl: string | URL,
+    zipFilePath: string,
+    requestInit?: ZipFromUrlRequestInit,
+): AsyncVoidIOResult {
     const sourceUrlRes = validateUrl(sourceUrl);
     if (sourceUrlRes.isErr()) return sourceUrlRes.asErr();
     sourceUrl = sourceUrlRes.unwrap();
@@ -125,13 +132,12 @@ export async function zipStreamFromUrl(sourceUrl: string | URL, zipFilePath: str
     const stream = fetchRes.unwrap();
     const { filename, keepEmptyBody = false, level } = requestInit ?? {};
     // Use provided filename, or basename of pathname, or 'file' as fallback
-    const sourceName = filename ?? (sourceUrl.pathname !== SEPARATOR ? basename(sourceUrl.pathname) : 'file');
+    const sourceName =
+        filename ?? (sourceUrl.pathname !== SEPARATOR ? basename(sourceUrl.pathname) : 'file');
 
     // Handle null stream (204/304 responses or HEAD requests)
     if (!stream) {
-        return keepEmptyBody
-            ? zipEmptyFile(sourceName, zipFilePath)
-            : Err(createEmptyBodyError());
+        return keepEmptyBody ? zipEmptyFile(sourceName, zipFilePath) : Err(createEmptyBodyError());
     }
 
     // Peek first chunk to check for empty body
@@ -141,9 +147,7 @@ export async function zipStreamFromUrl(sourceUrl: string | URL, zipFilePath: str
     const peek = peekRes.unwrap();
 
     if (peek.isEmpty) {
-        return keepEmptyBody
-            ? zipEmptyFile(sourceName, zipFilePath)
-            : Err(createEmptyBodyError());
+        return keepEmptyBody ? zipEmptyFile(sourceName, zipFilePath) : Err(createEmptyBodyError());
     }
 
     return streamZipFromStream(peek.stream, sourceName, zipFilePath, level);
@@ -161,7 +165,7 @@ function createZip(controller: ReadableStreamDefaultController<Uint8Array<ArrayB
             return;
         }
 
-        controller.enqueue(chunk as Uint8Array<ArrayBuffer>);
+        controller.enqueue(chunk);
 
         if (final) {
             controller.close();
@@ -193,15 +197,18 @@ function createZipEntry(entryName: string, level?: ZipLevel): ZipDeflate | ZipPa
     if (level === 0) {
         return new ZipPassThrough(entryName);
     }
-    return level != null
-        ? new ZipDeflate(entryName, { level })
-        : new ZipDeflate(entryName);
+    return level != null ? new ZipDeflate(entryName, { level }) : new ZipDeflate(entryName);
 }
 
 /**
  * Stream zip a single file handle.
  */
-async function streamZipFile(fileHandle: FileSystemFileHandle, entryName: string, zipFilePath: string, level?: ZipLevel): AsyncVoidIOResult {
+async function streamZipFile(
+    fileHandle: FileSystemFileHandle,
+    entryName: string,
+    zipFilePath: string,
+    level?: ZipLevel,
+): AsyncVoidIOResult {
     const fileRes = await tryAsyncResult(fileHandle.getFile());
 
     return fileRes.andThenAsync(file => {
@@ -250,7 +257,7 @@ function streamZipFromStream(
 function zipEmptyFile(entryName: string, zipFilePath: string): AsyncVoidIOResult {
     const data = zipSync({
         [entryName]: EMPTY_BYTES,
-    }) as Uint8Array<ArrayBuffer>;
+    });
     return writeFile(zipFilePath, data);
 }
 

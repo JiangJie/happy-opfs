@@ -53,14 +53,14 @@ class MockSyncAccessHandle {
         return this.data.byteLength;
     }
 
-    read(buffer: Uint8Array, options?: { at?: number; }): number {
+    read(buffer: Uint8Array, options?: { at?: number }): number {
         const at = options?.at ?? 0;
         const bytesToRead = Math.min(buffer.byteLength, this.data.byteLength - at);
         buffer.set(this.data.subarray(at, at + bytesToRead));
         return bytesToRead;
     }
 
-    write(buffer: Uint8Array, options?: { at?: number; }): number {
+    write(buffer: Uint8Array, options?: { at?: number }): number {
         const at = options?.at ?? 0;
 
         // In partial write mode, only write half the bytes at a time
@@ -129,7 +129,9 @@ describe('createSyncAccessHandle mock tests', () => {
         globalThis.FileReaderSync = MockFileReaderSync;
 
         // Install mock createSyncAccessHandle
-        FileSystemFileHandle.prototype.createSyncAccessHandle = async function(this: FileSystemFileHandle) {
+        FileSystemFileHandle.prototype.createSyncAccessHandle = async function (
+            this: FileSystemFileHandle,
+        ) {
             if (!mockSyncAccessEnabled) {
                 // Fall through to original (will fail in main thread, but that's ok)
                 if (originalCreateSyncAccessHandle) {
@@ -156,7 +158,7 @@ describe('createSyncAccessHandle mock tests', () => {
             // Store handle reference
             mockHandleStore.set(fileName, handle);
 
-            return handle as unknown as FileSystemSyncAccessHandle;
+            return handle;
         };
     });
 
@@ -194,7 +196,10 @@ describe('createSyncAccessHandle mock tests', () => {
             mockSyncAccessEnabled = true;
 
             // Write using sync access handle
-            const writeRes = await writeFile('/sync-access-mock-test/test.txt', 'Hello Sync Access');
+            const writeRes = await writeFile(
+                '/sync-access-mock-test/test.txt',
+                'Hello Sync Access',
+            );
             expect(writeRes.isOk()).toBe(true);
 
             // Verify data was written (via mock store)
@@ -218,7 +223,9 @@ describe('createSyncAccessHandle mock tests', () => {
             mockSyncAccessEnabled = true;
 
             // Append using sync access handle
-            const writeRes = await writeFile('/sync-access-mock-test/append.txt', 'Appended', { append: true });
+            const writeRes = await writeFile('/sync-access-mock-test/append.txt', 'Appended', {
+                append: true,
+            });
             expect(writeRes.isOk()).toBe(true);
 
             // Verify appended data
@@ -341,7 +348,7 @@ describe('createSyncAccessHandle mock tests', () => {
             const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
                 pull(controller) {
                     if (chunkIndex < chunks.length) {
-                        controller.enqueue(chunks[chunkIndex++] as Uint8Array<ArrayBuffer>);
+                        controller.enqueue(chunks[chunkIndex++]);
                     } else {
                         controller.close();
                     }
@@ -379,7 +386,7 @@ describe('createSyncAccessHandle mock tests', () => {
             const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
                 pull(controller) {
                     if (chunkIndex < chunks.length) {
-                        controller.enqueue(chunks[chunkIndex++] as Uint8Array<ArrayBuffer>);
+                        controller.enqueue(chunks[chunkIndex++]);
                     } else {
                         controller.close();
                     }
@@ -387,7 +394,9 @@ describe('createSyncAccessHandle mock tests', () => {
             });
 
             // Append stream to existing file - this should use writeStreamViaSyncAccess with append=true
-            const writeRes = await writeFile('/sync-access-mock-test/stream-append.txt', stream, { append: true });
+            const writeRes = await writeFile('/sync-access-mock-test/stream-append.txt', stream, {
+                append: true,
+            });
             expect(writeRes.isOk()).toBe(true);
 
             // Verify data was appended
@@ -436,7 +445,9 @@ describe('createSyncAccessHandle mock tests', () => {
             mockSyncAccessEnabled = true;
 
             // Read as utf8 using sync access handle
-            const readRes = await readFile('/sync-access-mock-test/read-utf8.txt', { encoding: 'utf8' });
+            const readRes = await readFile('/sync-access-mock-test/read-utf8.txt', {
+                encoding: 'utf8',
+            });
             expect(readRes.isOk()).toBe(true);
             expect(readRes.unwrap()).toBe('UTF8 Content');
         });
@@ -451,7 +462,9 @@ describe('createSyncAccessHandle mock tests', () => {
             mockSyncAccessEnabled = true;
 
             // Read as blob - should NOT use sync access
-            const readRes = await readFile('/sync-access-mock-test/read-blob.txt', { encoding: 'blob' });
+            const readRes = await readFile('/sync-access-mock-test/read-blob.txt', {
+                encoding: 'blob',
+            });
             expect(readRes.isOk()).toBe(true);
             expect(readRes.unwrap()).toBeInstanceOf(File);
         });
@@ -491,7 +504,7 @@ describe('createSyncAccessHandle mock tests', () => {
             expect(data.byteLength).toBe(5);
             expect(data[0]).toBe(0x48); // 'H'
             expect(data[1]).toBe(0x69); // 'i'
-            expect(data[2]).toBe(0);    // zero-padded
+            expect(data[2]).toBe(0); // zero-padded
         });
     });
 });
