@@ -7,15 +7,15 @@
   "type": "module",
   "main": "dist/main.cjs",
   "module": "dist/main.mjs",
-  "types": "dist/types.d.ts",
+  "types": "dist/main.d.mts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types.d.ts",
+        "types": "./dist/main.d.mts",
         "default": "./dist/main.mjs"
       },
       "require": {
-        "types": "./dist/types.d.cts",
+        "types": "./dist/main.d.cts",
         "default": "./dist/main.cjs"
       },
       "default": "./dist/main.mjs"
@@ -30,11 +30,12 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "check": "pnpm exec tsc --noEmit",
+    "check": "pnpm exec vp check",
+    "typecheck": "pnpm exec tsc --noEmit",
     "lint": "pnpm exec vp lint",
     "fmt": "pnpm exec vp fmt",
-    "prebuild": "pnpm run check && pnpm run lint",
-    "build": "node build.ts && pnpm exec rollup --config rollup.config.ts",
+    "prebuild": "pnpm run check",
+    "build": "pnpm exec vp pack",
     "verify:package": "pnpm run build && node verify_package.ts",
     "docs": "pnpm exec typedoc",
     "prepublishOnly": "pnpm run verify:package",
@@ -43,11 +44,11 @@
     "test": "pnpm exec vp test run --coverage",
     "test:watch": "pnpm exec vp test",
     "prebench": "pnpm exec msw init benchmarks/public --save=false",
-    "bench": "pnpm exec vite --config benchmarks/vite.config.ts",
+    "bench": "pnpm exec vp dev --config benchmarks/vite.config.ts",
     "prebench:run": "pnpm run prebench",
     "bench:run": "node benchmarks/playwright.ts",
     "bench:vitest": "pnpm exec vp test bench --run",
-    "eg": "pnpm exec vite --config examples/vite.config.ts"
+    "eg": "pnpm exec vp dev --config examples/vite.config.ts"
   },
   "repository": {
     "type": "git",
@@ -79,11 +80,8 @@
     "msw": "^2.15.0",
     "playwright": "^1.62.0",
     "publint": "^0.3.22",
-    "rollup": "^4.62.2",
-    "rollup-plugin-dts": "^6.4.1",
     "typedoc": "^0.28.20",
     "typescript": "^6.0.3",
-    "vite": "^8.1.5",
     "vite-plugin-mkcert": "^2.1.0",
     "vite-plus": "^0.2.6"
   },

@@ -11,7 +11,7 @@
  *   node benchmarks/playwright.ts [benchmark-name]
  */
 import { chromium, type Page } from 'playwright';
-import { createServer, type ViteDevServer } from 'vite';
+import { createServer, type ViteDevServer } from 'vite-plus';
 
 interface BenchmarkResult {
     name: string;

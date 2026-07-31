@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite-plus';
 import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
