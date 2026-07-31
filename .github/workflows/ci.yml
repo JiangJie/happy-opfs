@@ -1,6 +1,6 @@
-# This workflow will run tests using node and then upload the coverage reports to Codecov.
+# This workflow runs all quality gates: format check, lint, type check, build, tests, and package verification (attw + publint).
 
-name: Run Tests
+name: CI
 
 on:
   push:
@@ -8,8 +8,11 @@ on:
       - main
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,14 +30,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # prebuild runs vp check (fmt + lint + tsgo) before vp pack
+      - name: Build
+        run: pnpm run build
+
       - name: Install playwright
         run: pnpm run playwright:install
 
       - name: Run tests
         run: pnpm test
 
+      # Build the tarball and validate exports, runtime loading, consumer types, publint, and attw
+      - name: Verify package
+        run: pnpm run verify:package
+
       - name: Upload coverage reports to Codecov
-        if: github.workflow == 'Run Tests'
+        if: github.workflow == 'CI'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

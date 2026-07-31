@@ -1,7 +1,7 @@
 # happy-opfs
 
 [![License](https://img.shields.io/npm/l/happy-opfs.svg)](LICENSE)
-[![Build Status](https://github.com/JiangJie/happy-opfs/actions/workflows/test.yml/badge.svg)](https://github.com/JiangJie/happy-opfs/actions/workflows/test.yml)
+[![Build Status](https://github.com/JiangJie/happy-opfs/actions/workflows/ci.yml/badge.svg)](https://github.com/JiangJie/happy-opfs/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/JiangJie/happy-opfs/graph/badge.svg)](https://codecov.io/gh/JiangJie/happy-opfs)
 [![NPM version](https://img.shields.io/npm/v/happy-opfs.svg)](https://npmjs.org/package/happy-opfs)
 [![NPM downloads](https://badgen.net/npm/dm/happy-opfs)](https://npmjs.org/package/happy-opfs)
