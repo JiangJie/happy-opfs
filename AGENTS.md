@@ -21,18 +21,26 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 - `src/` - Library source (see detailed tree under _Code Architecture_)
 - `tests/` - Vitest + Playwright browser tests and MSW mocks
 - `examples/` - Runnable feature demos (served over HTTPS via `vite-plugin-mkcert`)
-- `benchmarks/` - Performance benchmarks (served over HTTP on the default Vite port)
-- `dist/` - Build output (per-entry CJS/ESM modules plus `types.d.ts`/`types.d.cts`; see _Build Configuration_)
+- `benchmarks/` - Performance benchmarks (served over HTTP on the default dev-server port)
+- `dist/` - Build output (per-entry CJS/ESM modules plus dual `main.d.mts`/`main.d.cts` declarations; see _Build Configuration_)
 - `docs/` - Generated TypeDoc output (not committed to source; regenerate with `pnpm run docs`)
 - `README.md` / `README.cn.md` - English and Chinese READMEs; keep both in sync when editing user-facing docs
 
 ### Tooling Versions
 
-`package.json` is the source of truth for tool versions. The repo uses `pnpm` (see `pnpm-workspace.yaml` below) and TypeScript. When in doubt, read `package.json` rather than relying on documented versions.
+`package.json` is the source of truth for tool versions. The repo uses **Vite+** (`vite-plus`) as the unified toolchain — build (`vp pack`), test (`vp test`), lint (`vp lint`), format (`vp fmt`), and the composite gate (`vp check`) — plus `pnpm` (see `pnpm-workspace.yaml` below) and TypeScript. When in doubt, read `package.json` rather than relying on documented versions.
+
+**Dependency version management with Vite+:**
+
+- `vite-plus` is the single toolchain dependency; it bundles its own Vite (`@voidzero-dev/vite-plus-core`) and Vitest (4.1.10). Neither `vite` nor `vitest` is declared as a devDependency.
+- `@vitest/browser-playwright` and `@vitest/coverage-v8` are NOT bundled (the Playwright provider is an optional peer; coverage is an addon) and must stay pinned to the Vitest version bundled by Vite+.
+- `pnpm-workspace.yaml` aliases every `vite` peer to `@voidzero-dev/vite-plus-core` so `vite-plugin-mkcert`'s plugin types stay identical to the `vite-plus` config signature (prevents a second vite instance).
+- Upgrading the toolchain means bumping `vite-plus` and syncing the two pinned `@vitest/*` addons — NOT running a blanket devDeps upgrade. Check the Vite+ changelog for breaking changes first (pre-1.0).
+- `typescript` stays pinned to `^6` — do NOT upgrade to TS 7. TypeDoc consumes the TypeScript JS API, which TS 7 removed (7.0 ships CLI/LSP only). Type checking in `vp check` already runs on tsgo (the TS 7 compiler), so upgrading the local package adds no value.
 
 ### pnpm Workspace
 
-`pnpm-workspace.yaml` is present and currently only sets `allowBuilds: { msw: true }` to permit MSW's postinstall step. The repo is a single package — do not assume a monorepo layout or add workspace packages without explicit direction.
+`pnpm-workspace.yaml` sets `allowBuilds: { msw: true }` to permit MSW's postinstall step, plus `overrides` / `peerDependencyRules` entries that alias `vite` peers to Vite+'s bundled core (see _Tooling Versions_). The repo is a single package — do not assume a monorepo layout or add workspace packages without explicit direction.
 
 ### Dual Publishing (npm + JSR)
 
@@ -58,13 +66,17 @@ This project uses **pnpm** as the package manager.
 # Install dependencies
 pnpm install
 
-# Type checking
+# Format + lint + type-aware type check in one command (tsgo-powered)
 pnpm run check
 
-# Linting
-pnpm run lint
+# Type checking only (local tsc, editor-consistent reference)
+pnpm run typecheck
 
-# Build (runs prebuild: check types, lint)
+# Linting / formatting
+pnpm run lint
+pnpm run fmt
+
+# Build (runs prebuild: the check gate)
 pnpm run build
 
 # Verify the actual npm tarball before publishing (also runs build)
@@ -77,9 +89,11 @@ pnpm run docs
 pnpm run eg
 ```
 
+All tooling config lives in a single `vite.config.ts` (imported from `vite-plus`): `test` (Vitest), `lint` (oxlint + tsgolint), `fmt` (oxfmt), and `pack` (tsdown) blocks. `pnpm run build` is gated by a `prebuild` hook (runs the `check` script, i.e. `vp check`), so a "build" failure is often actually a format/lint/type error.
+
 ### Testing
 
-Tests use **Vitest** with **Playwright** browser automation.
+Tests use **Vitest** (bundled with Vite+, imported as `vite-plus/test`) with **Playwright** browser automation.
 
 ```bash
 # Install Playwright browsers (first time setup)
@@ -91,17 +105,14 @@ pnpm test
 # Run tests in watch mode
 pnpm run test:watch
 
-# Run tests with UI
-pnpm run test:ui
-
 # Run a specific test file
-pnpm exec vitest run tests/core.test.ts
+pnpm exec vp test run tests/core.test.ts
 
 # Run tests matching a pattern
-pnpm exec vitest run -t "readFile"
+pnpm exec vp test run -t "readFile"
 ```
 
-**MSW service-worker freshness:** `pnpm test` runs a `pretest` hook (`msw init tests/public`) that regenerates the mock service worker. If you invoke `vitest` directly (bypassing the npm script), the MSW worker may be stale — run `pnpm exec msw init tests/public --save=false` manually, or prefer `pnpm test` / `pnpm run test:watch`. The same applies to benchmarks (`prebench` → `benchmarks/public`).
+**MSW service-worker freshness:** `pnpm test` runs a `pretest` hook (`msw init tests/public`) that regenerates the mock service worker. If you invoke `vp test` directly (bypassing the npm script), the MSW worker may be stale — run `pnpm exec msw init tests/public --save=false` manually, or prefer `pnpm test` / `pnpm run test:watch`. The same applies to benchmarks (`prebench` → `benchmarks/public`).
 
 Tests are located in `tests/` directory. The test environment:
 
@@ -354,30 +365,32 @@ When adding a new operation, take the next free slot within its category's range
 
 ### Build Configuration
 
-- **Vite** (invoked programmatically by `build.ts`): Builds each runtime entry independently in CJS and ESM formats
+- **vp pack** (tsdown/Rolldown, configured in the `pack` block of `vite.config.ts`): Builds each runtime entry independently in CJS and ESM formats from a tsdown config array
   - Runtime modules: `main`, `async`, `shared`, `sync`, and `SyncChannel`; only `main` is exposed through `package.json` exports
   - Internal module: virtual build entry `_internal` (shared helpers, sync protocol, and channel state; not declared in `package.json` exports or represented by a source-only barrel)
-  - Cross-entry imports stay external and are rewritten to sibling `dist/*.{mjs,cjs}` files; this preserves `SyncChannel` as a real module namespace for downstream tree-shaking
+  - Cross-entry imports stay external (`deps.neverBundle` on resolved ids) and are rewritten to sibling `dist/*.{mjs,cjs}` files (`outputOptions.paths`); this preserves `SyncChannel` as a real module namespace for downstream tree-shaking
   - `sync` and `SyncChannel` must both reference the single `_internal` module so channel state is not duplicated
-  - A CJS post-processing plugin rewrites Rolldown's source-path `export *` requires and preserves the original `SyncChannel` namespace keys
+  - The first config in the array cleans `dist/`; the rest build incrementally on top (tsdown builds array configs sequentially)
+  - A CJS post-processing plugin (`renderChunk`) rewrites Rolldown's source-path `export *` requires and preserves the original `SyncChannel` namespace keys (CJS namespace interop would otherwise add an enumerable `default`)
+  - A `build:done` hook on the last config compares the CJS/ESM `SyncChannel` export keys to catch interop regressions on every build
 
-- **Rollup** (`rollup.config.ts`): Generates the bundled root declaration files
-  - Uses `rollup-plugin-dts` for declaration bundling
-  - Outputs: `dist/types.d.ts` for ESM and `dist/types.d.cts` for CJS
+- **Declarations** (rolldown-plugin-dts, via `dts: true` per entry): Each runtime entry emits dual `dist/<name>.d.mts` / `dist/<name>.d.cts`; internal types inline, public cross-entry type imports stay external. The virtual `_internal` entry emits no dts (the dts pass cannot resolve virtual modules, and it ships no public types)
 
 - **Package verification** (`verify_package.ts`): Packs the npm tarball and validates its exports, ESM/CJS runtime loading, consumer types, publint, and Are the Types Wrong before `npm publish`
 
-- **Vitest** (configured in `vite.config.ts`): Browser-based testing
+- **Vitest** (the `test` block in `vite.config.ts`): Browser-based testing
   - Uses Playwright Chromium in headless mode
   - Coverage via v8 provider
   - Tests run sequentially for OPFS isolation
 
-- **ESLint** (eslint.config.mjs): Uses `@eslint/js` + `typescript-eslint`
-  - Extends: recommended, strict, and stylistic configs
+- **Lint / Format** (the `lint` / `fmt` blocks in `vite.config.ts`): oxlint + tsgolint (type-aware rules on tsgo) and oxfmt, replacing the former ESLint + typescript-eslint + @stylistic setup
+  - `lint.options` enables `typeAware` + `typeCheck` with `maxWarnings: 0` — warnings fail the gate
+  - Rules are organized in tiers with inline comments explaining why each off-rule is disabled; keep that rationale when adding or removing rules
 
 - **TypeScript** (tsconfig.json): Strict mode enabled
   - Module: ESNext with bundler resolution
   - Strict flags: noUnusedLocals, noUnusedParameters, noPropertyAccessFromIndexSignature
+  - `pnpm run typecheck` runs the local tsc as the editor-consistent reference; `vp check` type-checks through tsgo — both must pass (tsgolint and tsc occasionally infer union contextual types differently, e.g. the explicit `Err<never, E>` generics in `zip.ts`)
 
 ## Commit Conventions
 
@@ -424,7 +437,7 @@ The `examples/` directory contains runnable examples for all major features:
 - `sync-api.ts` + `sync-worker.ts` - Synchronous file operations via Web Worker
 - `shared-messenger.ts` + `shared-messenger-child.ts` - Sharing sync channel between iframe contexts
 
-Run examples with `pnpm eg` (requires HTTPS, Vite dev server handles this automatically).
+Run examples with `pnpm eg` (requires HTTPS, the `vp dev` server handles this automatically via `vite-plugin-mkcert`).
 
 ## Benchmarks
 
