@@ -2,7 +2,7 @@
  * Error handling and edge cases tests using Vitest
  * Tests various error conditions and boundary cases across modules
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('Error Handling', () => {

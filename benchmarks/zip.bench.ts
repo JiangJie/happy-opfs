@@ -18,7 +18,7 @@
  */
 import * as fflate from 'fflate/browser';
 import { Future } from 'tiny-future';
-import { bench, describe } from 'vitest';
+import { bench, describe } from 'vite-plus/test';
 
 function createTestFiles(fileCount: number, fileSizeKB: number): fflate.Zippable {
     const files: fflate.Zippable = {};

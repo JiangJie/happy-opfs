@@ -3,7 +3,7 @@
  * Tests: downloadFile, uploadFile
  * Uses MSW (Mock Service Worker) for reliable mock server
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 import { worker } from './mocks/browser.ts';
 import { MOCK_SERVER } from './mocks/constants.ts';

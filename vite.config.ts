@@ -1,4 +1,4 @@
-import { playwright } from '@vitest/browser-playwright';
+import { playwright } from 'vite-plus/test/browser-playwright';
 import mkcert from 'vite-plugin-mkcert';
 import { defineConfig } from 'vite-plus';
 

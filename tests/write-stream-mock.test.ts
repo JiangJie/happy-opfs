@@ -3,7 +3,7 @@
  * Covers temp file creation failure and moveFileHandle failure scenarios.
  */
 import { Err } from 'happy-rusty';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Flags to control mock behavior
 let mockTempFileCreationShouldFail = false;

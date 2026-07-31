@@ -2,7 +2,7 @@
  * Sync API operations tests using Vitest
  * Tests: createFileSync, mkdirSync, readFileSync, writeFileSync, removeSync, statSync, etc.
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('OPFS Sync Operations', () => {

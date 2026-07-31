@@ -3,7 +3,7 @@
  * Covers getFile() failure scenario during zip operations.
  */
 import { Ok } from 'happy-rusty';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Flag to control mock behavior
 let mockGetFileShouldFail = false;

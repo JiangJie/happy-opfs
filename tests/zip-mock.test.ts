@@ -2,7 +2,7 @@
  * Test for zip-stream Zip error handling using vitest mocking.
  * Covers fflate Zip error callback (lines 158-160).
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 // Mock fflate/browser - Zip throws error

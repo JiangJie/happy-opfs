@@ -2,7 +2,7 @@
  * Tests for sync operation timeout behavior.
  * Uses opTimeout: 0 to trigger immediate timeout.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import { SyncChannel, existsSync, TIMEOUT_ERROR } from '../src/mod.ts';
 
 describe('Sync Operation Timeout', () => {

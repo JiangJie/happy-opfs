@@ -2,7 +2,7 @@
  * Test for zip-stream ZipDeflate error handling using vitest mocking.
  * Covers ZipDeflate push error during stream processing.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 // Mock fflate/browser - ZipDeflate throws error on push

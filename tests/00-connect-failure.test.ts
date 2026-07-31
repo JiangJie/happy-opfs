@@ -6,7 +6,7 @@
  * Failed connections reset state back to `idle` (via the cleanup path),
  * so subsequent tests are not affected.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 import { SyncChannel, TIMEOUT_ERROR } from '../src/mod.ts';
 
 describe('SyncChannel.connect failure paths', () => {

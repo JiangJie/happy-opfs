@@ -6,7 +6,7 @@
  * 1. move() in ext.ts — file and directory move
  * 2. writeStreamToFile() in write.ts — temp-file-then-move for stream writes
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('moveFileHandle fallback (no native handle.move)', () => {

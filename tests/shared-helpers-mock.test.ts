@@ -2,7 +2,7 @@
  * Tests for src/shared/helpers.ts
  * Covers both blob.bytes() branch and arrayBuffer() fallback branch
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import { readBlobBytes } from '../src/shared/internal/mod.ts';
 
 describe('shared/helpers.ts tests', () => {

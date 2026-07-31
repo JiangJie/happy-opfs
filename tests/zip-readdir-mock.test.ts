@@ -3,7 +3,7 @@
  * Covers readDir error, async iterator error, and file read error scenarios in zip operations.
  */
 import { Err, Ok } from 'happy-rusty';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Flags to control mock behavior
 let mockReadDirShouldFail = false;

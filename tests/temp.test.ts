@@ -2,7 +2,7 @@
  * Temporary file operations tests using Vitest
  * Tests: generateTempPath, isTempPath, mkTemp, pruneTemp, deleteTemp
  */
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('OPFS Temporary File Operations', () => {

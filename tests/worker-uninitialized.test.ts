@@ -5,7 +5,7 @@
  * IMPORTANT: This file tests what happens when sync APIs are called
  * without initializing the worker first.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 // Import functions directly to avoid side effects from mod.ts
 import {

@@ -40,13 +40,13 @@
     "prepublishOnly": "pnpm run verify:package",
     "playwright:install": "pnpm exec playwright install chromium-headless-shell",
     "pretest": "pnpm exec msw init tests/public --save=false",
-    "test": "pnpm exec vitest run --coverage",
-    "test:watch": "pnpm exec vitest watch",
+    "test": "pnpm exec vp test run --coverage",
+    "test:watch": "pnpm exec vp test",
     "prebench": "pnpm exec msw init benchmarks/public --save=false",
     "bench": "pnpm exec vite --config benchmarks/vite.config.ts",
     "prebench:run": "pnpm run prebench",
     "bench:run": "node benchmarks/playwright.ts",
-    "bench:vitest": "pnpm exec vitest bench --run",
+    "bench:vitest": "pnpm exec vp test bench --run",
     "eg": "pnpm exec vite --config examples/vite.config.ts"
   },
   "repository": {
@@ -74,8 +74,8 @@
   ],
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@vitest/browser-playwright": "^4.1.10",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/browser-playwright": "4.1.10",
+    "@vitest/coverage-v8": "4.1.10",
     "msw": "^2.15.0",
     "playwright": "^1.62.0",
     "publint": "^0.3.22",
@@ -85,8 +85,7 @@
     "typescript": "^6.0.3",
     "vite": "^8.1.5",
     "vite-plugin-mkcert": "^2.1.0",
-    "vite-plus": "^0.2.6",
-    "vitest": "^4.1.10"
+    "vite-plus": "^0.2.6"
   },
   "dependencies": {
     "@happy-ts/fetch-t": "^1.10.0",

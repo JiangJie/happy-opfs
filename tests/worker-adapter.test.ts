@@ -2,7 +2,7 @@
  * Tests for opfs_worker_adapter.ts edge cases
  * Covers: SyncChannel.attach, writeJsonFileSync error, SyncChannel.connect validation
  */
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('Worker Adapter Edge Cases', () => {

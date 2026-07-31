@@ -2,7 +2,7 @@
  * Tests for async API calls directly in Worker context.
  * This verifies that readViaSyncAccess works correctly for all encoding types.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('Worker Async API (readViaSyncAccess)', () => {

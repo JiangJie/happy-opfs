@@ -2,7 +2,7 @@
  * Tests for opfs_worker_adapter.ts edge cases that require special setup
  * Covers: non-main thread check, request too large error, buffer layout, and small buffer scenarios
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vite-plus/test';
 import { SyncChannel, writeFileSync } from '../src/mod.ts';
 import { SyncMessenger, encodePayload } from '../src/sync/protocol.ts';
 

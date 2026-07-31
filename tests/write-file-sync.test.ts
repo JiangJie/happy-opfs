@@ -2,7 +2,7 @@
  * Tests for writeFile function's createSyncAccessHandle branch (Worker environment)
  * These tests execute writeFile in a Worker context where createSyncAccessHandle is used
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import type { WriteSyncFileContent } from '../src/mod.ts';
 import * as fs from '../src/mod.ts';
 

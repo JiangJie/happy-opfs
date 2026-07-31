@@ -4,7 +4,7 @@
  *
  * Uses direct import and mock handles to test the fallback paths.
  */
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test';
 import { removeHandle } from '../src/async/internal/helpers.ts';
 import * as fs from '../src/mod.ts';
 

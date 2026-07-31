@@ -2,7 +2,7 @@
  * Mock tests for src/async/archive/zip.ts
  * Covers the FileReaderSync branch for reading blob data synchronously in Worker context.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vite-plus/test';
 
 // Store original FileReaderSync (undefined in main thread)
 const originalFileReaderSync = globalThis.FileReaderSync;

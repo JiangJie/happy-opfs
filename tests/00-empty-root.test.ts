@@ -2,7 +2,7 @@
  * Test for emptyDir('/') - covers the root directory special case in ext.ts.
  * When emptyDir is called with root path, it delegates to remove('/').
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('emptyDir root directory', () => {

@@ -2,7 +2,7 @@
  * Tests for SyncChannel validation edge cases
  * Covers connect.ts validation branches that require isolated testing
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vite-plus/test';
 import { attachSyncChannel, connectSyncChannel } from '../src/sync/channel/connect.ts';
 import { setSyncChannelState } from '../src/sync/channel/state.ts';
 

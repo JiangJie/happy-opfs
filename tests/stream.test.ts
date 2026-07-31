@@ -2,7 +2,7 @@
  * Stream-based file operations tests using Vitest
  * Tests: readFile with stream encoding, openWritableFileStream
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('OPFS Stream Operations', () => {

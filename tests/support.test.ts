@@ -2,7 +2,7 @@
  * Support module tests using Vitest
  * Tests: isOPFSSupported, isSyncChannelSupported
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import { isOPFSSupported, isSyncChannelSupported } from '../src/mod.ts';
 
 describe('Support', () => {

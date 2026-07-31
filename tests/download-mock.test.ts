@@ -3,7 +3,7 @@
  * Covers the null body handling when fetchT returns response with null body.
  */
 import type { FetchInit } from '@happy-ts/fetch-t';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Mock fetchT to return response with null body
 let mockFetchTReturnNullBody = false;

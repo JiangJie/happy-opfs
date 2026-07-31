@@ -2,7 +2,7 @@
  * Mock tests for src/shared/helpers.ts
  * Covers the FileReaderSync branch for reading blob bytes synchronously in Worker context.
  */
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vite-plus/test';
 
 // Store original FileReaderSync (undefined in main thread)
 const originalFileReaderSync = globalThis.FileReaderSync;

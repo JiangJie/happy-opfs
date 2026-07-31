@@ -3,7 +3,7 @@
  * Covers fflate error callbacks.
  */
 import type { FlateError, UnzipFile } from 'fflate/browser';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 // Mock fflate/browser

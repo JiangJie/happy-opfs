@@ -3,7 +3,7 @@
  * Covers the readDir error branch in copy/move operations.
  */
 import { Err } from 'happy-rusty';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Mock readDir to fail after stat succeeds
 let mockReadDirShouldFail = false;

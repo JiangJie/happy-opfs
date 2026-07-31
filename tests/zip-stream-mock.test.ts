@@ -3,7 +3,7 @@
  * Covers the null stream handling when fetchT returns empty body.
  */
 import type { FetchInit } from '@happy-ts/fetch-t';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Mock fetchT to return null stream
 let mockFetchTReturnNull = false;

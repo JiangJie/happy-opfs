@@ -2,7 +2,7 @@
  * Extended OPFS operations tests using Vitest
  * Tests: appendFile, copy, move, emptyDir, exists, readBlobFile, readJsonFile, writeJsonFile
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('OPFS Extended Operations', () => {

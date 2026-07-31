@@ -2,7 +2,7 @@
  * Edge cases and error handling tests
  * Tests for error conditions, boundary cases, and special scenarios
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('OPFS Edge Cases', () => {

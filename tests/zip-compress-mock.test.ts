@@ -1,7 +1,7 @@
 /**
  * Test for zip.ts fflate compress error (lines 250-251) using vitest mocking.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Mock fflate/browser to make compress fail
 vi.mock('fflate/browser', async importOriginal => {

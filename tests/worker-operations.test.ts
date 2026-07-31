@@ -3,7 +3,7 @@
  * Tests all WorkerAsyncOp operations through their sync API counterparts
  * Also covers serialization/deserialization of files and errors
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('Worker Operations Coverage', () => {

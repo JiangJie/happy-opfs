@@ -3,7 +3,7 @@
  * These tests cover Worker-only sync access handle code paths by mocking
  * the createSyncAccessHandle method in the main thread.
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 
 // Store original FileReaderSync (undefined in main thread)
 const originalFileReaderSync = globalThis.FileReaderSync;

@@ -2,7 +2,7 @@
  * Validations module tests using Vitest
  * Tests: validateAbsolutePath, validateUrl, validateExistsOptions, validateExpiredDate
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import {
     validateAbsolutePath,
     validateExistsOptions,

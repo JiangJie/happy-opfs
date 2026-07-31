@@ -2,7 +2,7 @@
  * Core OPFS operations tests using Vitest
  * Tests: createFile, mkdir, readDir, readFile, writeFile, remove, stat
  */
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vite-plus/test';
 import type { WriteFileContent } from '../src/mod.ts';
 import * as fs from '../src/mod.ts';
 

@@ -2,7 +2,7 @@
  * Mock tests for src/async/archive/unzip-stream.ts
  * Covers the null stream handling when readFile returns empty stream.
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import type { FileEncoding } from '../src/mod.ts';
 
 // Mock readFile to return null stream

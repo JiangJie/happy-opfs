@@ -1,7 +1,7 @@
 /**
  * Test file to verify bytes.buffer behavior
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 import { readFile, writeFile } from '../src/async/mod.ts';
 
 describe('bytes.buffer verification', () => {

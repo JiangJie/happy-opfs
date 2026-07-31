@@ -1,7 +1,7 @@
 /**
  * truncate / truncateSync tests using Vitest
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
 describe('truncate (async)', () => {
