@@ -93,6 +93,8 @@ async function runBenchmark(
         await page.click(benchmark.runButton, { timeout: TIMEOUT });
 
         // Wait for completion (case-insensitive check)
+        // NOTE: waitForFunction signature is (pageFunction, arg, options) —
+        // options must be the THIRD argument, otherwise the default 30s timeout applies
         await page.waitForFunction(
             () => {
                 const output = document.getElementById('output');
@@ -102,6 +104,7 @@ async function runBenchmark(
                     (text.includes('complete') && text.includes('benchmark'))
                 );
             },
+            undefined,
             { timeout: TIMEOUT },
         );
 
