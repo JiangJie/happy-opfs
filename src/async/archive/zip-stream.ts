@@ -43,6 +43,12 @@ export async function zipStream(
     zipFilePath: string,
     options?: ZipOptions,
 ): AsyncVoidIOResult {
+    // Normalize before deriving entry names, otherwise `basename` would come from
+    // the raw path while the entry content is read from the normalized one
+    const sourcePathRes = validateAbsolutePath(sourcePath);
+    if (sourcePathRes.isErr()) return sourcePathRes.asErr();
+    sourcePath = sourcePathRes.unwrap();
+
     const zipFilePathRes = validateAbsolutePath(zipFilePath);
     if (zipFilePathRes.isErr()) return zipFilePathRes.asErr();
     zipFilePath = zipFilePathRes.unwrap();

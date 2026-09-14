@@ -739,6 +739,12 @@ describe('OPFS Zip Operations', () => {
             const result = await fs.zipStream('/non-existent-path', '/test.zip');
             expect(result.isErr()).toBe(true);
         });
+
+        it('should fail when sourcePath is a relative path', async () => {
+            const result = await fs.zipStream('relative/source', '/test.zip');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('absolute');
+        });
     });
 
     describe('zipStreamFromUrl', () => {

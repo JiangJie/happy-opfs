@@ -81,6 +81,12 @@ export async function zip(
     zipFilePath?: string | ZipOptions,
     options?: ZipOptions,
 ): Promise<ZipIOResult> {
+    // Normalize before deriving entry names, otherwise `basename` would come from
+    // the raw path while the entry content is read from the normalized one
+    const sourcePathRes = validateAbsolutePath(sourcePath);
+    if (sourcePathRes.isErr()) return sourcePathRes.asErr() as ZipIOResult;
+    sourcePath = sourcePathRes.unwrap();
+
     if (typeof zipFilePath === 'string') {
         const zipFilePathRes = validateAbsolutePath(zipFilePath);
         if (zipFilePathRes.isErr()) return zipFilePathRes.asErr() as ZipIOResult;
