@@ -254,6 +254,10 @@ describe('OPFS Edge Cases', () => {
             // Destination content should remain unchanged
             const content = await fs.readTextFile('/edge-copy-dest');
             expect(content.unwrap()).toBe('old content');
+
+            // The skipped move must not delete the source
+            expect((await fs.exists('/edge-copy-src')).unwrap()).toBe(true);
+            expect((await fs.readTextFile('/edge-copy-src')).unwrap()).toBe('new content');
         });
 
         it('should move file to nested path that does not exist', async () => {

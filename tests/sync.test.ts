@@ -247,6 +247,8 @@ describe('OPFS Sync Operations', () => {
             fs.removeSync('/sync-copy-no-dest.txt');
             fs.removeSync('/sync-copy-mismatch.txt');
             fs.removeSync('/sync-copy-mismatch-dir');
+            fs.removeSync('/sync-copy-merge-src');
+            fs.removeSync('/sync-copy-merge-dest');
         });
 
         it('should copy a file', () => {
@@ -285,6 +287,22 @@ describe('OPFS Sync Operations', () => {
             expect(content.unwrap()).toBe('Old');
         });
 
+        it('should keep merging new entries when overwrite is false', () => {
+            fs.writeFileSync('/sync-copy-merge-src/file.txt', 'New');
+            fs.writeFileSync('/sync-copy-merge-src/only-in-src.txt', 'Only');
+            fs.writeFileSync('/sync-copy-merge-dest/file.txt', 'Old');
+
+            const result = fs.copySync('/sync-copy-merge-src', '/sync-copy-merge-dest', {
+                overwrite: false,
+            });
+            expect(result.isOk()).toBe(true);
+
+            expect(fs.readTextFileSync('/sync-copy-merge-dest/file.txt').unwrap()).toBe('Old');
+            expect(fs.readTextFileSync('/sync-copy-merge-dest/only-in-src.txt').unwrap()).toBe(
+                'Only',
+            );
+        });
+
         it('should fail when src and dest are different types', () => {
             fs.writeFileSync('/sync-copy-mismatch.txt', 'file');
             fs.mkdirSync('/sync-copy-mismatch-dir');
@@ -300,6 +318,10 @@ describe('OPFS Sync Operations', () => {
             fs.removeSync('/sync-move-dest.txt');
             fs.removeSync('/sync-move-dir-src');
             fs.removeSync('/sync-move-dir-dest');
+            fs.removeSync('/sync-move-noclobber-src.txt');
+            fs.removeSync('/sync-move-noclobber-dest.txt');
+            fs.removeSync('/sync-move-noclobber-dir-src');
+            fs.removeSync('/sync-move-noclobber-dir-dest');
         });
 
         it('should move a file', () => {
@@ -323,6 +345,84 @@ describe('OPFS Sync Operations', () => {
 
             expect(fs.existsSync('/sync-move-dir-src').unwrap()).toBe(false);
             expect(fs.existsSync('/sync-move-dir-dest/file.txt').unwrap()).toBe(true);
+        });
+
+        it('should keep the source when overwrite is false and dest exists', () => {
+            fs.writeFileSync('/sync-move-noclobber-src.txt', 'New');
+            fs.writeFileSync('/sync-move-noclobber-dest.txt', 'Old');
+
+            const result = fs.moveSync(
+                '/sync-move-noclobber-src.txt',
+                '/sync-move-noclobber-dest.txt',
+                {
+                    overwrite: false,
+                },
+            );
+            expect(result.isOk()).toBe(true);
+
+            // A skipped move must not destroy the source
+            expect(fs.existsSync('/sync-move-noclobber-src.txt').unwrap()).toBe(true);
+            expect(fs.readTextFileSync('/sync-move-noclobber-src.txt').unwrap()).toBe('New');
+            expect(fs.readTextFileSync('/sync-move-noclobber-dest.txt').unwrap()).toBe('Old');
+        });
+
+        it('should keep both directories when moving with overwrite false', () => {
+            fs.writeFileSync('/sync-move-noclobber-dir-src/file.txt', 'New');
+            fs.writeFileSync('/sync-move-noclobber-dir-src/only-in-src.txt', 'Only');
+            fs.writeFileSync('/sync-move-noclobber-dir-dest/file.txt', 'Old');
+
+            const result = fs.moveSync(
+                '/sync-move-noclobber-dir-src',
+                '/sync-move-noclobber-dir-dest',
+                {
+                    overwrite: false,
+                },
+            );
+            expect(result.isOk()).toBe(true);
+
+            expect(fs.existsSync('/sync-move-noclobber-dir-src/only-in-src.txt').unwrap()).toBe(
+                true,
+            );
+            expect(fs.existsSync('/sync-move-noclobber-dir-dest/only-in-src.txt').unwrap()).toBe(
+                false,
+            );
+            expect(fs.readTextFileSync('/sync-move-noclobber-dir-dest/file.txt').unwrap()).toBe(
+                'Old',
+            );
+        });
+
+        it('should remove the source tree after a real directory move with overwrite false', () => {
+            fs.writeFileSync('/sync-move-noclobber-dir-src/sub/file.txt', 'New');
+
+            const result = fs.moveSync(
+                '/sync-move-noclobber-dir-src',
+                '/sync-move-noclobber-dir-dest',
+                {
+                    overwrite: false,
+                },
+            );
+            expect(result.isOk()).toBe(true);
+
+            // Nothing was skipped here, so the move must complete and drop the source
+            expect(fs.existsSync('/sync-move-noclobber-dir-src').unwrap()).toBe(false);
+            expect(fs.readTextFileSync('/sync-move-noclobber-dir-dest/sub/file.txt').unwrap()).toBe(
+                'New',
+            );
+        });
+
+        it('should report a type mismatch before applying the no-clobber skip', () => {
+            fs.writeFileSync('/sync-move-noclobber-src.txt', 'New');
+            fs.writeFileSync('/sync-move-noclobber-dir-dest/file.txt', 'Old');
+
+            const result = fs.moveSync(
+                '/sync-move-noclobber-src.txt',
+                '/sync-move-noclobber-dir-dest',
+                {
+                    overwrite: false,
+                },
+            );
+            expect(result.isErr()).toBe(true);
+            expect(fs.existsSync('/sync-move-noclobber-src.txt').unwrap()).toBe(true);
         });
     });
 

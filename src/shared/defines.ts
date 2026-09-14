@@ -208,6 +208,9 @@ export type ExistsOptions =
 export interface CopyOptions {
     /**
      * Whether to overwrite the destination file if it already exists.
+     *
+     * When `false`, existing entries are skipped while the rest of the source is
+     * still copied (`cp -rn` style merge).
      * @defaultValue `true`
      */
     overwrite?: boolean;
@@ -221,6 +224,9 @@ export interface CopyOptions {
 export interface MoveOptions {
     /**
      * Whether to overwrite the destination file if it already exists.
+     *
+     * When `false`, the move is a no-op if the destination already exists
+     * (`mv -n` style): both the destination and the source are left untouched.
      * @defaultValue `true`
      */
     overwrite?: boolean;

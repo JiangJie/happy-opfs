@@ -27,6 +27,10 @@ describe('OPFS Extended Operations', () => {
         await fs.remove('/move-dir-dest');
         await fs.remove('/move-overwrite-src.txt');
         await fs.remove('/move-overwrite-dest.txt');
+        await fs.remove('/move-noclobber-src.txt');
+        await fs.remove('/move-noclobber-dest.txt');
+        await fs.remove('/move-noclobber-dir-src');
+        await fs.remove('/move-noclobber-dir-dest');
         await fs.remove('/empty-dir-test');
         await fs.remove('/new-empty-dir');
         await fs.remove('/exists-test.txt');
@@ -197,6 +201,88 @@ describe('OPFS Extended Operations', () => {
             const content = await fs.readTextFile('/move-overwrite-dest.txt');
             expect(content.unwrap()).toBe('New');
         });
+
+        it('should keep the source and destination when overwrite is false and dest exists', async () => {
+            await fs.writeFile('/move-noclobber-src.txt', 'New');
+            await fs.writeFile('/move-noclobber-dest.txt', 'Old');
+
+            const result = await fs.move('/move-noclobber-src.txt', '/move-noclobber-dest.txt', {
+                overwrite: false,
+            });
+            expect(result.isOk()).toBe(true);
+
+            // A skipped move must not destroy the source, it is still the only copy
+            expect((await fs.exists('/move-noclobber-src.txt')).unwrap()).toBe(true);
+            expect((await fs.readTextFile('/move-noclobber-src.txt')).unwrap()).toBe('New');
+            expect((await fs.readTextFile('/move-noclobber-dest.txt')).unwrap()).toBe('Old');
+        });
+
+        it('should keep both directories when moving with overwrite false and dest exists', async () => {
+            await fs.writeFile('/move-noclobber-dir-src/file.txt', 'New');
+            await fs.writeFile('/move-noclobber-dir-src/only-in-src.txt', 'Only');
+            await fs.writeFile('/move-noclobber-dir-dest/file.txt', 'Old');
+
+            const result = await fs.move('/move-noclobber-dir-src', '/move-noclobber-dir-dest', {
+                overwrite: false,
+            });
+            expect(result.isOk()).toBe(true);
+
+            // The whole move is skipped: the source tree stays intact (including
+            // files that do not exist at the destination) and the destination is untouched
+            expect((await fs.exists('/move-noclobber-dir-src/only-in-src.txt')).unwrap()).toBe(
+                true,
+            );
+            expect((await fs.readTextFile('/move-noclobber-dir-src/file.txt')).unwrap()).toBe(
+                'New',
+            );
+            expect((await fs.readTextFile('/move-noclobber-dir-dest/file.txt')).unwrap()).toBe(
+                'Old',
+            );
+            expect((await fs.exists('/move-noclobber-dir-dest/only-in-src.txt')).unwrap()).toBe(
+                false,
+            );
+        });
+
+        it('should still move when overwrite is false but dest does not exist', async () => {
+            await fs.writeFile('/move-noclobber-src.txt', 'New');
+
+            const result = await fs.move('/move-noclobber-src.txt', '/move-noclobber-dest.txt', {
+                overwrite: false,
+            });
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/move-noclobber-src.txt')).unwrap()).toBe(false);
+            expect((await fs.readTextFile('/move-noclobber-dest.txt')).unwrap()).toBe('New');
+        });
+
+        it('should remove the source tree after a real directory move with overwrite false', async () => {
+            await fs.mkdir('/move-noclobber-dir-src/sub');
+            await fs.writeFile('/move-noclobber-dir-src/sub/file.txt', 'New');
+
+            const result = await fs.move('/move-noclobber-dir-src', '/move-noclobber-dir-dest', {
+                overwrite: false,
+            });
+            expect(result.isOk()).toBe(true);
+
+            // Nothing was skipped here, so the move must complete and drop the source
+            expect((await fs.exists('/move-noclobber-dir-src')).unwrap()).toBe(false);
+            expect((await fs.readTextFile('/move-noclobber-dir-dest/sub/file.txt')).unwrap()).toBe(
+                'New',
+            );
+        });
+
+        it('should report a type mismatch before applying the no-clobber skip', async () => {
+            await fs.writeFile('/move-noclobber-src.txt', 'New');
+            await fs.writeFile('/move-noclobber-dir-dest/file.txt', 'Old');
+
+            // File onto an existing directory: the mismatch must be reported, not
+            // silently swallowed by the "destination exists" skip
+            const result = await fs.move('/move-noclobber-src.txt', '/move-noclobber-dir-dest', {
+                overwrite: false,
+            });
+            expect(result.isErr()).toBe(true);
+            expect((await fs.exists('/move-noclobber-src.txt')).unwrap()).toBe(true);
+        });
     });
 
     describe('emptyDir', () => {
@@ -335,6 +421,7 @@ describe('OPFS Extended Operations', () => {
             // Create source directory
             await fs.mkdir('/copy-dir-exists-src');
             await fs.writeFile('/copy-dir-exists-src/file.txt', 'new content');
+            await fs.writeFile('/copy-dir-exists-src/only-in-src.txt', 'only');
 
             // Create destination with same file
             await fs.mkdir('/copy-dir-exists-dest');
@@ -349,6 +436,11 @@ describe('OPFS Extended Operations', () => {
             // Content should not be overwritten
             const content = await fs.readTextFile('/copy-dir-exists-dest/file.txt');
             expect(content.unwrap()).toBe('old content');
+
+            // ... while entries that do not exist at the destination are still copied
+            // (`cp -rn` merge semantics, unlike the all-or-nothing `mv -n` of move)
+            const merged = await fs.readTextFile('/copy-dir-exists-dest/only-in-src.txt');
+            expect(merged.unwrap()).toBe('only');
         });
 
         it('should fail copy directory when exists check fails', async () => {

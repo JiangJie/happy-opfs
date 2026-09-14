@@ -1,6 +1,7 @@
 import { join, SEPARATOR } from '@std/path/posix';
 import {
     Err,
+    Ok,
     RESULT_FALSE,
     RESULT_VOID,
     tryAsyncResult,
@@ -62,6 +63,9 @@ export function appendFile(
  * Copies a file or directory from one location to another, similar to `cp -r`.
  * Both source and destination must be of the same type (both files or both directories).
  *
+ * With `{ overwrite: false }` existing entries are skipped individually while the
+ * rest of the source is still copied (similar to `cp -rn`).
+ *
  * @param srcPath - The absolute source path.
  * @param destPath - The absolute destination path.
  * @param options - Optional copy options.
@@ -81,8 +85,20 @@ export function appendFile(
  * await copy('/src', '/dest', { overwrite: false });
  * ```
  */
-export function copy(srcPath: string, destPath: string, options?: CopyOptions): AsyncVoidIOResult {
-    return mkDestFromSrc(srcPath, destPath, copyFileHandle, 'copy', options?.overwrite);
+export async function copy(
+    srcPath: string,
+    destPath: string,
+    options?: CopyOptions,
+): AsyncVoidIOResult {
+    const copyRes = await mkDestFromSrc(
+        srcPath,
+        destPath,
+        copyFileHandle,
+        'copy',
+        options?.overwrite,
+    );
+    // Skipped entries are not an error for `copy` - it keeps merging the remaining ones
+    return copyRes.and(RESULT_VOID);
 }
 
 /**
@@ -165,6 +181,11 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
  * Moves a file or directory from one location to another.
  * Both source and destination must be of the same type (both files or both directories).
  *
+ * With `{ overwrite: false }` the move follows `mv -n` semantics: when the destination
+ * already exists the operation is a no-op, leaving both the destination and the
+ * source untouched. The source is only removed once the transfer has actually
+ * happened, so a skipped move can never destroy data.
+ *
  * @param srcPath - The absolute source path.
  * @param destPath - The absolute destination path.
  * @param options - Optional move options.
@@ -179,6 +200,9 @@ export async function exists(path: string, options?: ExistsOptions): AsyncIOResu
  *
  * // Move a directory
  * await move('/old/folder', '/new/folder');
+ *
+ * // Keep both files when the destination already exists
+ * await move('/old/file.txt', '/new/file.txt', { overwrite: false });
  * ```
  */
 export async function move(
@@ -193,7 +217,14 @@ export async function move(
         'move',
         options?.overwrite,
     );
-    return mkRes.andThenAsync(() => remove(srcPath));
+
+    // `remove` must only run when something was transferred: after a skipped
+    // move the source is still the only copy of the data. The caller cannot
+    // derive this from `overwrite` alone - `overwrite: false` still transfers
+    // when the destination does not exist, and only the helper knows that.
+    return mkRes.andThenAsync(outcome => {
+        return outcome === 'skipped' ? RESULT_VOID : remove(srcPath);
+    });
 }
 
 /**
@@ -295,6 +326,14 @@ type HandleSrcFileToDest = (
     destFilePath: string,
 ) => AsyncVoidIOResult;
 
+/**
+ * Outcome of {@link mkDestFromSrc}, needed by `move` to decide whether the source
+ * may be removed: `'skipped'` means the destination was left untouched because
+ * `overwrite` is `false`, so the source is still the only copy of the data.
+ * A transfer that happened carries no value of its own.
+ */
+type TransferOutcome = 'skipped' | void;
+
 // #endregion
 
 // #region Internal Functions
@@ -320,16 +359,20 @@ async function copyFileHandle(
  * Algorithm:
  * 1. Verify source exists via stat()
  * 2. Check if destination exists and validate type compatibility (file-to-file or dir-to-dir)
- * 3. For files: directly apply handler (copy or move)
- * 4. For directories: recursively process all entries in parallel
- * 5. Respect overwrite flag - skip if dest exists and overwrite=false
+ * 3. Respect overwrite flag:
+ *    - `move` with `overwrite: false` is a no-op when the destination exists (`mv -n`),
+ *      because a partially skipped tree could not be removed safely afterwards
+ *    - `copy` with `overwrite: false` skips existing entries individually and keeps going
+ * 4. For files: directly apply handler (copy or move)
+ * 5. For directories: recursively process all entries in parallel
  *
  * @param srcPath - The source file/directory path.
  * @param destPath - The destination file/directory path.
  * @param handler - The function to handle file transfer (copy or move).
  * @param opName - The operation name for error messages ('copy' or 'move').
  * @param overwrite - Whether to overwrite existing files. Default: `true`.
- * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ * @returns A promise that resolves to an `AsyncIOResult` which is `'skipped'` when the
+ *          destination was left untouched, otherwise a plain success.
  */
 async function mkDestFromSrc(
     srcPath: string,
@@ -337,7 +380,7 @@ async function mkDestFromSrc(
     handler: HandleSrcFileToDest,
     opName: 'copy' | 'move',
     overwrite = true,
-): AsyncVoidIOResult {
+): AsyncIOResult<TransferOutcome> {
     const srcPathRes = validateAbsolutePath(srcPath);
     if (srcPathRes.isErr()) return srcPathRes.asErr();
     srcPath = srcPathRes.unwrap();
@@ -383,9 +426,20 @@ async function mkDestFromSrc(
         }
     }
 
+    // `mv -n`: a no-clobber move onto an existing destination is all-or-nothing,
+    // so the whole operation is skipped instead of leaving a half-moved tree behind
+    if (opName === 'move' && !overwrite && destExists) {
+        return Ok('skipped');
+    }
+
     // Handle file source: apply handler directly
     if (isFileHandle(srcHandle)) {
-        return overwrite || !destExists ? await handler(srcHandle, destPath) : RESULT_VOID;
+        // `copy` no-clobber: skip this single entry, the caller keeps the rest of the operation
+        if (opName === 'copy' && !overwrite && destExists) {
+            return Ok('skipped');
+        }
+
+        return handler(srcHandle, destPath);
     }
 
     // Handle directory source: recursively process all entries
