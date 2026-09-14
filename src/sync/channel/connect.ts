@@ -7,8 +7,8 @@
 
 import { Err, Ok, RESULT_VOID, type AsyncIOResult, type VoidIOResult } from 'happy-rusty';
 import { Future } from 'tiny-future';
-import { TIMEOUT_ERROR } from '../../shared/mod.ts';
 import type { AttachSyncChannelOptions, ConnectSyncChannelOptions } from '../../shared/mod.ts';
+import { isSyncChannelSupported, TIMEOUT_ERROR } from '../../shared/mod.ts';
 import { SyncMessenger } from '../protocol.ts';
 import {
     getSyncChannelState,
@@ -70,6 +70,12 @@ export async function connectSyncChannel(
     worker: Worker | URL | string,
     options?: ConnectSyncChannelOptions,
 ): AsyncIOResult<SharedArrayBuffer> {
+    // Guard the environment first: constructing a SharedArrayBuffer in a
+    // non-isolated context throws, which would reject instead of returning Err
+    if (!isSyncChannelSupported()) {
+        return Err(createUnsupportedEnvironmentError());
+    }
+
     const state = getSyncChannelState();
     if (state === 'ready') {
         return Err(new Error('Sync channel already connected'));
@@ -112,17 +118,32 @@ export async function connectSyncChannel(
         return Err(e as Error);
     }
 
-    // Set state after all validations pass
-    setSyncChannelState('connecting');
-    setGlobalSyncOpTimeout(opTimeout);
-
-    const sab = new SharedArrayBuffer(sharedBufferLength);
-    const channel = new MessageChannel();
-    const future = new Future<SharedArrayBuffer>();
-
     // Whether this function created the worker. Only owned workers may be
     // terminated on failure; caller-supplied Workers are left intact.
     const ownsWorker = !(worker instanceof Worker);
+
+    // Set state after all validations pass
+    setSyncChannelState('connecting');
+
+    // Construction can still fail with SharedArrayBuffer available, e.g. when
+    // sharedBufferLength exceeds the maximum size the browser can allocate
+    let sab: SharedArrayBuffer;
+    let channel: MessageChannel;
+    try {
+        sab = new SharedArrayBuffer(sharedBufferLength);
+        channel = new MessageChannel();
+    } catch (e) {
+        // Leave no partial state behind so the caller can retry
+        setSyncChannelState('idle');
+        if (ownsWorker) {
+            workerAdapter.terminate();
+        }
+        return Err(e as Error);
+    }
+
+    setGlobalSyncOpTimeout(opTimeout);
+
+    const future = new Future<SharedArrayBuffer>();
 
     // Shared teardown: clear the timer and detach all event sources
     // (error listener + port onmessage). Called exactly once — success and
@@ -226,6 +247,12 @@ export function attachSyncChannel(
     sharedBuffer: SharedArrayBuffer,
     options?: AttachSyncChannelOptions,
 ): VoidIOResult {
+    // Without this guard the `instanceof` check below throws when the runtime
+    // has no SharedArrayBuffer at all
+    if (!isSyncChannelSupported()) {
+        return Err(createUnsupportedEnvironmentError());
+    }
+
     const state = getSyncChannelState();
     if (state === 'connecting') {
         return Err(new Error('Cannot attach: sync channel is connecting'));
@@ -245,3 +272,19 @@ export function attachSyncChannel(
 
     return RESULT_VOID;
 }
+
+// #region Internal Functions
+
+/**
+ * Creates the error returned when the runtime cannot provide a SharedArrayBuffer,
+ * which only exists in cross-origin isolated contexts (COOP/COEP headers).
+ *
+ * @returns An `Error` describing the missing requirement.
+ */
+function createUnsupportedEnvironmentError(): Error {
+    return new Error(
+        'SharedArrayBuffer is unavailable: SyncChannel requires a cross-origin isolated context (COOP/COEP headers)',
+    );
+}
+
+// #endregion
