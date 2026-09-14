@@ -122,6 +122,18 @@ let enablePartialWriteForNextHandle = false;
 // Patch FileSystemFileHandle prototype
 const originalCreateSyncAccessHandle = FileSystemFileHandle.prototype.createSyncAccessHandle;
 
+/**
+ * Overwrites now go through a temp file that is moved into place, so the mock store
+ * has to follow that move for assertions to find the data under the final name.
+ * (`move` is not in the DOM typings yet.)
+ */
+interface MovableHandle {
+    move(destination: FileSystemDirectoryHandle, name: string): Promise<void>;
+}
+
+const prototype = FileSystemFileHandle.prototype as unknown as Partial<MovableHandle>;
+const originalMove = prototype.move;
+
 describe('createSyncAccessHandle mock tests', () => {
     beforeAll(() => {
         // Install mock FileReaderSync
@@ -160,6 +172,23 @@ describe('createSyncAccessHandle mock tests', () => {
 
             return handle;
         };
+
+        prototype.move = async function (this: FileSystemFileHandle, destination, name) {
+            const sourceName = this.name;
+            const result = originalMove
+                ? await originalMove.call(this, destination, name)
+                : undefined;
+
+            if (mockSyncAccessEnabled) {
+                const data = mockFileStore.get(sourceName);
+                if (data !== undefined) {
+                    mockFileStore.set(name, data);
+                    mockFileStore.delete(sourceName);
+                }
+            }
+
+            return result;
+        };
     });
 
     afterAll(() => {
@@ -172,6 +201,13 @@ describe('createSyncAccessHandle mock tests', () => {
         } else {
             // @ts-expect-error - removing the mock
             delete FileSystemFileHandle.prototype.createSyncAccessHandle;
+        }
+
+        // Restore original move
+        if (originalMove) {
+            prototype.move = originalMove;
+        } else {
+            delete prototype.move;
         }
     });
 
@@ -357,10 +393,65 @@ describe('createSyncAccessHandle mock tests', () => {
 
             // Write stream using sync access handle
             const writeRes = await writeFile('/sync-access-mock-test/stream.txt', stream);
-            // Stream write may fail due to mock limitations with temp file move
-            // The important thing is that the sync access code path was executed
-            // Just check that the mock was called (verified by other passing tests)
-            expect(writeRes.isOk() || writeRes.isErr()).toBe(true);
+            expect(writeRes.isOk()).toBe(true);
+
+            // New files are written to a temp file and moved into place; the mock store
+            // follows that move, so the content shows up under the final name
+            const storedData = mockFileStore.get('stream.txt');
+            expect(storedData).toBeDefined();
+            expect(new TextDecoder().decode(storedData)).toBe('Hello World');
+        });
+
+        it('should overwrite an existing file through a temp file', async () => {
+            const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
+
+            await mkdir('/sync-access-mock-test');
+
+            // The target has to exist for real: the strategy branches on an actual lookup
+            await writeFile('/sync-access-mock-test/overwrite.txt', 'Old content');
+            mockFileStore.set('overwrite.txt', new TextEncoder().encode('Old content'));
+
+            mockSyncAccessEnabled = true;
+
+            const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                start(controller) {
+                    controller.enqueue(new TextEncoder().encode('New content'));
+                    controller.close();
+                },
+            });
+
+            const writeRes = await writeFile('/sync-access-mock-test/overwrite.txt', stream);
+            expect(writeRes.isOk()).toBe(true);
+
+            const storedData = mockFileStore.get('overwrite.txt');
+            expect(storedData).toBeDefined();
+            expect(new TextDecoder().decode(storedData)).toBe('New content');
+        });
+
+        it('should keep the previous content when an overwrite fails', async () => {
+            const { mkdir, writeFile } = await import('../src/async/core/mod.ts');
+
+            await mkdir('/sync-access-mock-test');
+
+            await writeFile('/sync-access-mock-test/abort.txt', 'Old content');
+            mockFileStore.set('abort.txt', new TextEncoder().encode('Old content'));
+
+            mockSyncAccessEnabled = true;
+
+            const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
+                start(controller) {
+                    controller.enqueue(new TextEncoder().encode('partial'));
+                    controller.error(new Error('stream failed'));
+                },
+            });
+
+            const writeRes = await writeFile('/sync-access-mock-test/abort.txt', stream);
+            expect(writeRes.isErr()).toBe(true);
+
+            // The target was never touched: the write went to a temp file that was discarded
+            const storedData = mockFileStore.get('abort.txt');
+            expect(storedData).toBeDefined();
+            expect(new TextDecoder().decode(storedData)).toBe('Old content');
         });
 
         it('should use createSyncAccessHandle for stream append to existing file', async () => {

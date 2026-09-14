@@ -14,12 +14,10 @@ import { remove } from './remove.ts';
  * Writes content to a file at the specified path.
  * Creates the file and parent directories if they don't exist (unless `create: false`).
  *
- * When writing a `ReadableStream` to a **new file**, the stream is first written to a temporary
- * file in `/tmp`, then moved to the target path upon success. This prevents leaving incomplete
- * files if the stream is interrupted. Overwriting an existing file writes in place instead:
- * on the main thread `createWritable` goes through a swap file, so an interrupted write keeps
- * the previous content, while the worker's sync access handle truncates first and an
- * interrupted write leaves the file truncated.
+ * Overwriting inside a Worker is written to a temporary file in `/tmp` first and moved into
+ * place on success, so an interrupted write leaves the previous content untouched. The main
+ * thread's `createWritable` writes a swap file instead and needs no temp file. Appending
+ * always writes in place.
  *
  * @param filePath - The absolute path of the file to write to.
  * @param contents - The content to write (string, ArrayBuffer, TypedArray, Blob, or ReadableStream<Uint8Array>).
@@ -62,18 +60,28 @@ export async function writeFile(
     }
 
     const fileHandleRes = await getWriteFileHandle(filePath, options);
+    if (fileHandleRes.isErr()) {
+        return fileHandleRes.asErr();
+    }
 
-    return fileHandleRes.andTryAsync(fileHandle => {
-        const { append = false } = options ?? {};
+    const fileHandle = fileHandleRes.unwrap();
+    const { append = false } = options ?? {};
 
-        // Prefer sync access in Worker for better performance
-        if (typeof fileHandle.createSyncAccessHandle === 'function') {
-            return writeDataViaSyncAccess(fileHandle, contents, append);
+    if (isSyncAccessHandleSupported(fileHandle)) {
+        if (!append) {
+            // Sync access handles write in place, so an overwrite is routed through a
+            // temp file: a failed write then leaves the target untouched.
+            return writeViaTempFile(filePath, tempHandle =>
+                tryAsyncResult(() => writeDataViaSyncAccess(tempHandle, contents, false)),
+            );
         }
 
-        // Main thread fallback
-        return writeDataViaWritable(fileHandle, contents, append);
-    });
+        // Appending has to keep the existing content and stays in place
+        return tryAsyncResult(() => writeDataViaSyncAccess(fileHandle, contents, true));
+    }
+
+    // Main thread fallback: createWritable already writes a swap file
+    return tryAsyncResult(() => writeDataViaWritable(fileHandle, contents, append));
 }
 
 /**
@@ -150,14 +158,22 @@ function isBinaryReadableStream(x: unknown): x is ReadableStream<Uint8Array<Arra
 }
 
 /**
- * Writes a ReadableStream to a file with atomic semantics for new files.
+ * Whether the handle supports the worker-only synchronous access API.
+ * Only available inside a Worker, where it is also the preferred (in-place) writer.
+ */
+function isSyncAccessHandleSupported(fileHandle: FileSystemFileHandle): boolean {
+    return typeof fileHandle.createSyncAccessHandle === 'function';
+}
+
+/**
+ * Writes a ReadableStream to a file.
  *
  * Strategy:
- * - If the target file does not exist: write to a temp file first, then move it into
- *   place, so an interrupted stream cannot leave a partial file behind
- * - If the target file exists: write in place. `createWritable` on the main thread
- *   writes through a swap file (an interruption keeps the old content), while the
- *   worker's sync access handle truncates up front (an interruption leaves it truncated)
+ * - The worker's sync access handle writes in place, so an overwrite is routed through a
+ *   temp file that is moved into place: an interrupted stream then leaves the target
+ *   untouched instead of truncated. Appending keeps the existing content and writes in place.
+ * - The main thread's `createWritable` already writes a swap file, so the target survives
+ *   an interruption either way.
  *
  * Assumes filePath is already validated.
  */
@@ -171,17 +187,47 @@ async function writeStreamToFile(
     // Check if target file already exists
     const existHandleRes = await getFileHandle(filePath, { create: false });
 
-    if (existHandleRes.isOk()) {
-        // File exists: write directly (transactional protection)
-        return writeStreamToHandle(existHandleRes.unwrap(), stream, append);
+    if (existHandleRes.isErr()) {
+        // File doesn't exist or unexpected error - return error if not creating or not a NotFoundError
+        if (!create || !isNotFoundError(existHandleRes.unwrapErr())) {
+            return existHandleRes.asErr();
+        }
+
+        // New file: a failed stream must not leave a partial file behind
+        return writeViaTempFile(filePath, tempHandle =>
+            writeStreamToHandle(tempHandle, stream, false),
+        );
     }
 
-    // File doesn't exist or unexpected error - return error if not creating or not a NotFoundError
-    if (!create || !isNotFoundError(existHandleRes.unwrapErr())) {
-        return existHandleRes.asErr();
+    const fileHandle = existHandleRes.unwrap();
+
+    // In-place writers cannot roll back, so overwriting goes through a temp file
+    if (!append && isSyncAccessHandleSupported(fileHandle)) {
+        return writeViaTempFile(filePath, tempHandle =>
+            writeStreamToHandle(tempHandle, stream, false),
+        );
     }
 
-    // New file: use temp file strategy
+    return writeStreamToHandle(fileHandle, stream, append);
+}
+
+/**
+ * Writes through a temporary file in `/tmp` and moves it into place, so a failed write
+ * cannot damage the target: the destination keeps its previous content until the move.
+ *
+ * The move is a rename (metadata only), so the extra cost does not grow with the content
+ * size. Used by the in-place writers - sync access handles have no swap file to roll back.
+ *
+ * Assumes filePath is already validated.
+ *
+ * @param filePath - The destination absolute path.
+ * @param writeToTemp - Writes the content to the provided temp file handle.
+ * @returns A promise that resolves to an `AsyncVoidIOResult` indicating success or failure.
+ */
+async function writeViaTempFile(
+    filePath: string,
+    writeToTemp: (tempHandle: FileSystemFileHandle) => AsyncVoidIOResult,
+): AsyncVoidIOResult {
     const tempPath = generateTempPath();
     const tempHandleRes = await getFileHandle(tempPath, { create: true });
     if (tempHandleRes.isErr()) {
@@ -189,7 +235,7 @@ async function writeStreamToFile(
     }
 
     const tempHandle = tempHandleRes.unwrap();
-    const writeRes = await writeStreamToHandle(tempHandle, stream, false);
+    const writeRes = await writeToTemp(tempHandle);
 
     if (writeRes.isErr()) {
         // Clean up temp file on failure
@@ -217,7 +263,7 @@ async function writeStreamToHandle(
 ): AsyncVoidIOResult {
     return tryAsyncResult(() => {
         // Prefer sync access in Worker for better performance
-        if (typeof fileHandle.createSyncAccessHandle === 'function') {
+        if (isSyncAccessHandleSupported(fileHandle)) {
             return writeStreamViaSyncAccess(fileHandle, stream, append);
         }
         // Main thread fallback
@@ -277,8 +323,9 @@ async function writeDataViaWritable(
 /**
  * Writes a ReadableStream to a file using the Worker's FileSystemSyncAccessHandle API.
  *
- * Note: sync access handles write in place, there is no swap file, so truncating up
- * front means an interrupted stream leaves the file truncated rather than untouched.
+ * This writes in place (there is no swap file), so callers that must not leave a
+ * truncated file behind route overwrites through {@link writeViaTempFile}; appending
+ * is always in place.
  */
 async function writeStreamViaSyncAccess(
     fileHandle: FileSystemFileHandle,
@@ -305,8 +352,8 @@ async function writeStreamViaSyncAccess(
 /**
  * Writes non-stream data to a file using the Worker's FileSystemSyncAccessHandle API.
  *
- * Note: like {@link writeStreamViaSyncAccess} this is an in-place write without a swap
- * file, so a failed write leaves the file truncated instead of preserving its content.
+ * Like {@link writeStreamViaSyncAccess} this writes in place, so overwrites are routed
+ * through {@link writeViaTempFile} by the caller.
  */
 async function writeDataViaSyncAccess(
     fileHandle: FileSystemFileHandle,
