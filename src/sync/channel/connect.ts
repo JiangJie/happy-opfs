@@ -145,23 +145,23 @@ export async function connectSyncChannel(
 
     const future = new Future<SharedArrayBuffer>();
 
-    // Shared teardown: clear the timer and detach all event sources
-    // (error listener + port onmessage). Called exactly once — success and
-    // failure paths below are the only callers, and teardown detaches every
-    // other event source, so no second caller can reach teardown again.
+    // Shared teardown: clear the timer, detach all event sources (error listener +
+    // port onmessage) and release the handshake port. Called exactly once —
+    // success and failure paths below are the only callers, and teardown detaches
+    // every other event source, so no second caller can reach teardown again.
     const teardown = (): void => {
         clearTimeout(timer);
         workerAdapter.removeEventListener('error', onError);
         channel.port1.onmessage = null;
+        // The port only carries the one-shot handshake, release it either way
+        channel.port1.close();
     };
 
-    // Failure path: close port, terminate owned worker, reset state so the
-    // caller may retry, and reject the future — connectSyncChannel returns
-    // Err instead of hanging forever when the worker never calls
-    // SyncChannel.listen().
+    // Failure path: terminate owned worker, reset state so the caller may retry,
+    // and reject the future — connectSyncChannel returns Err instead of hanging
+    // forever when the worker never calls SyncChannel.listen().
     const cleanup = (reason: unknown): void => {
         teardown();
-        channel.port1.close();
         if (ownsWorker) {
             workerAdapter.terminate();
         }

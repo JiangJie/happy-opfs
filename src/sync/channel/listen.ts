@@ -37,7 +37,6 @@ import {
     MAIN_UNLOCKED,
     SyncMessenger,
     WORKER_LOCK_INDEX,
-    WORKER_UNLOCKED,
     WorkerOp,
 } from '../protocol.ts';
 
@@ -48,6 +47,14 @@ import {
  * Default.
  */
 const WORKER_LOCKED = MAIN_UNLOCKED;
+
+/**
+ * Safety net for the worker's blocking wait, in milliseconds.
+ * `Atomics.notify` is what normally releases the worker; the timeout only exists
+ * so a missed notification (or a future caller that never notifies) cannot hang
+ * the channel forever. A wake-up per second costs nothing.
+ */
+const WORKER_WAIT_TIMEOUT = 1000;
 
 /**
  * Mapping of async operation enums to their corresponding OPFS functions.
@@ -248,12 +255,12 @@ async function respondToMainFromWorker(
 ): Promise<void> {
     const { i32a, maxDataLength } = messenger;
 
-    // Busy-wait until main thread signals a request is ready
-    // Using busy-wait instead of Atomics.wait() because Atomics.notify() may not work reliably cross-thread
-    while (true) {
-        if (Atomics.load(i32a, WORKER_LOCK_INDEX) === WORKER_UNLOCKED) {
-            break;
-        }
+    // Block until the main thread signals a request. `Atomics.wait` is only
+    // available off the main thread, and a notification can be missed when it
+    // arrives between the load and the wait, so the condition is re-checked in a
+    // bounded loop instead of waiting forever.
+    while (Atomics.load(i32a, WORKER_LOCK_INDEX) === WORKER_LOCKED) {
+        Atomics.wait(i32a, WORKER_LOCK_INDEX, WORKER_LOCKED, WORKER_WAIT_TIMEOUT);
     }
 
     // payload and length

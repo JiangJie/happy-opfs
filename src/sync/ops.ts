@@ -845,10 +845,10 @@ function callWorkerFromMain(
     i32a[DATA_INDEX] = requestLength;
     messenger.setPayload(data);
 
-    // Wake up worker by setting it to UNLOCKED
-    // Note: Atomics.notify() may not work reliably cross-thread, using store + busy-wait instead
-    // Atomics.notify(i32a, WORKER_LOCK_INDEX); // this may not work
+    // Wake up worker: the store covers a worker that is between waits, the notify
+    // releases one that is already blocked in Atomics.wait (see listen.ts)
     Atomics.store(i32a, WORKER_LOCK_INDEX, WORKER_UNLOCKED);
+    Atomics.notify(i32a, WORKER_LOCK_INDEX, 1);
 
     // Busy-wait for worker to finish processing and unlock main thread
     const waitResult = sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
@@ -896,7 +896,9 @@ function callWorkerOp<T>(op: WorkerOp, ...args: unknown[]): IOResult<T> {
         // For single result, return decodedResponse[1]
         // For multi-value result (like readBlobFile), return all elements after error
         if (decodedResponse.length === 2) {
-            return Ok(decodedResponse[1] as T);
+            // Void operations serialize to `null`; surface them as `undefined` so
+            // the runtime value matches the declared `void` result type
+            return Ok((decodedResponse[1] ?? undefined) as T);
         }
         // Multi-value result: return slice from index 1
         return Ok(decodedResponse.slice(1) as T);
