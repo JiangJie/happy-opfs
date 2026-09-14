@@ -12,8 +12,10 @@ import { isSyncChannelSupported, TIMEOUT_ERROR } from '../../shared/mod.ts';
 import { SyncMessenger } from '../protocol.ts';
 import {
     getSyncChannelState,
+    resetSyncChannel,
     setGlobalSyncOpTimeout,
     setMessenger,
+    setOwnedWorker,
     setSyncChannelState,
 } from './state.ts';
 
@@ -189,6 +191,12 @@ export async function connectSyncChannel(
     channel.port1.onmessage = (): void => {
         teardown();
         setMessenger(new SyncMessenger(sab));
+
+        if (ownsWorker) {
+            // Remember the worker we created, so disconnect() can terminate it
+            setOwnedWorker(workerAdapter);
+        }
+
         future.resolve(sab);
     };
 
@@ -216,6 +224,39 @@ export async function connectSyncChannel(
  */
 export function isSyncChannelReady(): boolean {
     return getSyncChannelState() === 'ready';
+}
+
+/**
+ * Disconnects the sync channel and releases the resources owned by this context.
+ *
+ * A worker created by `connect` is terminated. A caller-supplied worker, or the
+ * worker behind a buffer shared with `attach`, is left running so other contexts
+ * that still use that buffer keep working. After disconnecting, `connect` or
+ * `attach` can be called again — this is also the way out of a channel that got
+ * stuck (worker crashed, response never arrived).
+ *
+ * Calling it while not connected is a no-op.
+ *
+ * @returns A `VoidIOResult` indicating success.
+ * @since 2.3.0
+ * @see {@link connectSyncChannel} for establishing a connection
+ * @example
+ * ```typescript
+ * SyncChannel.disconnect();
+ *
+ * // A fresh connection can be established afterwards
+ * await SyncChannel.connect(new URL('./worker.js', import.meta.url));
+ * ```
+ */
+export function disconnectSyncChannel(): VoidIOResult {
+    const worker = resetSyncChannel();
+
+    // Only the worker this context created may be terminated
+    if (worker) {
+        worker.terminate();
+    }
+
+    return RESULT_VOID;
 }
 
 /**

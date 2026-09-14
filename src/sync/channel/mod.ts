@@ -18,6 +18,9 @@
  *
  * // Check if ready
  * if (SyncChannel.isReady()) { ... }
+ *
+ * // Release the channel when it is no longer needed
+ * SyncChannel.disconnect();
  * ```
  *
  * @module
@@ -27,6 +30,7 @@
 export {
     attachSyncChannel as attach,
     connectSyncChannel as connect,
+    disconnectSyncChannel as disconnect,
     isSyncChannelReady as isReady,
 } from './connect.ts';
 // Worker thread API

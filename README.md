@@ -43,15 +43,15 @@ jsr add @happy-js/happy-opfs
 
 ## Features
 
-| Category     | APIs                                                                                                                                                                                               |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Core**     | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat`, `truncate`                                                                                                            |
-| **Extended** | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile`                                                                                |
-| **Stream**   | `readFile` with `{ encoding: 'stream' }`, `openWritableFileStream`                                                                                                                                 |
-| **Temp**     | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp`                                                                                                                                            |
-| **Zip**      | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl`, `zipStream`, `unzipStream`, `zipStreamFromUrl`, `unzipStreamFromUrl`                                                                                 |
-| **Network**  | `downloadFile`, `uploadFile`                                                                                                                                                                       |
-| **Sync**     | All core operations have sync versions (e.g., `mkdirSync`, `readFileSync`) via Web Workers. Use `SyncChannel.connect`, `SyncChannel.listen`, `SyncChannel.attach`, `SyncChannel.isReady` for setup |
+| Category     | APIs                                                                                                                                                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Core**     | `createFile`, `mkdir`, `readDir`, `readFile`, `writeFile`, `remove`, `stat`, `truncate`                                                                                                                                                                 |
+| **Extended** | `appendFile`, `copy`, `move`, `exists`, `emptyDir`, `readTextFile`, `readBlobFile`, `readJsonFile`, `writeJsonFile`                                                                                                                                     |
+| **Stream**   | `readFile` with `{ encoding: 'stream' }`, `openWritableFileStream`                                                                                                                                                                                      |
+| **Temp**     | `mkTemp`, `generateTempPath`, `pruneTemp`, `deleteTemp`                                                                                                                                                                                                 |
+| **Zip**      | `zip`, `unzip`, `zipFromUrl`, `unzipFromUrl`, `zipStream`, `unzipStream`, `zipStreamFromUrl`, `unzipStreamFromUrl`                                                                                                                                      |
+| **Network**  | `downloadFile`, `uploadFile`                                                                                                                                                                                                                            |
+| **Sync**     | All core operations have sync versions (e.g., `mkdirSync`, `readFileSync`) via Web Workers. Use `SyncChannel.connect`, `SyncChannel.listen`, `SyncChannel.attach`, `SyncChannel.isReady` for setup, and `SyncChannel.disconnect` to release the channel |
 
 ## Examples
 

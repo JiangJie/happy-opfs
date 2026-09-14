@@ -27,6 +27,13 @@ let syncChannelState: SyncChannelState = 'idle';
 let messenger: SyncMessenger | null = null;
 
 /**
+ * Worker created by `connectSyncChannel`, if it created one.
+ * Only a library-owned worker may be terminated when the channel is released;
+ * a caller-supplied worker or the worker behind an attached buffer keeps running.
+ */
+let ownedWorker: Worker | null = null;
+
+/**
  * Global timeout for synchronous I/O operations in milliseconds.
  */
 let globalSyncOpTimeout = 1000;
@@ -58,6 +65,29 @@ export function getMessenger(): SyncMessenger | null {
 export function setMessenger(m: SyncMessenger): void {
     messenger = m;
     syncChannelState = 'ready';
+}
+
+/**
+ * Remembers the worker created by `connectSyncChannel` so it can be terminated later.
+ */
+export function setOwnedWorker(worker: Worker | null): void {
+    ownedWorker = worker;
+}
+
+/**
+ * Releases the channel state: drops the messenger and the owned-worker reference
+ * and returns to 'idle', so `connect`/`attach` may be called again.
+ *
+ * @returns The worker that was owned by this context, if any. The caller decides
+ *          whether to terminate it - this module holds no behaviour.
+ */
+export function resetSyncChannel(): Worker | null {
+    const worker = ownedWorker;
+    messenger = null;
+    ownedWorker = null;
+    syncChannelState = 'idle';
+
+    return worker;
 }
 
 /**
