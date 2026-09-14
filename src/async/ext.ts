@@ -339,6 +339,19 @@ type TransferOutcome = 'skipped' | void;
 // #region Internal Functions
 
 /**
+ * Creates the error for a copy/move whose destination lies inside the source: a directory
+ * would recurse forever, and the root directory contains every other path.
+ *
+ * @param opName - The operation name ('copy' or 'move').
+ * @param srcPath - The source path.
+ * @param destPath - The rejected destination path.
+ * @returns The `Error` describing the rejected operation.
+ */
+function createIntoItselfError(opName: 'copy' | 'move', srcPath: string, destPath: string): Error {
+    return new Error(`Cannot ${opName} '${srcPath}' into itself '${destPath}'`);
+}
+
+/**
  * Copies a file handle to a new path by reading and writing the file content.
  *
  * @param fileHandle - The file handle to copy.
@@ -389,10 +402,13 @@ async function mkDestFromSrc(
     if (destPathRes.isErr()) return destPathRes.asErr();
     destPath = destPathRes.unwrap();
 
-    // Prevent copying/moving a directory into itself
-    // For root directory, any destPath is a subdirectory
-    if (isRootDir(srcPath) || destPath.startsWith(srcPath + SEPARATOR) || destPath === srcPath) {
-        return Err(new Error(`Cannot ${opName} '${srcPath}' into itself '${destPath}'`));
+    // Same path and a root source are pure path relations, so both are checked before
+    // touching the file system
+    if (destPath === srcPath) {
+        return Err(new Error(`Source and destination are the same: '${srcPath}'`));
+    }
+    if (isRootDir(srcPath)) {
+        return Err(createIntoItselfError(opName, srcPath, destPath));
     }
 
     const statRes = await stat(srcPath);
@@ -401,6 +417,15 @@ async function mkDestFromSrc(
     }
 
     const srcHandle = statRes.unwrap();
+
+    // A destination below a directory source would recurse forever. A destination below a
+    // *file* source cannot exist at all, so it falls through to the destination lookup
+    // below, which reports the real problem instead of claiming that the file would
+    // contain itself.
+    if (isDirectoryHandle(srcHandle) && destPath.startsWith(srcPath + SEPARATOR)) {
+        return Err(createIntoItselfError(opName, srcPath, destPath));
+    }
+
     // Track whether destination already exists (needed for overwrite logic)
     let destExists = false;
 

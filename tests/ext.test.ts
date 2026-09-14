@@ -52,6 +52,7 @@ describe('OPFS Extended Operations', () => {
         await fs.remove('/copy-exists-error-dest');
         await fs.remove('/copy-self-src');
         await fs.remove('/copy-same.txt');
+        await fs.remove('/copy-below-file.txt');
         await fs.remove('/copy-root-dest');
         await fs.remove('/copy-empty-src');
         await fs.remove('/copy-empty-dest');
@@ -474,7 +475,25 @@ describe('OPFS Extended Operations', () => {
 
             const result = await fs.copy('/copy-same.txt', '/copy-same.txt');
             expect(result.isErr()).toBe(true);
-            expect(result.unwrapErr().message).toContain('into itself');
+            expect(result.unwrapErr().message).toContain('same');
+        });
+
+        it('should report a same-path copy without looking the source up', async () => {
+            // The check is a pure path relation, so a missing source must not turn it
+            // into a NotFoundError
+            const result = await fs.copy('/copy-missing-same.txt', '/copy-missing-same.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('same');
+        });
+
+        it('should not report a destination below a file source as inside it', async () => {
+            await fs.writeFile('/copy-below-file.txt', 'content');
+
+            // A file cannot contain the destination, so the error must describe that real
+            // problem instead of claiming the file would be copied into itself
+            const result = await fs.copy('/copy-below-file.txt', '/copy-below-file.txt/child');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).not.toContain('into itself');
         });
 
         it('should fail when copying root directory', async () => {

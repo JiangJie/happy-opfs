@@ -250,6 +250,8 @@ describe('OPFS Sync Operations', () => {
             fs.removeSync('/sync-copy-mismatch-dir');
             fs.removeSync('/sync-copy-merge-src');
             fs.removeSync('/sync-copy-merge-dest');
+            fs.removeSync('/sync-copy-same.txt');
+            fs.removeSync('/sync-copy-below.txt');
         });
 
         it('should copy a file', () => {
@@ -302,6 +304,35 @@ describe('OPFS Sync Operations', () => {
             expect(fs.readTextFileSync('/sync-copy-merge-dest/only-in-src.txt').unwrap()).toBe(
                 'Only',
             );
+        });
+
+        it('should fail when source and destination are the same', () => {
+            fs.writeFileSync('/sync-copy-same.txt', 'content');
+
+            const result = fs.copySync('/sync-copy-same.txt', '/sync-copy-same.txt');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('same');
+        });
+
+        it('should report a same-path copy without looking the source up', () => {
+            // The check is a pure path relation, so a missing source must not turn it
+            // into a NotFoundError
+            const result = fs.copySync(
+                '/sync-copy-missing-same.txt',
+                '/sync-copy-missing-same.txt',
+            );
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('same');
+        });
+
+        it('should not report a destination below a file source as inside it', () => {
+            fs.writeFileSync('/sync-copy-below.txt', 'content');
+
+            // A file cannot contain the destination, so the error must describe that real
+            // problem instead of claiming the file would be copied into itself
+            const result = fs.copySync('/sync-copy-below.txt', '/sync-copy-below.txt/child');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).not.toContain('into itself');
         });
 
         it('should fail when src and dest are different types', () => {
