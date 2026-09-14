@@ -243,7 +243,7 @@ if (result.isOk()) {
   - Result is passed back via SharedArrayBuffer
   - **Usage:** Use `SyncChannel` namespace:
     - `SyncChannel.listen()` in worker to start listening
-    - `SyncChannel.connect(worker, options?)` in main thread to connect
+    - `SyncChannel.connect(worker, options?)` in main thread to connect (pass `{ workerType: 'module' }` when loading a module worker from a URL — classic is the default)
     - `SyncChannel.attach(sharedBuffer, options?)` to share connection between contexts (e.g., iframes)
     - `SyncChannel.isReady()` to check if channel is ready
     - `SyncChannel.disconnect()` to release the channel (terminates a library-created worker; a caller-supplied or attached worker is left running) — also the recovery path after a stuck channel

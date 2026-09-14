@@ -96,6 +96,9 @@ See more examples in the [examples/](./examples/) directory:
 | Firefox | 111+    |
 | Safari  | 15.2+   |
 
+> [!NOTE]
+> Loading a module worker from a URL — `SyncChannel.connect(url, { workerType: 'module' })` — additionally requires Chrome/Edge 80+, Firefox 114+, Safari 15+. On Firefox 111-113, keep using a classic worker or pass your own `Worker` instance to `connect`.
+
 For detailed compatibility, see [MDN - OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system#browser_compatibility).
 
 You can install [OPFS Explorer](https://chromewebstore.google.com/detail/opfs-explorer/hhegfidnlemidclkkldeekjamkfcamic) to visually inspect the file system.

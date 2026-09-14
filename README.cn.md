@@ -96,6 +96,9 @@ await remove('/data');
 | Firefox | 111+  |
 | Safari  | 15.2+ |
 
+> [!NOTE]
+> 通过 URL 加载 module worker（`SyncChannel.connect(url, { workerType: 'module' })`）额外需要 Chrome/Edge 80+、Firefox 114+、Safari 15+。在 Firefox 111-113 上，请继续使用 classic worker，或自行构造 `Worker` 实例传给 `connect`。
+
 详细兼容性信息请参阅 [MDN - OPFS](https://developer.mozilla.org/zh-CN/docs/Web/API/File_System_API/Origin_private_file_system#browser_compatibility)。
 
 可以安装 [OPFS Explorer](https://chromewebstore.google.com/detail/opfs-explorer/hhegfidnlemidclkkldeekjamkfcamic) 来可视化查看文件系统。

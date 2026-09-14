@@ -51,6 +51,7 @@ const DEFAULT_CONNECT_TIMEOUT = 10000;
  * Must be called before using any sync API functions.
  *
  * @param worker - The worker to communicate with. Can be a `Worker` instance, a `URL`, or a URL string.
+ *                 A URL is loaded as a classic worker unless `workerType: 'module'` is set.
  * @param options - Optional configuration options for the sync channel.
  * @returns A promise that resolves with an `AsyncIOResult` containing the `SharedArrayBuffer` when the worker is ready.
  *          The returned buffer can be shared with other contexts (e.g., iframes) via `postMessage`.
@@ -90,6 +91,7 @@ export async function connectSyncChannel(
         sharedBufferLength = DEFAULT_BUFFER_LENGTH,
         opTimeout = DEFAULT_OP_TIMEOUT,
         connectTimeout = DEFAULT_CONNECT_TIMEOUT,
+        workerType = 'classic',
     } = options ?? {};
 
     // check parameters
@@ -112,10 +114,11 @@ export async function connectSyncChannel(
         return Err(new TypeError('connectTimeout must be a positive integer'));
     }
 
-    // May throw if worker url is invalid
+    // May throw if the worker url is invalid or the worker type is unknown
     let workerAdapter: Worker;
     try {
-        workerAdapter = worker instanceof Worker ? worker : new Worker(worker);
+        workerAdapter =
+            worker instanceof Worker ? worker : new Worker(worker, { type: workerType });
     } catch (e) {
         return Err(e as Error);
     }

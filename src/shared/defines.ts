@@ -630,6 +630,22 @@ export interface ConnectSyncChannelOptions {
      * @since 2.1.0
      */
     connectTimeout?: number;
+
+    /**
+     * How the worker is loaded when `worker` is a URL or a string.
+     *
+     * - `'classic'` (default): `new Worker(url)`
+     * - `'module'`: `new Worker(url, { type: 'module' })`, required for worker scripts
+     *   that use `import`/`export` (i.e. most bundler output)
+     *
+     * Module workers need Chrome/Edge 80+, Firefox 114+, Safari 15+; build a classic
+     * worker or pass your own `Worker` instance if you target older Firefox.
+     *
+     * Ignored when a `Worker` instance is passed, since it is already configured.
+     * @defaultValue `'classic'`
+     * @since 2.3.0
+     */
+    workerType?: WorkerType;
 }
 
 /**
