@@ -16,8 +16,10 @@ import { remove } from './remove.ts';
  *
  * When writing a `ReadableStream` to a **new file**, the stream is first written to a temporary
  * file in `/tmp`, then moved to the target path upon success. This prevents leaving incomplete
- * files if the stream is interrupted. For existing files, writes are performed directly since
- * OPFS's transactional writes preserve the original content on failure.
+ * files if the stream is interrupted. Overwriting an existing file writes in place instead:
+ * on the main thread `createWritable` goes through a swap file, so an interrupted write keeps
+ * the previous content, while the worker's sync access handle truncates first and an
+ * interrupted write leaves the file truncated.
  *
  * @param filePath - The absolute path of the file to write to.
  * @param contents - The content to write (string, ArrayBuffer, TypedArray, Blob, or ReadableStream<Uint8Array>).
@@ -151,10 +153,11 @@ function isBinaryReadableStream(x: unknown): x is ReadableStream<Uint8Array<Arra
  * Writes a ReadableStream to a file with atomic semantics for new files.
  *
  * Strategy:
- * - If target file exists: write directly (OPFS transactional writes preserve original on failure)
- * - If target file doesn't exist: write to temp file first, then move to target on success
- *
- * This prevents leaving incomplete/empty files when stream is interrupted during new file creation.
+ * - If the target file does not exist: write to a temp file first, then move it into
+ *   place, so an interrupted stream cannot leave a partial file behind
+ * - If the target file exists: write in place. `createWritable` on the main thread
+ *   writes through a swap file (an interruption keeps the old content), while the
+ *   worker's sync access handle truncates up front (an interruption leaves it truncated)
  *
  * Assumes filePath is already validated.
  */
@@ -273,6 +276,9 @@ async function writeDataViaWritable(
 
 /**
  * Writes a ReadableStream to a file using the Worker's FileSystemSyncAccessHandle API.
+ *
+ * Note: sync access handles write in place, there is no swap file, so truncating up
+ * front means an interrupted stream leaves the file truncated rather than untouched.
  */
 async function writeStreamViaSyncAccess(
     fileHandle: FileSystemFileHandle,
@@ -298,6 +304,9 @@ async function writeStreamViaSyncAccess(
 
 /**
  * Writes non-stream data to a file using the Worker's FileSystemSyncAccessHandle API.
+ *
+ * Note: like {@link writeStreamViaSyncAccess} this is an in-place write without a swap
+ * file, so a failed write leaves the file truncated instead of preserving its content.
  */
 async function writeDataViaSyncAccess(
     fileHandle: FileSystemFileHandle,
