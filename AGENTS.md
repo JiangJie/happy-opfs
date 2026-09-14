@@ -275,7 +275,8 @@ URL validation uses `URL.canParse()` with fallback to `new URL()` for older brow
 Located in `src/sync/protocol.ts`:
 
 - Uses SharedArrayBuffer with Int32Array for lock-based communication
-- Atomics.wait/notify for synchronization
+- Busy-waits on `Atomics.load`/`Atomics.store` (`Atomics.wait` is not available on the main thread)
+- The header also carries a "response is still owed" signal: a timed-out call leaves `MAIN_LOCK` locked, and only the worker unlocks it, so the next call from the same context drains the pending response before reusing the single request/response slot — a late response is never returned for another operation. There is no cross-context arbitration, so contexts sharing one buffer via `attach` must not issue sync operations concurrently
 - JSON serialization for data transfer
 - `SyncMessenger` class encapsulates buffer operations:
   - `i32a` (public): Int32Array for atomic lock operations

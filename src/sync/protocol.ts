@@ -193,6 +193,13 @@ export function decodePayload<T extends unknown[]>(payload: Uint8Array<SharedArr
  * 5. Worker sets WORKER_LOCK=0 (locked), MAIN_LOCK=0 (unlocked)
  * 6. Main thread sees MAIN_LOCK=0, reads response
  *
+ * `MAIN_LOCK` doubles as the "a response is still owed" flag: it stays locked
+ * when the main thread gives up on a request (timeout) and only the worker
+ * unlocks it, so the next call from the same context can tell that the slot is
+ * not safe to reuse yet. The protocol has a single request slot and no
+ * cross-context arbitration, so contexts sharing one buffer via `attach` must
+ * not issue sync operations concurrently.
+ *
  * @example
  * ```typescript
  * // Create messenger with 1MB buffer

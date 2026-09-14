@@ -774,14 +774,15 @@ function deserializeFile(metadata: FileMetadata, data: Uint8Array<ArrayBuffer>):
  * Uses busy-waiting, which is necessary for synchronous operations.
  *
  * @param condition - A function that returns `true` when the wait should end.
+ * @param message - Error message used when the wait times out.
  * @returns A `VoidIOResult` - `Ok` if condition met, `Err` with TimeoutError if timed out.
  */
-function sleepUntil(condition: () => boolean): VoidIOResult {
+function sleepUntil(condition: () => boolean, message = 'Operation timed out'): VoidIOResult {
     const timeout = getGlobalSyncOpTimeout();
     const start = performance.now();
     while (!condition()) {
         if (performance.now() - start > timeout) {
-            const error = new Error('Operation timed out');
+            const error = new Error(message);
             error.name = TIMEOUT_ERROR;
 
             return Err(error);
@@ -796,11 +797,12 @@ function sleepUntil(condition: () => boolean): VoidIOResult {
  * This function blocks the main thread until the worker responds.
  *
  * Communication Protocol:
- * 1. Lock main thread (set MAIN_LOCKED) to signal we're waiting
- * 2. Write request data and length to SharedArrayBuffer
- * 3. Wake worker by setting WORKER_UNLOCKED
- * 4. Busy-wait until worker signals completion (MAIN_UNLOCKED)
- * 5. Read response from SharedArrayBuffer
+ * 1. Drain a response that a timed-out earlier call left in flight, if any
+ * 2. Lock main thread (set MAIN_LOCKED) to signal we're waiting
+ * 3. Write request data and length to SharedArrayBuffer
+ * 4. Wake worker by setting WORKER_UNLOCKED
+ * 5. Busy-wait until worker signals completion (MAIN_UNLOCKED)
+ * 6. Read response from SharedArrayBuffer
  *
  * @param messenger - The `SyncMessenger` instance for communication.
  * @param data - The request data as a `Uint8Array`.
@@ -822,6 +824,20 @@ function callWorkerFromMain(
         );
     }
 
+    // The slot must be free before it is reused. A timed-out call leaves MAIN_LOCK
+    // locked and only the worker unlocks it when it answers, so waiting for the
+    // unlock drains the pending response instead of letting it be decoded as the
+    // result of this call (its content is discarded, only the idle worker matters).
+    // Assumes a single caller per channel: contexts sharing one buffer via `attach`
+    // must not issue operations concurrently.
+    const drainRes = sleepUntil(
+        () => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED,
+        'Sync channel is still waiting for the previous operation to finish',
+    );
+    if (drainRes.isErr()) {
+        return drainRes.asErr();
+    }
+
     // Lock main thread - signal that we're waiting for a response
     Atomics.store(i32a, MAIN_LOCK_INDEX, MAIN_LOCKED);
 
@@ -837,6 +853,8 @@ function callWorkerFromMain(
     // Busy-wait for worker to finish processing and unlock main thread
     const waitResult = sleepUntil(() => Atomics.load(i32a, MAIN_LOCK_INDEX) === MAIN_UNLOCKED);
     if (waitResult.isErr()) {
+        // MAIN_LOCK is intentionally left locked: the worker will still write the
+        // response of this request, and the next call must drain it first.
         return waitResult.asErr();
     }
 
