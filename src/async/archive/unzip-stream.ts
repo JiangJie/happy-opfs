@@ -11,7 +11,7 @@ import {
     createEmptyFileError,
     markParentDirsNonEmpty,
 } from '../internal/mod.ts';
-import { EMPTY_BYTES, validateDestDir } from './helpers.ts';
+import { EMPTY_BYTES, validateArchiveEntry, validateDestDir } from './helpers.ts';
 
 /**
  * Unzip a zip file to a directory using streaming decompression.
@@ -19,6 +19,9 @@ import { EMPTY_BYTES, validateDestDir } from './helpers.ts';
  *
  * This function processes the zip file incrementally, minimizing memory usage.
  * Recommended for large files (>10MB). For small files, consider using {@link unzip} instead.
+ *
+ * Entries that would be written outside of `destDir` (zip-slip) fail the whole
+ * operation instead of being extracted.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
  *
@@ -140,6 +143,7 @@ async function streamUnzipTo(
     const dirs: string[] = [];
     const nonEmptyDirs = new Set<string>();
     let hasData = false;
+    let entryError: Error | null = null;
 
     const unzipper = new Unzip();
     // Register decompression handlers
@@ -147,7 +151,19 @@ async function streamUnzipTo(
     unzipper.register(AsyncUnzipInflate); // For deflated files
 
     unzipper.onfile = file => {
+        if (entryError) {
+            // Stop scheduling work after the first unsafe entry
+            return;
+        }
+
         const path = file.name;
+
+        // Entry names are untrusted: reject anything resolving outside destDir
+        const entryRes = validateArchiveEntry(path, destDir);
+        if (entryRes.isErr()) {
+            entryError = entryRes.unwrapErr();
+            return;
+        }
 
         if (path.at(-1) === SEPARATOR) {
             // Directory entry - collect for later creation
@@ -164,11 +180,24 @@ async function streamUnzipTo(
         for await (const chunk of stream) {
             hasData = true;
             unzipper.push(chunk, false);
+
+            if (entryError) {
+                // Abandoning the loop cancels the stream - no point decompressing
+                // the rest of an archive that will be rejected
+                break;
+            }
         }
-        // Signal end of stream
-        unzipper.push(EMPTY_BYTES, true);
+
+        if (!entryError) {
+            // Signal end of stream
+            unzipper.push(EMPTY_BYTES, true);
+        }
     } catch (err) {
         return Err(err as Error);
+    }
+
+    if (entryError) {
+        return Err(entryError);
     }
 
     // Empty stream check

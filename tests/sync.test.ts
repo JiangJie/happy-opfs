@@ -2,6 +2,7 @@
  * Sync API operations tests using Vitest
  * Tests: createFileSync, mkdirSync, readFileSync, writeFileSync, removeSync, statSync, etc.
  */
+import { zipSync } from 'fflate/browser';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 
@@ -529,6 +530,9 @@ describe('OPFS Sync Operations', () => {
             fs.removeSync('/sync-unzip-src');
             fs.removeSync('/sync-unzip-test.zip');
             fs.removeSync('/sync-unzip-dest');
+            fs.removeSync('/sync-unzip-slip.zip');
+            fs.removeSync('/sync-unzip-slip-dest');
+            fs.removeSync('/sync-unzip-slip-escaped.txt');
         });
 
         it('should zip a directory to file', () => {
@@ -588,6 +592,19 @@ describe('OPFS Sync Operations', () => {
 
             const content = fs.readTextFileSync('/sync-unzip-dest/sync-unzip-src/file1.txt');
             expect(content.unwrap()).toBe('content1');
+        });
+
+        it('should reject entries that would escape the destination directory', () => {
+            const malicious = zipSync({
+                '../sync-unzip-slip-escaped.txt': new Uint8Array([1, 2, 3]),
+            });
+            fs.writeFileSync('/sync-unzip-slip.zip', malicious);
+
+            const result = fs.unzipSync('/sync-unzip-slip.zip', '/sync-unzip-slip-dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('would escape');
+
+            expect(fs.existsSync('/sync-unzip-slip-escaped.txt').unwrap()).toBe(false);
         });
     });
 

@@ -12,7 +12,7 @@ import {
     createEmptyFileError,
     markParentDirsNonEmpty,
 } from '../internal/mod.ts';
-import { validateDestDir } from './helpers.ts';
+import { validateArchiveEntry, validateDestDir } from './helpers.ts';
 
 /**
  * Unzip a zip file to a directory using batch decompression.
@@ -20,6 +20,9 @@ import { validateDestDir } from './helpers.ts';
  *
  * This function loads the entire zip file into memory before decompression.
  * Faster for small files (<5MB). For large files, consider using {@link unzipStream} instead.
+ *
+ * Entries that would be written outside of `destDir` (zip-slip) fail the whole
+ * operation instead of being extracted.
  *
  * Use [fflate](https://github.com/101arrowz/fflate) as the unzip backend.
  *
@@ -135,6 +138,13 @@ function batchUnzipTo(bytes: Uint8Array<ArrayBuffer>, destDir: string): AsyncVoi
         const nonEmptyDirs = new Set<string>();
 
         for (const path in unzipped) {
+            // Entry names are untrusted: reject anything resolving outside destDir
+            const entryRes = validateArchiveEntry(path, destDir);
+            if (entryRes.isErr()) {
+                future.resolve(entryRes.asErr());
+                return;
+            }
+
             if (path.at(-1) === SEPARATOR) {
                 // Collect directory entries without trailing slash
                 dirs.push(path.slice(0, -1));

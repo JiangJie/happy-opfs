@@ -2,6 +2,7 @@
  * Zip/Unzip operations tests using Vitest
  * Tests: zip, unzip, zipFromUrl, unzipFromUrl
  */
+import { zipSync } from 'fflate/browser';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vite-plus/test';
 import * as fs from '../src/mod.ts';
 import { worker } from './mocks/browser.ts';
@@ -39,6 +40,10 @@ describe('OPFS Zip Operations', () => {
         await fs.remove('/unzip-src');
         await fs.remove('/unzip-test.zip');
         await fs.remove('/unzip-dest');
+        await fs.remove('/unzip-slip.zip');
+        await fs.remove('/unzip-slip-dest');
+        await fs.remove('/unzip-slip-escaped.txt');
+        await fs.remove('/unzip-slip-evil-dir');
         await fs.remove('/url-unzip');
         await fs.remove('/url-unzip-progress');
         await fs.remove('/url.zip');
@@ -326,6 +331,66 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/unzip-src');
             await fs.remove('/unzip-test.zip');
         });
+
+        it('should reject file entries that would escape the destination directory', async () => {
+            // Entry names come from the archive and are untrusted (zip-slip)
+            const malicious = zipSync({
+                '../unzip-slip-escaped.txt': new Uint8Array([1, 2, 3]),
+            });
+            await fs.writeFile('/unzip-slip.zip', malicious);
+
+            const result = await fs.unzip('/unzip-slip.zip', '/unzip-slip-dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('would escape');
+
+            // Nothing may be written outside the destination directory
+            expect((await fs.exists('/unzip-slip-escaped.txt')).unwrap()).toBe(false);
+            expect((await fs.exists('/unzip-slip-dest/unzip-slip-escaped.txt')).unwrap()).toBe(
+                false,
+            );
+        });
+
+        it('should reject directory entries that would escape the destination directory', async () => {
+            const malicious = zipSync({
+                '../unzip-slip-evil-dir/': new Uint8Array(0),
+            });
+            await fs.writeFile('/unzip-slip.zip', malicious);
+
+            const result = await fs.unzip('/unzip-slip.zip', '/unzip-slip-dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('would escape');
+
+            expect((await fs.exists('/unzip-slip-evil-dir')).unwrap()).toBe(false);
+        });
+
+        it('should accept root entries that resolve to the destination itself', async () => {
+            // `zip -r archive.zip .` produces a './' root entry that merely
+            // re-creates the destination directory
+            const archive = zipSync({
+                './': new Uint8Array(0),
+                'sub/file.txt': new Uint8Array([1]),
+            });
+            await fs.writeFile('/unzip-slip.zip', archive);
+
+            const result = await fs.unzip('/unzip-slip.zip', '/unzip-slip-dest');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/unzip-slip-dest/sub/file.txt')).unwrap()).toBe(true);
+        });
+
+        it('should extract to the root directory', async () => {
+            // Nothing can escape the root, so entries are not rejected there
+            const archive = zipSync({
+                'unzip-root-ok.txt': new Uint8Array([1, 2, 3]),
+            });
+            await fs.writeFile('/unzip-slip.zip', archive);
+
+            const result = await fs.unzip('/unzip-slip.zip', '/');
+            expect(result.isOk()).toBe(true);
+
+            expect((await fs.exists('/unzip-root-ok.txt')).unwrap()).toBe(true);
+            await fs.remove('/unzip-root-ok.txt');
+        });
     });
 
     describe('unzipStream', () => {
@@ -440,6 +505,24 @@ describe('OPFS Zip Operations', () => {
             await fs.remove('/stream-src');
             await fs.remove('/stream-test.zip');
             await fs.remove('/stream-dest-file');
+        });
+
+        it('should reject entries that would escape the destination directory', async () => {
+            // The unsafe entry comes first so the safe one exercises the
+            // "stop scheduling work" path after the rejection
+            const malicious = zipSync({
+                '../unzip-slip-evil-dir/': new Uint8Array(0),
+                'safe.txt': new Uint8Array([4]),
+            });
+            await fs.writeFile('/unzip-slip.zip', malicious);
+
+            const result = await fs.unzipStream('/unzip-slip.zip', '/unzip-slip-dest');
+            expect(result.isErr()).toBe(true);
+            expect(result.unwrapErr().message).toContain('would escape');
+
+            // Nothing was written anywhere, including the entry after the unsafe one
+            expect((await fs.exists('/unzip-slip-evil-dir')).unwrap()).toBe(false);
+            expect((await fs.exists('/unzip-slip-dest/safe.txt')).unwrap()).toBe(false);
         });
     });
 
