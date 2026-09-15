@@ -2,9 +2,10 @@ node_modules
 /dist
 /docs
 
-# Test coverage
+# Test artifacts
 coverage
 __screenshots__
+.vitest-attachments
 
 # MSW auto-generated file
 mockServiceWorker.js
