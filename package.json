@@ -87,7 +87,7 @@
     "@happy-ts/fetch-t": "^1.10.0",
     "@std/path": "npm:@jsr/std__path@^1.1.6",
     "fflate": "^0.8.3",
-    "happy-rusty": "^1.10.0",
+    "happy-rusty": "^1.10.1",
     "tiny-future": "^1.2.0"
   }
 }
