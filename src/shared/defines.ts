@@ -140,6 +140,18 @@ export interface ReadDirSyncOptions {
      * @defaultValue `false`
      */
     recursive?: boolean;
+
+    /**
+     * Whether each file entry carries metadata (`type`, `size`, `lastModified`).
+     *
+     * Metadata costs one `getFile()` lookup per file on the worker side and makes the
+     * response considerably larger, which matters when listing a large tree. With
+     * `false` the entries only carry `path` and `kind` - read metadata with `statSync`
+     * when you actually need it.
+     * @defaultValue `true`
+     * @since 2.3.0
+     */
+    withMetadata?: boolean;
 }
 
 /**
@@ -147,7 +159,7 @@ export interface ReadDirSyncOptions {
  *
  * @since 1.0.18
  */
-export interface ReadDirOptions extends ReadDirSyncOptions {
+export interface ReadDirOptions extends Omit<ReadDirSyncOptions, 'withMetadata'> {
     /**
      * An optional `AbortSignal` to abort the directory traversal.
      * When aborted, the iterator will stop yielding entries.
@@ -283,6 +295,34 @@ export interface DirEntryLike {
      * Use `isFileHandleLike()` to check if it's a file.
      */
     readonly handle: FileSystemHandleLike;
+}
+
+/**
+ * A directory entry without metadata, returned by `readDirSync` when called with
+ * `{ withMetadata: false }`.
+ *
+ * It carries no handle-like object: listing a large tree this way skips one `getFile()`
+ * lookup per file and keeps the response small, at the cost of a separate `statSync`
+ * call when metadata is actually needed.
+ *
+ * @since 2.3.0
+ * @see {@link readDirSync} for the options that produce it
+ * @example
+ * ```typescript
+ * readDirSync('/documents', { recursive: true, withMetadata: false })
+ *     .inspect(entries => entries.forEach(entry => console.log(entry.path, entry.kind)));
+ * ```
+ */
+export interface DirEntrySlim {
+    /**
+     * The relative path of the entry from the `readDirSync` path parameter.
+     */
+    readonly path: string;
+
+    /**
+     * The kind of the entry: `'file'` or `'directory'`.
+     */
+    readonly kind: FileSystemHandleKind;
 }
 
 /**

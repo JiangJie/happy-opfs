@@ -24,9 +24,11 @@ import {
     isFileHandle,
     type DirEntry,
     type DirEntryLike,
+    type DirEntrySlim,
     type FileSystemDirectoryHandleLike,
     type FileSystemFileHandleLike,
     type FileSystemHandleLike,
+    type ReadDirSyncOptions,
 } from '../../shared/mod.ts';
 import type { ErrorLike, FileMetadata } from '../defines.ts';
 import {
@@ -330,24 +332,29 @@ function deserializeArgs(op: WorkerOp, args: unknown[]): void {
 }
 
 /**
- * Serializes a readDir result (async iterator) to an array of DirEntryLike.
+ * Serializes a readDir result (async iterator) to an array of serializable entries.
  * Uses parallel processing for better performance since getFile() involves disk I/O.
  *
  * @param iterator - The async iterator from readDir.
+ * @param withMetadata - Whether file entries carry metadata; `false` skips the per-file
+ *                       `getFile()` lookup and returns `{ path, kind }` entries instead.
  * @returns Promise resolving to array of serializable directory entries.
  */
 async function serializeReadDirResult(
     iterator: AsyncIterableIterator<DirEntry>,
-): Promise<DirEntryLike[]> {
+    withMetadata: boolean,
+): Promise<(DirEntryLike | DirEntrySlim)[]> {
     // Collect and serialize handles in parallel - getFile() involves disk I/O
-    const tasks: Promise<DirEntryLike>[] = [];
+    const tasks: Promise<DirEntryLike | DirEntrySlim>[] = [];
 
     for await (const { path, handle } of iterator) {
         tasks.push(
-            (async () => ({
-                path,
-                handle: await serializeFileSystemHandle(handle),
-            }))(),
+            withMetadata
+                ? (async () => ({
+                      path,
+                      handle: await serializeFileSystemHandle(handle),
+                  }))()
+                : Promise.resolve({ path, kind: handle.kind }),
         );
     }
 
@@ -404,8 +411,12 @@ async function processRequest(
                 break;
             }
             case WorkerOp.readDir: {
+                const options = args[1] as ReadDirSyncOptions | undefined;
                 response.push(
-                    await serializeReadDirResult(result as AsyncIterableIterator<DirEntry>),
+                    await serializeReadDirResult(
+                        result as AsyncIterableIterator<DirEntry>,
+                        options?.withMetadata ?? true,
+                    ),
                 );
                 break;
             }

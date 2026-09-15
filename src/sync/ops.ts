@@ -19,6 +19,7 @@ import {
     type AppendOptions,
     type CopyOptions,
     type DirEntryLike,
+    type DirEntrySlim,
     type ExistsOptions,
     type FileSystemHandleLike,
     type MoveOptions,
@@ -119,12 +120,40 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
 
 /**
  * Synchronous version of `readDir`.
+ * Reads the contents of a directory without file metadata.
+ *
+ * Each entry carries only `path` and `kind`: no per-file `getFile()` lookup is performed
+ * and the response stays small, which is what makes listing a large tree feasible.
+ * Read metadata with {@link statSync} when it is actually needed.
+ *
+ * @param dirPath - The absolute path of the directory to read.
+ * @param options - Read options with `withMetadata: false`.
+ * @returns An `IOResult` containing an array of directory entries without metadata.
+ * @see {@link readDirSync} for the metadata-carrying overload
+ * @since 2.3.0
+ * @example
+ * ```typescript
+ * readDirSync('/documents', { recursive: true, withMetadata: false })
+ *     .inspect(entries => entries.forEach(entry => console.log(entry.path, entry.kind)));
+ * ```
+ */
+export function readDirSync(
+    dirPath: string,
+    options: ReadDirSyncOptions & {
+        withMetadata: false;
+    },
+): IOResult<DirEntrySlim[]>;
+/**
+ * Synchronous version of `readDir`.
  * Reads the contents of a directory.
  *
  * **Note:** Returns `DirEntryLike[]` instead of `AsyncIterableIterator<DirEntry>` because:
  * 1. Sync API cannot return async iterators
  * 2. Native `FileSystemHandle` objects cannot be serialized across threads;
  *    `DirEntryLike` uses `FileSystemHandleLike` which is JSON-serializable
+ *
+ * Pass `{ withMetadata: false }` to skip the per-file metadata lookup and get
+ * `DirEntrySlim[]` instead, which keeps the response small when listing a large tree.
  *
  * @param dirPath - The absolute path of the directory to read.
  * @param options - Optional read options (e.g., recursive).
@@ -140,12 +169,16 @@ export function moveSync(srcPath: string, destPath: string, options?: MoveOption
 export function readDirSync(
     dirPath: string,
     options?: ReadDirSyncOptions,
-): IOResult<DirEntryLike[]> {
+): IOResult<DirEntryLike[]>;
+export function readDirSync(
+    dirPath: string,
+    options?: ReadDirSyncOptions,
+): IOResult<DirEntryLike[] | DirEntrySlim[]> {
     const dirPathRes = validateAbsolutePath(dirPath);
     if (dirPathRes.isErr()) return dirPathRes.asErr();
     dirPath = dirPathRes.unwrap();
 
-    return callWorkerOp(WorkerOp.readDir, dirPath, options);
+    return callWorkerOp<DirEntryLike[] | DirEntrySlim[]>(WorkerOp.readDir, dirPath, options);
 }
 
 /**

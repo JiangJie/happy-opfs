@@ -175,6 +175,60 @@ describe('OPFS Sync Operations', () => {
             // sub1, sub2, file.txt, sub1/file.txt
             expect(entries.length).toBe(4);
         });
+
+        it('should include handles by default', () => {
+            fs.mkdirSync('/sync-readdir');
+            fs.writeFileSync('/sync-readdir/file1.txt', 'a');
+
+            const defaultEntries = fs.readDirSync('/sync-readdir').unwrap();
+            const explicitEntries = fs
+                .readDirSync('/sync-readdir', { withMetadata: true })
+                .unwrap();
+
+            expect(defaultEntries.length).toBe(1);
+            expect(explicitEntries.length).toBe(1);
+            expect(defaultEntries[0].handle.kind).toBe('file');
+            expect(explicitEntries[0].handle.kind).toBe('file');
+        });
+
+        it('should omit handles when withMetadata is false', () => {
+            fs.mkdirSync('/sync-readdir');
+            fs.writeFileSync('/sync-readdir/file1.txt', 'a');
+            fs.mkdirSync('/sync-readdir/subdir');
+
+            const result = fs.readDirSync('/sync-readdir', { withMetadata: false });
+            expect(result.isOk()).toBe(true);
+
+            const entries = result.unwrap();
+            expect(entries.length).toBe(2);
+            expect(entries.every(entry => !('handle' in entry))).toBe(true);
+            expect(entries.map(entry => `${entry.path}:${entry.kind}`).toSorted()).toEqual([
+                'file1.txt:file',
+                'subdir:directory',
+            ]);
+        });
+
+        it('should read recursively without metadata', () => {
+            fs.mkdirSync('/sync-readdir-recursive/sub1');
+            fs.mkdirSync('/sync-readdir-recursive/sub2');
+            fs.writeFileSync('/sync-readdir-recursive/file.txt', 'root');
+            fs.writeFileSync('/sync-readdir-recursive/sub1/file.txt', 'sub1');
+
+            const result = fs.readDirSync('/sync-readdir-recursive', {
+                recursive: true,
+                withMetadata: false,
+            });
+            expect(result.isOk()).toBe(true);
+
+            const entries = result.unwrap();
+            expect(entries.map(entry => entry.path).toSorted()).toEqual([
+                'file.txt',
+                'sub1',
+                'sub1/file.txt',
+                'sub2',
+            ]);
+            expect(entries.every(entry => !('handle' in entry))).toBe(true);
+        });
     });
 
     describe('Sync Core - statSync', () => {
