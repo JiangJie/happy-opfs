@@ -47,7 +47,18 @@ describe('Sync Operation Timeout', () => {
             return;
         }
 
+        // The previous test left a timed-out call in flight, so a 1ms budget would
+        // make the pre-request drain race the worker waking up - and a drain timeout
+        // drops the request instead of sending it. Drain with a generous budget
+        // first: the call below queues behind nothing, proves SLOW_FILE is absent
+        // (which keeps the final `true` assertion meaningful), and leaves the channel
+        // idle, so the slow write is guaranteed to be sent.
+        SyncChannel.attach(sharedBuffer, { opTimeout: 5000 });
+        removeSync(SLOW_FILE);
+        expect(existsSync(SLOW_FILE).unwrap()).toBe(false);
+
         // Times out while the worker keeps writing the file
+        SyncChannel.attach(sharedBuffer, { opTimeout: 1 });
         const slowRes = writeFileSync(SLOW_FILE, SLOW_CONTENT);
         expect(slowRes.isErr()).toBe(true);
         expect(slowRes.unwrapErr().name).toBe(TIMEOUT_ERROR);
@@ -60,7 +71,8 @@ describe('Sync Operation Timeout', () => {
 
         // With enough budget the pending write finishes, the channel drains it and
         // this call gets its own answer - not the write's response, which would
-        // surface here as Ok(null)
+        // surface here as Ok(null). The file existing also proves the slow write
+        // was actually sent, not dropped by a drain timeout.
         SyncChannel.attach(sharedBuffer, { opTimeout: 5000 });
 
         const existsRes = existsSync(SLOW_FILE);
