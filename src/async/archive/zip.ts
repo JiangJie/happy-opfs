@@ -1,5 +1,4 @@
 import { fetchT } from '@happy-ts/fetch-t';
-import { basename, join, SEPARATOR } from '@std/path/posix';
 import { zip as compress, type AsyncZippable, type FlateError } from 'fflate/browser';
 import {
     Err,
@@ -12,8 +11,11 @@ import {
 } from 'happy-rusty';
 import { Future } from 'tiny-future';
 import {
+    basename,
+    join,
     readBlobBytes,
     readBlobBytesSync,
+    SEPARATOR,
     validateAbsolutePath,
     validateUrl,
 } from '../../shared/internal/mod.ts';

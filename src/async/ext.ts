@@ -1,4 +1,3 @@
-import { join, SEPARATOR } from '@std/path/posix';
 import {
     Err,
     Ok,
@@ -9,7 +8,12 @@ import {
     type AsyncIOResult,
     type AsyncVoidIOResult,
 } from 'happy-rusty';
-import { validateAbsolutePath, validateExistsOptions } from '../shared/internal/mod.ts';
+import {
+    join,
+    SEPARATOR,
+    validateAbsolutePath,
+    validateExistsOptions,
+} from '../shared/internal/mod.ts';
 import {
     isDirectoryHandle,
     isFileHandle,

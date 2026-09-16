@@ -34,13 +34,6 @@ yarn add happy-opfs
 jsr add @happy-js/happy-opfs
 ```
 
-> [!NOTE]
-> This package depends on `@std/path` from JSR. Add this to your `.npmrc`:
->
-> ```
-> @jsr:registry=https://npm.jsr.io
-> ```
-
 ## Features
 
 | Category     | APIs                                                                                                                                                                                                                                                    |

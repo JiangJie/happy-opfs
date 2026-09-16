@@ -5,9 +5,8 @@
  * @module
  */
 
-import { join, normalize, SEPARATOR } from '@std/path/posix';
 import { Err, RESULT_VOID, type AsyncIOResult, type VoidIOResult } from 'happy-rusty';
-import { validateAbsolutePath } from '../../shared/internal/mod.ts';
+import { join, normalize, SEPARATOR, validateAbsolutePath } from '../../shared/internal/mod.ts';
 import { ROOT_DIR } from '../../shared/mod.ts';
 import { exists } from '../ext.ts';
 

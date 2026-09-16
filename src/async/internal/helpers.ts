@@ -7,7 +7,6 @@
  */
 
 import type { FetchTask } from '@happy-ts/fetch-t';
-import { basename, dirname, SEPARATOR } from '@std/path/posix';
 import {
     LazyAsync,
     Ok,
@@ -17,6 +16,7 @@ import {
     type AsyncVoidIOResult,
     type IOResult,
 } from 'happy-rusty';
+import { basename, dirname, SEPARATOR } from '../../shared/internal/mod.ts';
 import {
     ABORT_ERROR,
     EMPTY_BODY_ERROR,

@@ -10,7 +10,7 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 
 **Key Dependencies:**
 
-- `@std/path` from JSR - **Important:** Requires `.npmrc` configuration with `@jsr:registry=https://npm.jsr.io`
+- `@std/path` from JSR - JSR-only on the npm registry, so the build inlines it into `dist/` (declared in `devDependencies`, imported only via `src/shared/internal/path.ts`)
 - `happy-rusty` - Provides Rust-style `Result<T, E>` types for error handling
 - `fflate` - For zip/unzip operations (uses `fflate/browser` for browser-optimized build)
 - `@happy-ts/fetch-t` - For download/upload operations
@@ -53,6 +53,7 @@ When bumping the version or changing dependencies, update **both** manifests:
 
 - `package.json` `version` and `jsr.json` `version` must stay in sync.
 - `package.json` `dependencies` and `jsr.json` `imports` must mirror each other (note JSR uses `jsr:`/`npm:` specifiers, e.g. `happy-rusty` → `jsr:@happy-js/happy-rusty`).
+- **Exception:** `@std/path` lives in `devDependencies` (npm) plus `jsr.json` `imports` (JSR). `@jsr/std__path` is 404 on the default npm registry, so declaring it in `dependencies` would force every npm consumer to add `@jsr:registry=https://npm.jsr.io` to their `.npmrc`. Keeping it in `devDependencies` makes the build inline it into `dist/` — every source import goes through `src/shared/internal/path.ts` so the `_internal` entry holds the single copy. `verify_package.ts` rejects `npm:@jsr/*` specifiers in the packed manifest; don't move it back.
 
 ## Development Commands
 
@@ -161,6 +162,7 @@ src/
 │       ├── mod.ts             # Aggregates internal modules
 │       ├── codec.ts           # UTF-8 encoding/decoding with cached encoders
 │       ├── helpers.ts         # Shared helper functions
+│       ├── path.ts            # @std/path re-exports; single inlining point for the npm build
 │       └── validations.ts     # Path/URL validation
 │
 ├── async/                      # Async OPFS operations (main thread)
@@ -407,7 +409,7 @@ This project uses Conventional Commits:
 
 ## Important Notes
 
-1. **JSR Dependency:** Always ensure `.npmrc` contains `@jsr:registry=https://npm.jsr.io` before installing dependencies
+1. **JSR Dependency:** `.npmrc` must contain `@jsr:registry=https://npm.jsr.io` for local development and CI (this repo installs `@std/path` as a devDependency). npm consumers need no configuration — the build inlines `@std/path` (see _Dual Publishing_)
 
 2. **Browser Environment:** This is a browser-only library. All code assumes browser globals (navigator, Worker, SharedArrayBuffer)
 

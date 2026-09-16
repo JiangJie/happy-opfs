@@ -1,6 +1,6 @@
-import { join, SEPARATOR } from '@std/path/posix';
 import { TMP_DIR } from './constants.ts';
 import type { TempOptions } from './defines.ts';
+import { join, SEPARATOR } from './internal/path.ts';
 
 /**
  * Generates a unique temporary file or directory path without creating it.

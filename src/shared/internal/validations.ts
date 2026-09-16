@@ -6,7 +6,6 @@
  * @module
  */
 
-import { normalize } from '@std/path/posix';
 import { Err, Ok, RESULT_VOID, type IOResult, type VoidIOResult } from 'happy-rusty';
 import {
     ROOT_DIR,
@@ -14,6 +13,7 @@ import {
     type WriteFileContent,
     type WriteSyncFileContent,
 } from '../mod.ts';
+import { normalize } from './path.ts';
 
 /**
  * Validates that the provided path is an absolute path and normalizes it.

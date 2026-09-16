@@ -34,13 +34,6 @@ yarn add happy-opfs
 jsr add @happy-js/happy-opfs
 ```
 
-> [!NOTE]
-> 本项目依赖 JSR 的 `@std/path`，需要在 `.npmrc` 中添加：
->
-> ```
-> @jsr:registry=https://npm.jsr.io
-> ```
-
 ## 功能
 
 | 分类         | API                                                                                                                                                                                                                          |

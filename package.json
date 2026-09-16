@@ -73,6 +73,7 @@
   ],
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@std/path": "npm:@jsr/std__path@^1.1.6",
     "@vitest/browser-playwright": "4.1.11",
     "@vitest/coverage-v8": "4.1.11",
     "msw": "^2.15.0",
@@ -85,7 +86,6 @@
   },
   "dependencies": {
     "@happy-ts/fetch-t": "^1.10.0",
-    "@std/path": "npm:@jsr/std__path@^1.1.6",
     "fflate": "^0.8.3",
     "happy-rusty": "^1.10.1",
     "tiny-future": "^1.2.0"

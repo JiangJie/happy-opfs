@@ -1,6 +1,10 @@
-import { join } from '@std/path/posix';
 import { Err, Ok, type AsyncIOResult } from 'happy-rusty';
-import { decodeUtf8, readBlobBytes, validateAbsolutePath } from '../../shared/internal/mod.ts';
+import {
+    decodeUtf8,
+    join,
+    readBlobBytes,
+    validateAbsolutePath,
+} from '../../shared/internal/mod.ts';
 import {
     isDirectoryHandle,
     type DirEntry,

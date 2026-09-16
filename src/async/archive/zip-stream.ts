@@ -1,8 +1,13 @@
 import { fetchT } from '@happy-ts/fetch-t';
-import { basename, join, SEPARATOR } from '@std/path/posix';
 import { Zip, ZipDeflate, ZipPassThrough, zipSync } from 'fflate/browser';
 import { Err, tryAsyncResult, type AsyncVoidIOResult } from 'happy-rusty';
-import { validateAbsolutePath, validateUrl } from '../../shared/internal/mod.ts';
+import {
+    basename,
+    join,
+    SEPARATOR,
+    validateAbsolutePath,
+    validateUrl,
+} from '../../shared/internal/mod.ts';
 import {
     isFileHandle,
     type DirEntry,

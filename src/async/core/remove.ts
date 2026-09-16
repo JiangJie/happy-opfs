@@ -1,6 +1,5 @@
-import { basename } from '@std/path/posix';
 import { Err, RESULT_VOID, type AsyncVoidIOResult } from 'happy-rusty';
-import { validateAbsolutePath } from '../../shared/internal/mod.ts';
+import { basename, validateAbsolutePath } from '../../shared/internal/mod.ts';
 import { getParentDirHandle, isNotFoundError, isRootDir, removeHandle } from '../internal/mod.ts';
 
 /**

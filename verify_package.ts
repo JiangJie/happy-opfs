@@ -14,6 +14,7 @@ import { join, resolve } from 'node:path';
 interface PackageJson {
     name?: string;
     exports?: unknown;
+    dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
 }
 
@@ -149,6 +150,17 @@ try {
         !existsSync(join(installedPackageDir, 'src')),
         'src/ must not be included in the npm package',
     );
+
+    step('Verifying packed dependencies resolve from the default registry');
+    // A `npm:@jsr/*` entry would make every consumer configure
+    // `@jsr:registry=https://npm.jsr.io` in their own .npmrc — the pnpm-only
+    // consumer install above cannot catch that, so assert it on the manifest.
+    for (const [name, specifier] of Object.entries(installedPackageJson.dependencies ?? {})) {
+        ensure(
+            !name.startsWith('@jsr/') && !specifier.startsWith('npm:@jsr/'),
+            `Packed dependency "${name}": "${specifier}" comes from the JSR npm registry and would require consumers to configure .npmrc`,
+        );
+    }
 
     step('Comparing CJS and ESM runtime exports');
     writeFileSync(
