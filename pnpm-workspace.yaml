@@ -4,7 +4,7 @@ overrides:
   # Resolve every `vite` peer (vite-plugin-mkcert, vitest's own chain) to Vite+'s
   # bundled core so plugin types are identical to the `vite-plus` defineConfig
   # signature; otherwise two vite instances coexist and `Plugin` types conflict.
-  vite: npm:@voidzero-dev/vite-plus-core@0.2.6
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.2
 peerDependencyRules:
   # The alias above pins vite to vite-plus-core's own version, which does not
   # match the `^6 || ^7 || ^8` ranges declared by vitest packages. The core IS

@@ -32,7 +32,7 @@ happy-opfs is a browser-compatible file system module based on OPFS (Origin Priv
 
 **Dependency version management with Vite+:**
 
-- `vite-plus` is the single toolchain dependency; it bundles its own Vite (`@voidzero-dev/vite-plus-core`) and Vitest (4.1.10). Neither `vite` nor `vitest` is declared as a devDependency.
+- `vite-plus` is the single toolchain dependency; it bundles its own Vite (`@voidzero-dev/vite-plus-core`) and Vitest (4.1.11). Neither `vite` nor `vitest` is declared as a devDependency.
 - `@vitest/browser-playwright` and `@vitest/coverage-v8` are NOT bundled (the Playwright provider is an optional peer; coverage is an addon) and must stay pinned to the Vitest version bundled by Vite+.
 - `pnpm-workspace.yaml` aliases every `vite` peer to `@voidzero-dev/vite-plus-core` so `vite-plugin-mkcert`'s plugin types stay identical to the `vite-plus` config signature (prevents a second vite instance).
 - Upgrading the toolchain means bumping `vite-plus` and syncing the two pinned `@vitest/*` addons — NOT running a blanket devDeps upgrade. Check the Vite+ changelog for breaking changes first (pre-1.0).
