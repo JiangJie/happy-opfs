@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-09-16
+
+### Added
+
+- `SyncChannel.disconnect()` to release the sync channel — terminates a library-created worker, while a caller-supplied or attached worker keeps running (also the recovery path after a stuck channel)
+- `workerType` option for `SyncChannel.connect()` to load a module worker from a URL (defaults to classic)
+- `withMetadata` option for `readDirSync()` plus the `DirEntrySlim` type, to list large trees without per-file metadata lookups
+
+### Fixed
+
+- `move()` with `overwrite: false` no longer deletes the source when the destination is missing (no-clobber moves are all-or-nothing, `mv -n` semantics)
+- Never deliver a timed-out sync operation's response to the next operation
+- `unzip()`/`unzipStream()` reject archive entries that escape the destination directory (the whole operation fails)
+- `SyncChannel.connect()`/`attach()` return an error instead of throwing when `SharedArrayBuffer` is unavailable (missing cross-origin isolation)
+- `zip()` normalizes `sourcePath` before deriving entry names
+- Worker-side writes are atomic via a temp file, so a failed overwrite no longer leaves a truncated file
+- `copy()`/`move()` report self-copy and directory self-nesting accurately; pure path relations are checked before `stat`
+
+### Changed
+
+- Block the worker in `Atomics.wait` instead of spinning, cutting idle CPU usage
+- Replace the ESLint/Prettier/vite/rollup toolchain with Vite+ (oxlint, oxfmt, tsdown); the npm tarball is now verified against publint and Are the Types Wrong before publish
+- Exclude `CHANGELOG.md` from the published npm tarball
+- Bump dependencies: `happy-rusty` ^1.10.0 → ^1.10.1, plus dev tooling (`playwright` 1.63, `publint` 0.3.24)
+
 ## [2.2.0] - 2026-07-27
 
 ### Added
@@ -573,6 +598,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result type pattern for error handling
 - OPFS feature detection with `isOPFSSupported()`
 
+[2.3.0]: https://github.com/JiangJie/happy-opfs/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/JiangJie/happy-opfs/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/JiangJie/happy-opfs/compare/v2.0.3...v2.1.0
 [2.0.3]: https://github.com/JiangJie/happy-opfs/compare/v2.0.2...v2.0.3
